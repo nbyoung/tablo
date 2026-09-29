@@ -1,0 +1,14 @@
+title: Derivation
+description: >
+  Derives what the files leave to Git and to inheritance: each junction resolved
+  through the ancestor chain with the provenance of every field, each
+  requirement's condition, each task's authorisation from the trunk's deciding
+  commit, each status's date and recorder, each reviewed junction's completion,
+  each parent's roll-up, each task's events, and each recursive junction's status
+  read from the subproject at its pinned commit or its local checkout.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "4f60", from: implementation, to: design, text: The model it derives from }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 4 }

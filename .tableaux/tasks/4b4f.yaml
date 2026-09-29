@@ -1,0 +1,12 @@
+title: Conformance
+description: >
+  Runs the tableaux conformance corpus against the command and compares the
+  diagnostics, findings and views with the expected output, including the
+  Tableaux tooling plan itself as a corpus entry.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "4ed9", from: implementation, to: implementation, text: The command the corpus drives }
+junctions:
+  mockup:         { applies: false }
+  function:       { applies: false }
+parent: { id: "b2c1", order: 8 }

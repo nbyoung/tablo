@@ -1,0 +1,8 @@
+title: Views
+description: >
+  The abstract views VIEWS.md defines, produced as data with a role filter and
+  the focusing parameters each view takes, so that every front end renders the
+  same view from the same structure. Each child implements the views it names
+  and tests them against the corpus.
+assignee: noreply@anthropic.com
+parent: { id: "b2c1", order: 6 }

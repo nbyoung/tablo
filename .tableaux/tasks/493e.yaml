@@ -1,0 +1,10 @@
+title: Structural views
+description: >
+  The gate definition, task definition, authority delegation and task assignment
+  views.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "27a3", from: implementation, to: design, text: Resolved junctions and authorisation }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "4091", order: 1 }

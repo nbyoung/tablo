@@ -1,0 +1,12 @@
+title: Loader
+description: >
+  Reads a project's .tableaux directory from a worktree or from any Git ref
+  through git ls-tree and git cat-file, parses each YAML file into a typed model
+  that keeps file and line positions for diagnostics, and checks version.yaml
+  against the versions the module accepts.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "0d83", from: implementation, to: implementation, text: The module and the embedded schemas }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 2 }

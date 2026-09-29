@@ -1,0 +1,14 @@
+title: Plumbing command
+description: >
+  The tablo command: validate, audit, view, status, history and trailer
+  subcommands that read a repository at a ref and emit JSON or YAML, and a
+  trailer subcommand that composes the Authorised, Reviewed and Reaffirmed lines
+  a porcelain puts into a commit. Scripts and every front end call it or embed
+  the library behind it.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "4091", from: implementation, to: implementation, text: The views it emits }
+  - { id: "dada", from: implementation, to: implementation, text: The audit it emits }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 7 }

@@ -1,0 +1,10 @@
+title: Temporal views
+description: >
+  The history and audit views, each bounded by a ref range.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "27a3", from: implementation, to: design, text: Events and status at a ref }
+  - { id: "dada", from: implementation, to: design, text: The findings the audit view lists }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "4091", order: 3 }

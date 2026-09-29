@@ -1,0 +1,11 @@
+title: Status views
+description: >
+  The global tableau, contextual tableau, work-blockage tree and contributor
+  work queue views, with the default gate window each tableau computes around
+  the next gates in view and the counts for the columns it folds.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "27a3", from: implementation, to: design, text: Roll-up and requirement conditions }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "4091", order: 2 }

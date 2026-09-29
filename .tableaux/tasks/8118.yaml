@@ -1,0 +1,14 @@
+title: Validator
+description: >
+  Validates a loaded project: each file against its schema, then the rules
+  README.md states, among them one root, parent chains that end at the root,
+  requirements without cycles and never to an ancestor or descendant, junction
+  keys that name gates, gates that apply to the tasks whose requirements name
+  them, no recursive junction on a parent, and status files that keep the
+  undefined rule. Emits diagnostics with positions and severities.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "4f60", from: implementation, to: design, text: The model it validates }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 3 }

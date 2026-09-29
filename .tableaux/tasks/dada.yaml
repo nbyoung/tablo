@@ -1,0 +1,14 @@
+title: Audit
+description: >
+  Reports the discrepancies between the files and the history as findings:
+  proposed tasks, statuses past unreviewed junctions, unmet requirements, stale
+  statuses older than a threshold, agent contributions without a human reviewer,
+  and subprojects that do not resolve. Each finding names the task, the gate,
+  the commit and the action that resolves it.
+assignee: noreply@anthropic.com
+requires:
+  - { id: "8118", from: implementation, to: implementation, text: The diagnostics it includes }
+  - { id: "27a3", from: implementation, to: design, text: The derivations it examines }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 5 }
