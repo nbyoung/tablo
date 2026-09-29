@@ -34,6 +34,74 @@ tablo view queue --for ada@example.org --json
 tablo trailer reviewed 9f31 design   # the trailer line a porcelain commits
 ```
 
+## Layout
+
+The module is `github.com/nbyoung/tablo`. Its shape is the template every
+front end in the family copies.
+
+```
+.
+├── go.mod                     # the module; the go directive pins the toolchain
+├── doc.go                     # package tablo: the library
+├── version.go                 # Version and the tableaux versions the module accepts
+├── version_test.go
+├── cmd/tablo/main.go          # command tablo: the plumbing command
+├── schemas/                   # the tableaux schema files, embedded into the binary
+├── .tableaux/                 # this project's plan
+├── .github/workflows/
+│   ├── ci.yml                 # format, vet, lint and test on every push and pull request
+│   └── release.yml            # build and publish on a tag
+├── .goreleaser.yaml           # the six targets and the release archives
+└── .golangci.yml              # the lint set
+```
+
+`schemas/` holds a copy of the schema files that the
+[tableaux](https://github.com/nbyoung/tableaux) schema-files task produces;
+`schemas/README.md` records the commit copied. Until that task lands the
+directory holds no schema file and the package does not build.
+
+## Build and test
+
+Go builds the module with no other tool; the version in `go.mod` decides which
+toolchain `go` fetches.
+
+```
+go build ./...                       # the library and the command
+go test ./...                        # the tests
+go run ./cmd/tablo version           # prints the version
+gofmt -l . && go vet ./...           # what CI checks first
+golangci-lint run                    # the lint set in .golangci.yml
+```
+
+CI runs those four checks on every push and pull request. Contributors work
+from the sibling checkout beside the `tableaux` repository; a personal
+`go.work` there builds the family together and stays uncommitted.
+
+## Release
+
+A tag `v<major>.<minor>.<patch>` releases. The release workflow runs
+[GoReleaser](https://goreleaser.com) from `.goreleaser.yaml`, which
+cross-compiles `cmd/tablo` with `CGO_ENABLED=0` for Linux, macOS and Windows on
+amd64 and arm64 and publishes one archive per target and a checksum file to the
+GitHub release for the tag. No user installs Go: they fetch one file from the
+release page.
+
+```
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+`Version` in `version.go` names the release the next tag makes; bump it in the
+same change that tags.
+
+## Versions accepted
+
+`version.yaml` in a project states the tableaux language version its files
+follow. The module accepts a project whose major version equals its own and
+whose minor version does not exceed it, as the method's version rule states.
+This module accepts major `0` and minor up to `1`, so `0.0.x` and `0.1.x`
+pass and `0.2.0` and `1.0.0` do not. `Accepts` in the root package applies the
+rule and the loader task calls it.
+
 ## Plan
 
 The project's plan is the Tableaux project in [`.tableaux/`](.tableaux/). The

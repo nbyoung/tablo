@@ -1,0 +1,33 @@
+# GoReleaser builds one static binary per target and publishes the archives
+# and their checksums to the GitHub release for the tag.
+version: 2
+
+project_name: tablo
+
+builds:
+  - main: ./cmd/tablo
+    binary: tablo
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+archives:
+  - formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
