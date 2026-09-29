@@ -1,0 +1,12 @@
+# Built binaries and GoReleaser output
+/tablo
+/tablo.exe
+/dist/
+
+# Test and coverage output
+*.test
+*.out
+
+# A personal Go workspace stays uncommitted
+go.work
+go.work.sum
