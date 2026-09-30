@@ -1,3 +1,3 @@
-gate: defined
+gate: function
 state: nominal
-note: The functional prototype is next and no requirement gates it
+note: prototype/8118 validates files against the embedded schemas and runs the tree, requirement and junction rules with positions; 32 corpus entries match expected.yaml and weather-station reports nothing
