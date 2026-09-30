@@ -95,6 +95,20 @@ func labelHash(t *testing.T, label string) string {
 	return ""
 }
 
+// firmwareHash reads a label of the firmware subproject repository, which the
+// corpus rebuild renumbers.
+func firmwareHash(t *testing.T, label string) string {
+	t.Helper()
+	labels, _ := os.ReadFile(filepath.Join(filepath.Dir(corpus), "weather-station.firmware.labels.txt"))
+	for _, l := range strings.Split(string(labels), "\n") {
+		if f := strings.Fields(l); len(f) == 2 && f[0] == label {
+			return f[1]
+		}
+	}
+	t.Fatalf("no firmware label %s", label)
+	return ""
+}
+
 func TestTaskViewAgainstExpected(t *testing.T) {
 	r := repoAt(t, "main")
 	v := view(t, r, "task", Params{Task: "9f31"})
@@ -141,7 +155,7 @@ func TestRequirementsAndRecursiveSnapshot(t *testing.T) {
 	}
 	s := r.status("c07d")
 	if s.Gate != "design" || s.State != "nominal" || s.Note != "Sleep scheduler in progress" ||
-		s.Date != "2026-09-17" || s.Recorder != "ben@example.org" || s.Commit != "3dc465e9ecb1a462cebe6fa8cd5384742792d388" ||
+		s.Date != "2026-09-17" || s.Recorder != "ben@example.org" || s.Commit != firmwareHash(t, "F2") ||
 		s.Snapshot["task"] != "f1a0" {
 		t.Errorf("c07d snapshot %+v", s)
 	}

@@ -30,7 +30,9 @@ func TestHistoryRange(t *testing.T) {
 	for _, e := range evs {
 		got = append(got, e.Commit+" "+e.Task+" "+e.Event)
 	}
-	want := "0effab7 9f31 task,931c43d 9f31 authorised,1939209 3c5d task,61b6558 3c5d authorised"
+	// The corpus build fixes the hashes; the labels file names them.
+	h := func(l string) string { return resolve(weather, l)[:7] }
+	want := h("W3") + " 9f31 task," + h("W4") + " 9f31 authorised," + h("W5") + " 3c5d task," + h("W6") + " 3c5d authorised"
 	if strings.Join(got, ",") != want {
 		t.Fatalf("got %v", got)
 	}
