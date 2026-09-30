@@ -5,6 +5,11 @@ description: >
   that keeps file and line positions for diagnostics, and checks version.yaml
   against the versions the module accepts.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout, text: "The files a project keeps under .tableaux" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/schemas/README.md#how-a-tool-loads-them, text: "How a tool loads the schemas" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/schemas/README.md#how-the-version-check-works, text: "The version check the loader applies" }
+  - { url: README.md#versions-accepted, text: "The versions this module accepts" }
 requires:
   - { id: "0d83", from: implementation, to: implementation, text: The module and the embedded schemas }
 junctions:
