@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestAccepts covers the version rule: major 0 and minor at most 2 pass, a
+// TestAccepts covers the version rule: major 0 and minor at most 3 pass, a
 // higher minor or another major fails, and every malformed string fails.
 func TestAccepts(t *testing.T) {
 	tests := []struct {
@@ -19,7 +19,9 @@ func TestAccepts(t *testing.T) {
 		{"0.0.12", true},
 		{"0.2.0", true},
 		{"0.2.7", true},
-		{"0.3.0", false},
+		{"0.3.0", true},
+		{"0.3.4", true},
+		{"0.4.0", false},
 		{"1.0.0", false},
 		{"1.1.0", false},
 		{"0.1", false},

@@ -14,7 +14,7 @@ const Version = "0.1.0"
 // version does not exceed it; the patch version never matters.
 const (
 	AcceptedMajor = 0
-	AcceptedMinor = 2
+	AcceptedMinor = 3
 )
 
 // Accepts reports whether the module accepts a project whose version.yaml
