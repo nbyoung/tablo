@@ -12,6 +12,7 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/PLAN.md#language, text: The language decision and the distribution paths }
   - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e3cb.yaml, text: The schema files this module embeds }
 junctions:
+  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
   mockup:         { applies: false }
   function:       { applies: false }
   unit:           { applies: false }
