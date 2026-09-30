@@ -7,6 +7,11 @@ description: >
   them, no recursive junction on a parent, and status files that keep the
   undefined rule. Emits diagnostics with positions and severities.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#tasksidyaml, text: "The rules for task files" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#requires-in-a-task-file, text: "The rules for requirements" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#junctions-in-a-task-file, text: "The rules for junctions" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#statusidyaml, text: "The rules for status files" }
 requires:
   - { id: "4f60", from: implementation, to: design, text: The model it validates }
 junctions:

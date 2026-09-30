@@ -4,6 +4,11 @@ description: >
   diagnostics, findings and views with the expected output, including the
   Tableaux tooling plan itself as a corpus entry.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/README.md#how-a-tool-consumes-the-corpus, text: "How a tool runs the corpus" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/README.md#expected-results, text: "The expected results it compares" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/README.md#this-project-as-an-entry, text: "The tooling plan as a corpus entry" }
+  - { url: README.md#build-and-test, text: "How the tests run" }
 requires:
   - { id: "4ed9", from: implementation, to: implementation, text: The command the corpus drives }
 junctions:

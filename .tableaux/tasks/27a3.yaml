@@ -7,6 +7,11 @@ description: >
   each parent's roll-up, each task's events, and each recursive junction's status
   read from the subproject at its pinned commit or its local checkout.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#junctions, text: "Junction inheritance and the recursive junction" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks, text: "Authorisation from the deciding commit" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "Status, roll-up and requirement conditions" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#derived-facts-not-rules, text: "The derived facts a tool computes" }
 requires:
   - { id: "4f60", from: implementation, to: design, text: The model it derives from }
 junctions:

@@ -4,6 +4,10 @@ description: >
   work queue views, with the default gate window each tableau computes around
   the next gates in view and the counts for the columns it folds.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "What a status and a tableau cell record" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/PLAN.md#views, text: "The gate window the tableaux compute" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Roll-up and requirement conditions }
 junctions:

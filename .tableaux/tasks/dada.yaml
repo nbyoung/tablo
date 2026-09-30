@@ -6,6 +6,11 @@ description: >
   and subprojects that do not resolve. Each finding names the task, the gate,
   the commit and the action that resolves it.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks, text: "Proposed tasks and their resolution" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "Statuses, review and staleness" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#derived-facts-not-rules, text: "The derived facts the audit examines" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/b14e.yaml, text: "The audit view as a Markdown findings table" }
 requires:
   - { id: "8118", from: implementation, to: implementation, text: The diagnostics it includes }
   - { id: "27a3", from: implementation, to: design, text: The derivations it examines }

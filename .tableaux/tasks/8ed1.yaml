@@ -2,6 +2,10 @@ title: Temporal views
 description: >
   The history and audit views, each bounded by a ref range.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#history, text: "The events the history view lists" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#history, text: "The history syntax and its events" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Events and status at a ref }
   - { id: "dada", from: implementation, to: design, text: The findings the audit view lists }

@@ -6,6 +6,11 @@ description: >
   a porcelain puts into a commit. Scripts and every front end call it or embed
   the library behind it.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#commit-trailers, text: "The Authorised, Reviewed and Reaffirmed trailers" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/README.md#how-a-tool-consumes-the-corpus, text: "How a tool consumes the corpus" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
+  - { url: README.md#what-it-does, text: "The command and its subcommands" }
 requires:
   - { id: "4091", from: implementation, to: implementation, text: The views it emits }
   - { id: "dada", from: implementation, to: implementation, text: The audit it emits }

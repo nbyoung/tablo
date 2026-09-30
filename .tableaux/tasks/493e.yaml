@@ -3,6 +3,11 @@ description: >
   The gate definition, task definition, authority delegation and task assignment
   views.
 assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#gates, text: "The gates the legend defines" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#roles, text: "The roles that authority and assignment views serve" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks, text: "Proposed tasks the authority view marks" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Resolved junctions and authorisation }
 junctions:
