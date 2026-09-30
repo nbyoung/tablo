@@ -10,5 +10,6 @@ requires:
   - { id: "4091", from: implementation, to: implementation, text: The views it emits }
   - { id: "dada", from: implementation, to: implementation, text: The audit it emits }
 junctions:
+  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
   mockup:         { applies: false }
 parent: { id: "b2c1", order: 7 }
