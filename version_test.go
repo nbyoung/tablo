@@ -17,7 +17,9 @@ func TestAccepts(t *testing.T) {
 		{"0.1.0", true},
 		{"0.1.9", true},
 		{"0.0.12", true},
-		{"0.2.0", false},
+		{"0.2.0", true},
+		{"0.2.7", true},
+		{"0.3.0", false},
 		{"1.0.0", false},
 		{"1.1.0", false},
 		{"0.1", false},
@@ -60,13 +62,19 @@ func TestParseVersion(t *testing.T) {
 }
 
 // TestAcceptsOwnPlan checks that the module accepts the version of its own
-// Tableaux plan. version.yaml holds one field, so a text scan suffices here.
+// Tableaux plan. version.yaml holds flat scalar fields, so a line scan
+// suffices here; the loader task parses it properly.
 func TestAcceptsOwnPlan(t *testing.T) {
 	data, err := os.ReadFile(".tableaux/version.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(string(data)), "tableaux:"))
+	v := ""
+	for _, line := range strings.Split(string(data), "\n") {
+		if rest, ok := strings.CutPrefix(strings.TrimSpace(line), "tableaux:"); ok {
+			v = strings.TrimSpace(rest)
+		}
+	}
 	if !Accepts(v) {
 		t.Errorf("Accepts(%q) = false for the module's own plan", v)
 	}

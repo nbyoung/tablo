@@ -98,8 +98,8 @@ same change that tags.
 `version.yaml` in a project states the tableaux language version its files
 follow. The module accepts a project whose major version equals its own and
 whose minor version does not exceed it, as the method's version rule states.
-This module accepts major `0` and minor up to `1`, so `0.0.x` and `0.1.x`
-pass and `0.2.0` and `1.0.0` do not. `Accepts` in the root package applies the
+This module accepts major `0` and minor up to `2`, so `0.0.x`, `0.1.x` and `0.2.x`
+pass and `0.3.0` and `1.0.0` do not. `Accepts` in the root package applies the
 rule and the loader task calls it.
 
 ## Plan
