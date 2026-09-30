@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: The skeleton is on the trunk and passes vet and test locally; the implementation record awaits the first CI run after the push
+note: The skeleton is on the trunk and passes vet and test locally and in CI run 36673445640 on e416c19; formatting, lint and the release workflow are in place
