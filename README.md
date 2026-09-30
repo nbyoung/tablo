@@ -102,6 +102,22 @@ This module accepts major `0` and minor up to `2`, so `0.0.x`, `0.1.x` and `0.2.
 pass and `0.3.0` and `1.0.0` do not. `Accepts` in the root package applies the
 rule and the loader task calls it.
 
+## Dependencies
+
+The owner decided at the function gate, after every prototype wrote its own
+YAML reader, that the implementation takes two libraries:
+
+| Module                                    | Version | Purpose                                                        |
+|-------------------------------------------|---------|----------------------------------------------------------------|
+| `gopkg.in/yaml.v3`                        | v3      | Parse project files; `yaml.Node` keeps the line and column of every value |
+| `github.com/santhosh-tekuri/jsonschema/v6` | v6      | Validate files against the embedded JSON Schema 2020-12 schemas |
+
+Both are pure Go, so the six release targets still build with `CGO_ENABLED=0`.
+The loader task adds the `require` lines when its implementation first imports
+them; `go` fetches the modules from the module proxy, and no one installs
+anything by hand. The prototypes under `prototype/` predate the decision and
+keep their stand-in readers.
+
 ## Plan
 
 The project's plan is the Tableaux project in [`.tableaux/`](.tableaux/). The
