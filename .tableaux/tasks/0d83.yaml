@@ -7,6 +7,10 @@ description: >
   A release workflow cross-compiles one static binary for Linux, macOS and
   Windows on amd64 and arm64 and publishes them, so no user installs Go.
 assignee: noreply@anthropic.com
+references:
+  - { url: README.md#layout, text: "The module layout, build, release and accepted versions" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/PLAN.md#language, text: The language decision and the distribution paths }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e3cb.yaml, text: The schema files this module embeds }
 junctions:
   mockup:         { applies: false }
   function:       { applies: false }
