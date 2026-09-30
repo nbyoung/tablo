@@ -76,6 +76,7 @@ task a210
   exists and `expected.yaml` states no S11 finding. The prototype reports it as
   `UNREVIEWED`. Either the entry needs a finding or the review, or the method needs
   a rule for it.
+  *Resolved 2026-09-30: the owner ruled README.md right and the corpus now carries `Reviewed: c07d mockup` at W11 (tableaux `1b0c002`).*
 - `trunk-stated` `expected.yaml` lists `b2c9` as proposed on `main`, but `main`
   does not hold that task (only `develop` does). The prototype prints a NOTE
   and does not count it.

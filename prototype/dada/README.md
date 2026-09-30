@@ -47,7 +47,7 @@ $ go run ./prototype/dada corpus/build/unknown-trailer
 
 Against `expected.yaml`, every H1, H2, H3 and S11 finding matches by rule, task, gate and commit, and every task whose authorisation the file states matches in state and deciding commit. `weather-station` on the branch `sensor-board` reads every task as proposed at W3.
 
-One difference: the audit reports S11 for `weather-station` task `c07d` at `mockup`. The status stands at `design`, the inherited `mockup` reviewer is `ben`, and the history holds no `Reviewed: c07d mockup`. `expected.yaml` states no S11 finding and `valid: true`. The test asserts this finding by name so the difference stays visible.
+One difference: the audit reports S11 for `weather-station` task `c07d` at `mockup`. The status stands at `design`, the inherited `mockup` reviewer is `ben`, and the history holds no `Reviewed: c07d mockup`. `expected.yaml` states no S11 finding and `valid: true`. The test asserts this finding by name so the difference stays visible. *Resolved 2026-09-30: the owner ruled README.md right and the corpus now carries `Reviewed: c07d mockup` at W11, so the audit reports nothing (tableaux `1b0c002`).*
 
 ## What it leaves out
 

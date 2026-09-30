@@ -57,7 +57,7 @@ The other views. Validation and findings. Models (the `Model:` trailer check). E
 
 ## Findings
 
-- **Roll-up conflicts with the corpus.** README.md takes the earliest gate among the considered children. `4e2b` has children `9f31` (function, stalled) and `c07d` (design), so the rule gives function, stalled, from `9f31`. `expected.yaml` and corpus/README.md give design, nominal, from `c07d`. The prototype follows the rule and the test records the difference. This is not the F14 finding, which assumes the corpus is right.
+- **Roll-up conflicts with the corpus.** README.md takes the earliest gate among the considered children. `4e2b` has children `9f31` (function, stalled) and `c07d` (design), so the rule gives function, stalled, from `9f31`. `expected.yaml` and corpus/README.md give design, nominal, from `c07d`. The prototype follows the rule and the test records the difference. This is not the F14 finding, which assumes the corpus is right. *Resolved 2026-09-30: the owner ruled README.md right and the corpus now gives function, stalled, from `9f31` (tableaux `1b0c002`).*
 - **The `pending` condition.** `expected.yaml` states requirement conditions as met, unmet or pending; VIEWS.md lists "met, due, unmet". The prototype emits `met` and `due` as booleans and `condition` as the corpus has it.
 - **Off the trunk.** The corpus treats the commit W3, which is reachable from the trunk but off its first-parent line, as off the trunk. The prototype does the same: a ref is on the trunk when it lies on the trunk's first-parent line.
 

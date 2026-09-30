@@ -68,9 +68,8 @@ func TestReviewByTheRightPerson(t *testing.T) {
 	if len(r) != 1 || r[0].Gate != "mockup" || lbl(lab, r[0].Commit) != "W9" {
 		t.Errorf("9f31 reviews: %+v", r)
 	}
-	// c07d passes a reviewed mockup that no Reviewed: commit accepts. expected.yaml states no
-	// finding for it, so the derivation reports the gap for the design gate to settle.
-	if r := d.Reviews["c07d"]; len(r) != 1 || r[0].Commit != "" {
+	// ben is contributor and reviewer of c07d's mockup, so W11, which records the status, carries the trailer.
+	if r := d.Reviews["c07d"]; len(r) != 1 || r[0].Gate != "mockup" || lbl(lab, r[0].Commit) != "W11" {
 		t.Errorf("c07d reviews: %+v", r)
 	}
 	k, klab := entry(t, "junction-kinds", "")

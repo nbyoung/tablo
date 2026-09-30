@@ -112,9 +112,8 @@ func TestCorpus(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(corpus, "build")); err != nil {
 		t.Skip("corpus not built")
 	}
-	// weather-station holds one finding that expected.yaml does not state:
-	// c07d passes the mockup junction that ben reviews with no Reviewed commit.
-	extra := map[string][]string{"weather-station": {"S11|c07d|mockup"}}
+	// No entry holds a finding that expected.yaml does not state.
+	extra := map[string][]string{}
 	for _, entry := range []string{"review-by-non-reviewer", "model-mismatch", "unknown-trailer", "status-unreviewed-gate", "weather-station"} {
 		t.Run(entry, func(t *testing.T) {
 			raw, err := os.ReadFile(filepath.Join(corpus, "entries", entry, "expected.yaml"))

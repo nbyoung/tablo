@@ -51,7 +51,7 @@ not yet due: 3c5d requires 7b2e (function to integrate)
 
 ## Finding: the corpus disagrees with the roll-up rule
 
-README.md#status says the parent takes the earliest gate among its considered children. `9f31` stands at `function` and `c07d` at `design`, and `function` comes first, so `4e2b` rolls up to function, stalled, blocked from `9f31`. The corpus (`expected.yaml`, and corpus/README.md line 159) says design, nominal from `c07d`, and its finding F14 and VIEWS.md describe `9f31` as "at a later gate". The prototype follows the rule. The test asserts the rule's result, and the root agrees with `expected.yaml` either way. The owner must decide whether the rule or the corpus is wrong; the tableau and the parent's tie-break depend on it.
+README.md#status says the parent takes the earliest gate among its considered children. `9f31` stands at `function` and `c07d` at `design`, and `function` comes first, so `4e2b` rolls up to function, stalled, blocked from `9f31`. The corpus (`expected.yaml`, and corpus/README.md line 159) says design, nominal from `c07d`, and its finding F14 and VIEWS.md describe `9f31` as "at a later gate". The prototype follows the rule. The test asserts the rule's result, and the root agrees with `expected.yaml` either way. The owner must decide whether the rule or the corpus is wrong; the tableau and the parent's tie-break depend on it. *Resolved 2026-09-30: the owner ruled README.md right and the corpus now gives function, stalled, from `9f31`, and F14 is resolved (tableaux `1b0c002`).*
 
 ## Points that depend on a VIEWS.md choice still open
 
