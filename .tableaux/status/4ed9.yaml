@@ -1,3 +1,3 @@
-gate: defined
+gate: function
 state: nominal
-note: The functional prototype is next and no requirement gates it
+note: prototype/4ed9 shows a dispatcher with -C and --ref, a versioned JSON or YAML envelope and correct trailer lines
