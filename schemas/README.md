@@ -7,15 +7,14 @@ file kind: `version`, `gates`, `task`, `status` and `history`, each named
 so a user installs nothing beside `tablo`.
 
 The files come from the tableaux schema-files task (`e3cb`), which extracts
-them from SYNTAX.md and tags them with a language version. That task has not
-landed yet, so this directory holds no schema file and the package does not
-build until one does.
+them from SYNTAX.md and tags them with a language version. The copy here
+matches the tableaux commit below.
 
 To copy them, record the tableaux commit here and refresh the files:
 
 | Field            | Value       |
 |------------------|-------------|
-| tableaux commit  | not yet     |
+| tableaux commit  | `f3e3e2e`   |
 | tableaux version | `0.1.0`     |
 
 The tableaux version copied here must be one the module accepts; see
