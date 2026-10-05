@@ -1,3 +1,4 @@
 gate: defined
 state: nominal
-note: The design is next and no requirement gates it
+reason: review
+note: design/4b4f.md on branch wave/4b4f awaits the owner's review at the design gate
