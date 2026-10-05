@@ -1,0 +1,14 @@
+weather-station at main: 4 mismatches in 131 facts
+    tasks.4e2b.status.gate
+        want  function  [expected.yaml:44]
+        got   design  [view task --task 4e2b]
+    tasks.c07d.events[6].new
+        want  cf5b16964dba7f8f1c8842a8202878fd572ad835 (F2)  [expected.yaml:114]
+        got   (absent)  [view history --task c07d]
+    findings
+        want  R9 warning task=c07d file=tasks/c07d.yaml  [expected.yaml:11]
+        got   (no such finding)  [validate]
+    findings
+        want  (no such finding)
+        got   S11 error task=c07d file=status/c07d.yaml: c07d passes mockup with no Reviewed commit  [validate]
+    rerun: TABLO_KEEP=1 go test ./internal/conformance -run 'TestCorpus/weather-station$'

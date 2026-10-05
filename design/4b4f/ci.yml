@@ -1,0 +1,20 @@
+# The job the implementation adds to .github/workflows/ci.yml, beside `check`.
+# It needs the network: it clones the tableaux repository and its submodules.
+  corpus:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Fetch the tableaux repository at the locked commit
+        run: sh internal/corpustest/corpus.sh fetch "$RUNNER_TEMP/tableaux"
+      - name: Run the corpus in place
+        env:
+          TABLO_CORPUS: ${{ runner.temp }}/tableaux/corpus
+          TABLO_REPORT: ${{ runner.temp }}/conformance.md
+        run: go test -count=1 ./internal/conformance
+      - name: Publish the report
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/conformance.md" ]; then cat "$RUNNER_TEMP/conformance.md" >> "$GITHUB_STEP_SUMMARY"; fi

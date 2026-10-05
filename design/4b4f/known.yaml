@@ -1,0 +1,15 @@
+# known.yaml: the corpus entries the conformance test expects to fail.
+#
+# A listed entry still runs. When it fails, its subtest logs the mismatches and
+# skips; when it passes, its subtest fails and says to remove the item, so the
+# list never outlives its reason.
+#
+#   entry    the entry's name
+#   reason   one line: the first mismatch, or what is wrong
+#   owes     the task that resolves it: a tablo task id, or fcec for the corpus
+#   finding  optional: the corpus finding the owner accepted; an item without
+#            one holds this task's unit gate
+known:
+  - entry: tableaux-tooling
+    reason: expected.yaml states facts older than the commit the tag corpus/tooling names
+    owes: fcec           # design/4b4f.md, finding C1; the owner adds `finding: C1` on accepting it
