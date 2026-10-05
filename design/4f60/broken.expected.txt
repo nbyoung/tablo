@@ -1,0 +1,28 @@
+# What the Loader reports for the fixture broken/, in the order it reports it:
+# position, severity, code. A syntax fault carries the reader's line and no column;
+# a stray path carries no position. The message is not part of the contract.
+notes.txt              warning L4
+tasks/b111.yaml:3      error   L1
+tasks/c222.yaml:5:33   error   L2
+tasks/c222.yaml:6:1    error   L2
+tasks/d333.yaml:6:1    error   L3
+tasks/e444.yaml:4:11   error   L3
+tasks/e444.yaml:6:24   error   L3
+tasks/e444.yaml:7:15   error   L3
+tasks/g666.yml         warning L4
+
+# What the model holds all the same.
+tasks                  a000 c222 d333 e444 f555     # b111 has a file and no task; g666 has neither
+statuses               c222
+c222 assignee          pat@example.org at 4:11      # the first of the two stands
+c222 parent.id         a000 at 5:15                 # the first of the two stands
+d333 title             Two documents                # the first document
+e444 assignee          pat@example.org at 4:11      # the anchored scalar reads as written
+e444 release.reviewer  present, null, at 6:24       # the alias
+e444 parent.id         1000 at 7:15, read int, not quoted
+f555 requires[0].id    07e0 at 6:11, read float, not quoted
+f555 requires[1].id    40e8 at 7:11, read float, not quoted
+f555 requires[2].subproject.id        1000 at 8:35, read int, not quoted
+f555 junctions.release.subproject.id  0010 at 10:42, read int, not quoted
+f555 parent.id         a000 at 11:15, read string, not quoted
+status c222 note       2026-09-01, a string         # YAML 1.2 has no timestamp

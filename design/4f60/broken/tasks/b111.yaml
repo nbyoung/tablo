@@ -1,0 +1,5 @@
+# tasks/b111.yaml : not YAML; the description line is indented under a scalar
+title: Not YAML
+  description: The reader stops at this line.
+assignee: pat@example.org
+parent: { id: "a000", order: 1 }

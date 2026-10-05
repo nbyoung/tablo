@@ -1,0 +1,6 @@
+# tasks/c222.yaml : assignee appears twice; the first stands
+title: Duplicate key
+description: A mapping that states one key twice.
+assignee: pat@example.org
+parent: { id: "a000", order: 2, id: "b111" }
+assignee: olive@example.org
