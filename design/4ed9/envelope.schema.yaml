@@ -1,0 +1,175 @@
+# DRAFT: the design of tablo task 4ed9, not the implementation.
+# Lands as envelope.schema.yaml beside doc.go, embedded as tablo.EnvelopeSchema.
+#
+# The envelope every tablo command writes with --json or --yaml. Every object
+# here stays open: a consumer ignores a key it does not know, and a new key
+# does not change the schema version. A key this file requires never goes
+# away, changes type or changes meaning within tablo/1.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tablo/envelope.schema.yaml
+title: The tablo output envelope, schema tablo/1
+type: object
+required: [schema, command, source, project, viewer, params, data, diagnostics]
+properties:
+  schema:      { const: tablo/1 }
+  command:     { enum: [gates, task, authority, assignment, queue, blockage, tableau, context, history, audit, validate, trailer, version] }
+  source:      { oneOf: [{ type: "null" }, { $ref: "#/$defs/source" }] }
+  project:     { oneOf: [{ type: "null" }, { $ref: "#/$defs/project" }] }
+  viewer:      { oneOf: [{ type: "null" }, { $ref: "#/$defs/viewer" }] }
+  params:      { $ref: "#/$defs/params" }
+  data:        { type: [object, "null"] }
+  diagnostics: { type: array, items: { $ref: "#/$defs/diagnostic" } }
+
+allOf:
+  # A view names its viewer and its level; the other commands name neither.
+  - if:   { properties: { command: { enum: [gates, task, authority, assignment, queue, blockage, tableau, context, history, audit] } } }
+    then:
+      properties:
+        source: { $ref: "#/$defs/source" }
+        viewer: { $ref: "#/$defs/viewer" }
+        params: { required: [role, level], properties: { level: { $ref: "#/$defs/level" } } }
+    else:
+      properties:
+        viewer: { type: "null" }
+        params: { maxProperties: 0 }
+  # The parameters each view takes, every key present and null when unset.
+  - if:   { properties: { command: { enum: [gates, task, authority, assignment, queue, blockage, context, history, audit] } } }
+    then: { properties: { params: { required: [task] } } }
+  - if:   { properties: { command: { enum: [task, authority, assignment, queue, blockage, tableau, context, history, audit] } } }
+    then: { properties: { params: { required: [person] } } }
+  - if:   { properties: { command: { enum: [tableau, context] } } }
+    then: { properties: { params: { required: [window, columns, historical] } } }
+  - if:   { properties: { command: { const: authority } } }
+    then: { properties: { params: { required: [proposed] } } }
+  - if:   { properties: { command: { const: queue } } }
+    then: { properties: { params: { required: [brief] } } }
+  - if:   { properties: { command: { const: audit } } }
+    then: { properties: { params: { required: [stale, now] } } }
+  - if:   { properties: { command: { const: validate } } }
+    then:
+      properties:
+        source: { $ref: "#/$defs/source" }
+        data:
+          type: object
+          required: [valid, errors, warnings, information]
+          properties:
+            valid:       { type: boolean }
+            errors:      { type: integer, minimum: 0 }
+            warnings:    { type: integer, minimum: 0 }
+            information: { type: integer, minimum: 0 }
+  - if:   { properties: { command: { const: trailer } } }
+    then:
+      properties:
+        data:
+          type: object
+          required: [trailer, kind, task, gate, model]
+          properties:
+            trailer: { type: string, pattern: "^(Authorised|Reviewed|Reaffirmed|Model): \\S.*$" }
+            kind:    { enum: [authorised, reviewed, reaffirmed, model] }
+            task:    { oneOf: [{ type: "null" }, { $ref: "#/$defs/id" }] }
+            gate:    { oneOf: [{ type: "null" }, { $ref: "#/$defs/key" }] }
+            model:   { type: [string, "null"] }
+  - if:   { properties: { command: { const: version } } }
+    then:
+      properties:
+        source:  { type: "null" }
+        project: { type: "null" }
+        data:
+          type: object
+          required: [version, tableaux, schema]
+          properties:
+            version:  { type: string, pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" }
+            tableaux: { type: string, pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" }
+            schema:   { const: tablo/1 }
+
+$defs:
+  id:     { type: string, pattern: "^[0-9a-f]{4}$" }
+  key:    { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
+  email:  { type: string, pattern: "^[^@\\s]+@[^@\\s]+$" }
+  commit: { type: string, pattern: "^[0-9a-f]{40}$" }
+  date:   { type: string, pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+  level:  { enum: [glance, detail, provenance] }
+  role:   { enum: [owner, authority, assignee, contributor, agent, reviewer, observer] }
+
+  # What the command reads.
+  source:
+    type: object
+    required: [ref, worktree, commit, date, from, trunk, on_trunk]
+    properties:
+      ref:      { type: string, minLength: 1 }       # the name given; for the working tree, the branch HEAD names, or HEAD
+      worktree: { type: boolean }                    # true when the files come from disk and the history from HEAD
+      commit:   { oneOf: [{ type: "null" }, { $ref: "#/$defs/commit" }] }   # null for a bare tree, which validate alone reads
+      date:     { oneOf: [{ type: "null" }, { $ref: "#/$defs/date" }] }     # the commit's author date
+      from:                                          # the start of a range, for history alone
+        oneOf:
+          - { type: "null" }
+          - type: object
+            required: [ref, commit]
+            properties:
+              ref:    { type: string, minLength: 1 }
+              commit: { $ref: "#/$defs/commit" }
+      trunk:
+        type: object
+        required: [name, resolved]
+        properties:
+          name:     { type: [string, "null"] }
+          resolved: { enum: [stated, inferred, caller, undetermined] }
+      on_trunk: { type: boolean }
+
+  # The project, null when the files give no root task.
+  project:
+    type: object
+    required: [tableaux, root, title, owner]
+    properties:
+      tableaux: { type: string }                     # version.yaml's language version, as written
+      root:     { $ref: "#/$defs/id" }
+      title:    { type: string }                     # the root task's title
+      owner:    { type: string }                     # the root task's assignee
+
+  # Whoever runs the tool, and the roles that email holds anywhere in the project.
+  viewer:
+    type: object
+    required: [email, roles]
+    properties:
+      email: { oneOf: [{ type: "null" }, { $ref: "#/$defs/email" }] }
+      roles: { type: array, items: { $ref: "#/$defs/role" }, uniqueItems: true }
+
+  # The parameters as resolved, defaults written in.
+  params:
+    type: object
+    properties:
+      task:       { oneOf: [{ type: "null" }, { $ref: "#/$defs/id" }] }
+      person:     { oneOf: [{ type: "null" }, { $ref: "#/$defs/email" }] }
+      role:       { oneOf: [{ type: "null" }, { $ref: "#/$defs/role" }] }
+      level:      { oneOf: [{ type: "null" }, { $ref: "#/$defs/level" }] }
+      window:     { type: [integer, "null"], minimum: 0 }
+      columns:    { oneOf: [{ type: "null" }, { type: array, minItems: 1, items: { $ref: "#/$defs/key" }, uniqueItems: true }] }
+      historical: { type: boolean }
+      proposed:   { type: boolean }
+      brief:
+        oneOf:
+          - { type: "null" }
+          - type: object
+            required: [task, gate]
+            properties:
+              task: { $ref: "#/$defs/id" }
+              gate: { $ref: "#/$defs/key" }
+      stale:      { type: integer, minimum: 1 }
+      now:        { $ref: "#/$defs/date" }
+
+  # One finding of the loader or the validator.
+  diagnostic:
+    type: object
+    required: [severity, code, message]
+    properties:
+      severity: { enum: [error, warning, information] }
+      code:     { type: string, pattern: "^[A-Za-z][A-Za-z0-9.-]*$" }   # a rule id of corpus/RULES.md where one applies; the set grows
+      path:     { type: string, pattern: "^\\.tableaux(/|$)" }   # relative to the directory -C names, with / on every host
+      line:     { type: integer, minimum: 1 }
+      col:      { type: integer, minimum: 1 }
+      task:     { $ref: "#/$defs/id" }
+      gate:     { $ref: "#/$defs/key" }
+      commit:   { $ref: "#/$defs/commit" }
+      trailer:  { type: string }
+      message:  { type: string, minLength: 1 }
+    dependentRequired: { line: [path], col: [line] }

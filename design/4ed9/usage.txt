@@ -1,0 +1,43 @@
+usage: tablo [options] <command> [arguments]
+
+tablo reads a Tableaux project from a Git repository and writes data.
+
+Views, as JSON:
+  gates       [--task <id>]
+  task        <id> [--person <email>]
+  authority   [--task <id>] [--person <email>] [--proposed]
+  assignment  [--task <id>] [--person <email>]
+  queue       [--task <id>] [--person <email>] [--brief <id> <gate>]
+  blockage    [--task <id>] [--person <email>]
+  tableau     [--person <email>] [--window <n> | --columns <gate>,...] [--historical]
+  context     [--task <id> | --person <email>] [--window <n> | --columns <gate>,...] [--historical]
+  history     [--task <id>] [--person <email>]
+  audit       [--task <id>] [--person <email>] [--stale <days>] [--now <date>]
+
+  Every view takes [--role <role>] [--level glance|detail|provenance].
+  history takes a range, --ref <from>..<to>.
+
+Other commands, as plain text:
+  validate                              the diagnostics, one per line
+  trailer authorised <id>               Authorised: <id>
+  trailer reviewed <id> <gate>          Reviewed: <id> <gate>
+  trailer reaffirmed <id>               Reaffirmed: <id>
+  trailer model <identifier>            Model: <identifier>
+  version                               the tablo version, the language and the schema
+
+  trailer takes [--no-check], which composes the line and reads no project.
+
+Options for every command, before or after it:
+  -C <dir>                the directory that holds .tableaux (default: .)
+  --ref <ref>             read the project at a commit (default: the working tree on HEAD)
+  --trunk <branch>        the trunk, when version.yaml and origin/HEAD name none
+  --replace <url>=<dir>   read the subproject at <url> from the clone at <dir>; repeatable
+  --viewer <email>        whoever runs the tool (default: GIT_AUTHOR_EMAIL, then git config user.email)
+  --json | --yaml         write the envelope, as JSON or as YAML
+  --help                  print this text
+
+Exit status:
+  0  the command ran and reports no error
+  1  the command ran and reports an error diagnostic
+  2  the command line is wrong
+  3  the repository, or a ref, task or gate named on the command line, cannot be read

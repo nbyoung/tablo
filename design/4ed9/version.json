@@ -1,0 +1,14 @@
+{
+  "schema": "tablo/1",
+  "command": "version",
+  "source": null,
+  "project": null,
+  "viewer": null,
+  "params": {},
+  "data": {
+    "version": "0.1.0",
+    "tableaux": "0.3",
+    "schema": "tablo/1"
+  },
+  "diagnostics": []
+}
