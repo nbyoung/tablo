@@ -1,3 +1,4 @@
 gate: function
 state: nominal
-note: prototype/4ed9 shows a dispatcher with -C and --ref, a versioned JSON or YAML envelope and correct trailer lines
+reason: review
+note: design/4ed9.md on branch wave/4ed9 awaits the owner's review at the design gate
