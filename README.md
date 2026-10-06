@@ -28,9 +28,9 @@ never reads a task file itself.
 
 ```
 tablo validate                       # diagnostics for the working tree
-tablo audit --at v1.0                # findings at a tag
-tablo view tableau --json            # the global tableau as data
-tablo view queue --for ada@example.org --json
+tablo audit --ref v1.0               # findings at a tag
+tablo tableau --json                 # the global tableau as data
+tablo queue --person ada@example.org --json
 tablo trailer reviewed 9f31 design   # the trailer line a porcelain commits
 ```
 

@@ -6,6 +6,9 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#history, text: "The events the history view lists" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#history, text: "The history syntax and its events" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/9167.md, text: "What the history renderer expects of the history data (A1, A2, A5)" }
+  - { url: https://github.com/nbyoung/tableaud/blob/main/design/9a9c.md, text: "The history page's days and effects (decisions 2 and 5)" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/b618.md, text: "The junction a commit is at (decision 8), which the history reads" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Events and status at a ref }
   - { id: "dada", from: implementation, to: design, text: The findings the audit view lists }

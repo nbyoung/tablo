@@ -11,6 +11,11 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "Statuses, review and staleness" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#derived-facts-not-rules, text: "The derived facts the audit examines" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/b14e.yaml, text: "The audit view as a Markdown findings table" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/9167.md, text: "What the audit renderer expects of the audit data (A3, A4)" }
+  - { url: https://github.com/nbyoung/tableaud/blob/main/design/9a9c.md, text: "What the audit template expects of the finding record (A8)" }
+  - { url: https://github.com/nbyoung/tableaud/blob/main/design/49ce.md, text: "The audit's clock and the pure view (A7)" }
+  - { url: https://github.com/nbyoung/tableaud/blob/main/design/6160.md, text: "Staleness counted from the commit for an export (A9)" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/b618.md, text: "The junction a commit is at (decision 8), which H3 and H6 read" }
 requires:
   - { id: "8118", from: implementation, to: implementation, text: The diagnostics it includes }
   - { id: "27a3", from: implementation, to: design, text: The derivations it examines }

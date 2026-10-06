@@ -8,6 +8,10 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/.tableaux/tasks/e9c6.yaml, text: "The abstract views and their focusing parameters" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "What a status and a tableau cell record" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/PLAN.md#views, text: "The gate window the tableaux compute" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/a3cc.md, text: "What the tableau, blockage and queue renderers expect (A1 to A5)" }
+  - { url: https://github.com/nbyoung/tablotui/blob/main/design/679b.md, text: "What the grid expects of the tableau data (A3 to A8)" }
+  - { url: https://github.com/nbyoung/tableaud/blob/main/design/49ce.md, text: "The one call per view and the person default (A3, A4)" }
+  - { url: https://github.com/nbyoung/tabloio/blob/main/design/e4c7.md, text: "The brief object the queue carries (decision 2)" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Roll-up and requirement conditions }
 junctions:

@@ -12,6 +12,7 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks, text: "Authorisation from the deciding commit" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/README.md#status, text: "Status, roll-up and requirement conditions" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#derived-facts-not-rules, text: "The derived facts a tool computes" }
+  - { url: https://github.com/nbyoung/tablo/blob/main/design/4f60.md, text: "The model, the links and the working-tree pin the Derivation reads" }
 requires:
   - { id: "4f60", from: implementation, to: design, text: The model it derives from }
 junctions:
