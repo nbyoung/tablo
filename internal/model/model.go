@@ -51,7 +51,7 @@ type Location struct {
 // Version is version.yaml.
 type Version struct {
 	File                *File
-	Tableaux, Trunk     Str
+	Tableaux, Trunk     StrField
 	Major, Minor, Patch int
 	WellFormed          bool // Tableaux is major.minor.patch
 	Accepted            bool // WellFormed, and the module accepts it
@@ -67,20 +67,20 @@ type Gating struct {
 
 // Gate is one entry under gates.
 type Gate struct {
-	Key, Symbol, Name, Criteria Str
+	Key, Symbol, Name, Criteria StrField
 	Node                        *Value
 }
 
 // State is one entry under states.
 type State struct {
-	Key, Symbol, Synopsis Str
+	Key, Symbol, Synopsis StrField
 	Severity              IntField
 	Node                  *Value
 }
 
 // Reason is one entry under reasons.
 type Reason struct {
-	Key, Symbol, Synopsis Str
+	Key, Symbol, Synopsis StrField
 	Node                  *Value
 }
 
@@ -88,7 +88,7 @@ type Reason struct {
 type Task struct {
 	ID                           string
 	File                         *File
-	Title, Description, Assignee Str
+	Title, Description, Assignee StrField
 	References                   []*Reference
 	Requires                     []*Requirement
 	Junctions                    []*Junction // in file order
@@ -97,21 +97,21 @@ type Task struct {
 
 // Reference is one entry under references, on a task or a junction.
 type Reference struct {
-	URL, Text Str
+	URL, Text StrField
 	Node      *Value
 }
 
 // Requirement is one entry under requires.
 type Requirement struct {
-	ID             Str
+	ID             StrField
 	Subproject     *Subproject
-	From, To, Text Str
+	From, To, Text StrField
 	Node           *Value
 }
 
 // Parent is the parent field of a task.
 type Parent struct {
-	ID    Str
+	ID    StrField
 	Order IntField
 	Node  *Value
 }
@@ -120,7 +120,7 @@ type Parent struct {
 type Junction struct {
 	Gate                         string // the key as written
 	KeyPos                       Pos
-	Contributor, Model, Reviewer Str
+	Contributor, Model, Reviewer StrField
 	References                   []*Reference
 	Subproject                   *Subproject
 	Applies                      BoolField
@@ -171,7 +171,7 @@ func (j *Junction) Kind() JunctionKind {
 
 // Subproject is a subproject field, on a junction or a requirement, and what it leads to.
 type Subproject struct {
-	URL, ID, Commit Str
+	URL, ID, Commit StrField
 	Node            *Value
 	Link            *Link // nil when URL is not a scalar
 }
@@ -180,5 +180,5 @@ type Subproject struct {
 type Status struct {
 	ID                        string
 	File                      *File
-	Gate, State, Reason, Note Str
+	Gate, State, Reason, Note StrField
 }

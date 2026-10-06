@@ -194,8 +194,8 @@ func float(text string) float64 {
 	return f
 }
 
-// Str is a typed field as written, whatever scalar states it. Node is nil exactly when the file omits the field.
-type Str struct {
+// StrField is a typed string field as written, whatever scalar states it. Node is nil exactly when the file omits the field.
+type StrField struct {
 	V    string // the text of any scalar; "" for a collection
 	Node *Value
 }
@@ -213,12 +213,12 @@ type BoolField struct {
 	Node  *Value
 }
 
-// StrOf returns the typed field a node states; a nil node gives the zero Str.
-func StrOf(node *Value) Str {
+// StrOf returns the typed field a node states; a nil node gives the zero StrField.
+func StrOf(node *Value) StrField {
 	if node.Scalar() {
-		return Str{V: node.Text, Node: node}
+		return StrField{V: node.Text, Node: node}
 	}
-	return Str{Node: node}
+	return StrField{Node: node}
 }
 
 // IntOf returns the typed field a node states; a nil node gives the zero IntField.
