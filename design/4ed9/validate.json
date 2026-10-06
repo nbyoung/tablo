@@ -1,0 +1,41 @@
+{
+  "schema": "tablo/1",
+  "command": "validate",
+  "source": {
+    "ref": "main",
+    "worktree": false,
+    "commit": "dc2f478ae7f54f4a4652a4b81c4ff2da6a0437ee",
+    "date": "2026-09-01",
+    "from": null,
+    "trunk": {
+      "name": "main",
+      "resolved": "stated"
+    },
+    "on_trunk": true
+  },
+  "project": {
+    "tableaux": "0.3.1",
+    "root": "e4a1",
+    "title": "Base",
+    "owner": "olive@example.org"
+  },
+  "viewer": null,
+  "params": {},
+  "data": {
+    "valid": false,
+    "errors": 1,
+    "warnings": 0,
+    "information": 0
+  },
+  "diagnostics": [
+    {
+      "severity": "error",
+      "code": "T4",
+      "path": ".tableaux/tasks/b2c9.yaml",
+      "line": 4,
+      "col": 11,
+      "task": "b2c9",
+      "message": "assignee \"not-an-email\" is not an email address"
+    }
+  ]
+}
