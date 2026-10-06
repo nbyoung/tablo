@@ -1,0 +1,7 @@
+# tasks/e444.yaml : an anchor, an alias and a tag, none of which a Tableaux file uses
+title: Anchor and alias
+description: A file that shares a node through an anchor and tags a scalar.
+assignee: &who pat@example.org
+junctions:
+  release: { reviewer: *who }
+parent: { id: !!int 1000, order: 4 }

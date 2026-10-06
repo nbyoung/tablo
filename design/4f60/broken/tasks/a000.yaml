@@ -1,0 +1,4 @@
+# tasks/a000.yaml : the root; nothing is wrong here
+title: Broken fixture
+description: A project whose other task files each hold one fault of reading.
+assignee: olive@example.org
