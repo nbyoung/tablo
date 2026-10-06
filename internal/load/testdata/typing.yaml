@@ -1,0 +1,36 @@
+# typing.yaml : the kind the Loader gives a plain (unquoted) scalar, by the YAML 1.2
+# core schema. Each row is the scalar's text and its kind. A quoted scalar, a block
+# scalar and a scalar tagged !!str are strings whatever their text. At an id position
+# the Loader then takes the text as a string and keeps the kind below as `Read`.
+- { text: "4e2b",       kind: string }   # most ids
+- { text: "a1c0",       kind: string }
+- { text: "0b10",       kind: string }   # binary in YAML 1.1 only
+- { text: "1_000",      kind: string }   # digit separators in YAML 1.1 only
+- { text: "1000",       kind: int }      # every all-digit id: 10 000 of 65 536
+- { text: "0000",       kind: int }
+- { text: "0010",       kind: int }      # the text stays 0010; the Loader never renders the number
+- { text: "0123",       kind: int }      # decimal 123 in YAML 1.2, not octal
+- { text: "-7",         kind: int }
+- { text: "0o17",       kind: int }
+- { text: "0x1f",       kind: int }
+- { text: "40e8",       kind: float }    # digits, e, digits: 2 000 more ids
+- { text: "07e0",       kind: float }
+- { text: "1e10",       kind: float }
+- { text: "12e3",       kind: float }
+- { text: "1.0",        kind: float }
+- { text: ".5",         kind: float }
+- { text: ".inf",       kind: float }
+- { text: ".nan",       kind: float }
+- { text: "true",       kind: bool }
+- { text: "False",      kind: bool }
+- { text: "yes",        kind: string }   # a boolean in YAML 1.1 only
+- { text: "no",         kind: string }
+- { text: "on",         kind: string }
+- { text: "null",       kind: "null" }
+- { text: "~",          kind: "null" }
+- { text: "",           kind: "null" }   # `key:` with nothing after it
+- { text: "2026-09-01", kind: string }   # a timestamp in YAML 1.1 only
+- { text: "0.3.1",      kind: string }   # a language version
+- { text: "e3",         kind: string }
+- { text: "1e",         kind: string }
+- { text: "main",       kind: string }
