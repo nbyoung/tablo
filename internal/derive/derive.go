@@ -11,6 +11,10 @@
 package derive
 
 import (
+	"path"
+	"reflect"
+	"regexp"
+	"sort"
 	"sync"
 
 	"github.com/nbyoung/tablo/internal/history"
@@ -62,12 +66,24 @@ type Facts struct {
 	index    map[string]int
 	severity map[string]int
 
+	// The past: the facts in view that At derives these from, and the commit.
+	view   *Facts
+	commit string
+
 	// The facts, each kept from its first call.
-	junctions  map[string][]*Junction // by task: one per gate after undefined
-	snapshots  map[string][]*Snapshot
-	statuses   map[string]*Status
-	busy       map[string]bool // the statuses under way, to end a cycle
-	conditions map[string][]*Condition
+	junctions      map[string][]*Junction // by task: one per gate after undefined
+	snapshots      map[string][]*Snapshot
+	statuses       map[string]*Status
+	busy           map[string]bool // the statuses under way, to end a cycle
+	conditions     map[string][]*Condition
+	pasts          map[string]*Facts // by commit
+	pass           *passIndex        // the pass, indexed
+	authorisations map[string]*Authorisation
+	reviewed       map[string][]trailerReview // by task and gate, the oldest first
+	own            map[string][]*Event        // by task: the events of its own project
+	events         map[string][]*Event        // by task: with its subprojects'
+	eventsBusy     map[string]bool
+	unread         []*Unread
 }
 
 // build makes the facts of one project: the refusal, or the tree and the gating.
@@ -78,7 +94,9 @@ func build(fam *family, p *model.Project, log *history.Log) *Facts {
 		index: map[string]int{}, severity: map[string]int{},
 		junctions: map[string][]*Junction{}, snapshots: map[string][]*Snapshot{},
 		statuses: map[string]*Status{}, busy: map[string]bool{},
-		conditions: map[string][]*Condition{},
+		conditions: map[string][]*Condition{}, pasts: map[string]*Facts{},
+		authorisations: map[string]*Authorisation{}, reviewed: map[string][]trailerReview{},
+		events: map[string][]*Event{}, eventsBusy: map[string]bool{},
 	}
 	if f.refused = refusal(p); f.refused != nil {
 		return f
@@ -161,16 +179,124 @@ func (f *Facts) Sub(l *model.Link) *Facts {
 	return f.fam.of(l.Project)
 }
 
+// At returns the facts of the project as its files stand at a commit of the
+// pass: every fact the files alone give, and no fact of the history. It
+// follows a link, by the url as the project in view links it, to the
+// subproject's own past at the commit the linkage fixes there. It returns
+// nil when the pass holds no such commit.
+func (f *Facts) At(commit string) *Facts {
+	if !f.enter() {
+		return nil
+	}
+	defer f.leave()
+	return f.past(commit)
+}
+
+// past returns the facts at one commit of the pass and keeps them. The past
+// of a past is the past of the facts in view.
+func (f *Facts) past(commit string) *Facts {
+	if f == nil {
+		return nil
+	}
+	if f.view != nil {
+		return f.view.past(commit)
+	}
+	if g, ok := f.pasts[commit]; ok {
+		return g
+	}
+	if f.log == nil {
+		return nil
+	}
+	p := f.log.Project(commit)
+	if p == nil {
+		return nil
+	}
+	g := build(f.fam, p, nil)
+	g.view, g.commit = f, commit
+	f.pasts[commit] = g
+	return g
+}
+
+// absolute matches a url with a scheme and ://, as the Loader does; any
+// other url is a path relative to the repository root.
+var absolute = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*://`)
+
 // reach returns the link a subproject field names and the facts of the
-// project it leads to; either is nil when the field has none.
+// project it leads to; either is nil when the field has none. In the past
+// the field has no link of its own: the links of the project in view with
+// its url stand for it, and the facts are the subproject's own past at the
+// commit the linkage fixes at this commit: the gitlink of a submodule, the
+// commit field beside an absolute URL, or this commit for a directory.
 func (f *Facts) reach(field *model.Subproject) (*model.Link, *Facts) {
-	if field == nil || field.Link == nil {
+	if field == nil {
 		return nil, nil
 	}
-	if field.Link.Project == nil {
-		return field.Link, nil
+	if f.view == nil {
+		if field.Link == nil || field.Link.Project == nil {
+			return field.Link, nil
+		}
+		return field.Link, f.fam.of(field.Link.Project)
 	}
-	return field.Link, f.fam.of(field.Link.Project)
+	if !field.URL.Node.Scalar() {
+		return nil, nil
+	}
+	url := field.URL.V
+	if !absolute.MatchString(url) {
+		url = path.Clean(url)
+	}
+	var first *model.Link
+	for _, link := range f.view.p.Links {
+		if link.URL != url {
+			continue
+		}
+		if first == nil {
+			first = link
+		}
+		if link.Project == nil {
+			continue
+		}
+		pin := f.commit
+		switch link.Form {
+		case model.Submodule:
+			pin = f.view.log.Object(f.commit, link.URL)
+		case model.URL:
+			pin = field.Commit.V
+		}
+		if sub := f.fam.of(link.Project).past(pin); sub != nil {
+			return link, sub
+		}
+	}
+	return first, nil
+}
+
+// file returns the file of a project at a path below .tableaux, or nil.
+func file(p *model.Project, below string) *model.File {
+	if p == nil {
+		return nil
+	}
+	i := sort.Search(len(p.Files), func(i int) bool { return p.Files[i].Path >= below })
+	if i < len(p.Files) && p.Files[i].Path == below {
+		return p.Files[i]
+	}
+	return nil
+}
+
+// same reports whether two files state the same content as YAML, so that a
+// comment or a layout changes nothing. Two absent files are the same.
+func same(a, b *model.File) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return reflect.DeepEqual(a.Root.Plain(), b.Root.Plain())
+}
+
+// uncommitted reports whether the file in view at a path below .tableaux is
+// not the source commit's: the files come from disk and the history from HEAD.
+func (f *Facts) uncommitted(below string) bool {
+	if f.log == nil || !f.p.Where.Worktree {
+		return false
+	}
+	return !same(file(f.p, below), file(f.log.Project(f.log.Source), below))
 }
 
 // Refusal says why the files give no structure to derive from.
@@ -305,4 +431,12 @@ func (k Known) String() string {
 		return "yes"
 	}
 	return "unknown"
+}
+
+// known returns Yes or No.
+func known(b bool) Known {
+	if b {
+		return Yes
+	}
+	return No
 }

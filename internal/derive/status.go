@@ -1,6 +1,7 @@
 package derive
 
 import (
+	"github.com/nbyoung/tablo/internal/history"
 	"github.com/nbyoung/tablo/internal/model"
 )
 
@@ -26,6 +27,12 @@ type Status struct {
 	Considered                []string      // RolledUp: the children considered, in display order
 	Snapshot                  *Snapshot     // Snapshotted
 	Of                        *Status       // Snapshotted: the status of the task read there
+
+	Commit      *history.Commit // the deciding commit; nil for RolledUp
+	Date        string          // YYYY-MM-DD; "" when undetermined
+	Recorder    string          // "" for Absent and RolledUp
+	Own         *history.Commit // Snapshotted: the deciding commit of the task's own file
+	Uncommitted bool            // the file in view is not the source commit's
 
 	cyclic bool // the status reads one that reads it
 }
@@ -103,6 +110,8 @@ func (f *Facts) cycle(id string) *Status {
 	if file := f.p.Statuses[id]; file != nil && len(f.children[id]) == 0 {
 		s.Kind, s.Gate, s.File = Snapshotted, file.Gate.V, file
 		s.Snapshot = f.snapshotAfter(id, file.Gate.V)
+		s.Own = f.newest(f.planPath("status", id), "Reaffirmed\x00"+id)
+		s.Uncommitted = f.uncommitted("status/" + id + ".yaml")
 	}
 	return s
 }
@@ -118,22 +127,36 @@ func (f *Facts) snapshotAfter(id, gate string) *Snapshot {
 
 // leaf returns the status of a leaf. When the junction after the gate its
 // file states is recursive, the file gives the gate alone and the task read
-// there gives the rest.
+// there gives the rest. The history gives the date and the recorder: the
+// deciding commit of a status is the newest commit the source reaches that
+// changes its file or carries Reaffirmed: for the task, and a leaf without a
+// file is dated by the newest commit that changes its task file, with no
+// recorder.
 func (f *Facts) leaf(id string) *Status {
 	file := f.p.Statuses[id]
+	uncommitted := f.uncommitted("status/" + id + ".yaml")
 	if file == nil {
-		return &Status{Task: id, Kind: Absent, Gate: "undefined", State: "undefined"}
-	}
-	snapshot := f.snapshotAfter(id, file.Gate.V)
-	if snapshot == nil {
-		s := &Status{Task: id, Kind: Recorded, Gate: file.Gate.V, State: file.State.V,
-			Reason: file.Reason.V, Note: file.Note.V, File: file}
-		if s.State == "" {
-			s.Why = NoState
+		s := &Status{Task: id, Kind: Absent, Gate: "undefined", State: "undefined", Uncommitted: uncommitted}
+		if s.Commit = f.newest(f.planPath("tasks", id), ""); s.Commit != nil {
+			s.Date = s.Commit.Date()
 		}
 		return s
 	}
-	s := &Status{Task: id, Kind: Snapshotted, Gate: file.Gate.V, File: file, Snapshot: snapshot, Why: snapshot.Why}
+	own := f.newest(f.planPath("status", id), "Reaffirmed\x00"+id)
+	snapshot := f.snapshotAfter(id, file.Gate.V)
+	if snapshot == nil {
+		s := &Status{Task: id, Kind: Recorded, Gate: file.Gate.V, State: file.State.V,
+			Reason: file.Reason.V, Note: file.Note.V, File: file, Commit: own, Uncommitted: uncommitted}
+		if s.State == "" {
+			s.Why = NoState
+		}
+		if own != nil {
+			s.Date, s.Recorder = own.Date(), own.Author.Email
+		}
+		return s
+	}
+	s := &Status{Task: id, Kind: Snapshotted, Gate: file.Gate.V, File: file, Snapshot: snapshot, Why: snapshot.Why,
+		Own: own, Uncommitted: uncommitted}
 	if s.Why != Determined {
 		return s
 	}
@@ -143,12 +166,14 @@ func (f *Facts) leaf(id string) *Status {
 		return s
 	}
 	s.Of, s.State, s.Reason, s.Note, s.Why = of, of.State, of.Reason, of.Note, of.Why
+	s.Commit, s.Date, s.Recorder = of.Commit, of.Date, of.Recorder
 	return s
 }
 
 // rollUp derives a parent's status from its children's, by the four steps
 // of README.md#status. A child whose gate gates.yaml lacks stays out, and a
-// state it lacks ranks 0.
+// state it lacks ranks 0. The date is the oldest among the considered
+// children that have one.
 func (f *Facts) rollUp(id string) *Status {
 	s := &Status{Task: id, Kind: RolledUp}
 	var all, severe []*Status
@@ -180,5 +205,10 @@ func (f *Facts) rollUp(id string) *Status {
 		}
 	}
 	s.Gate, s.State, s.Reason, s.Note, s.Why, s.From = from.Gate, from.State, from.Reason, from.Note, from.Why, from.Task
+	for _, c := range considered {
+		if c.Date != "" && (s.Date == "" || c.Date < s.Date) {
+			s.Date = c.Date
+		}
+	}
 	return s
 }

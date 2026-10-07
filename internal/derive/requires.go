@@ -14,7 +14,8 @@ type Condition struct {
 	From, To string
 	Stands   string // the gate the originating task stands at
 	Met, Due bool
-	Why      Why // NoLink, NoTask or NoGate: Met and Due are then false
+	Why      Why   // NoLink, NoTask or NoGate: Met and Due are then false
+	AtTrunk  Known // a cross-project entry: met at the tip of the originating project's trunk
 }
 
 // Word returns "met", "unmet" or "pending", as the corpus writes the
@@ -111,6 +112,18 @@ func (f *Facts) requires(id string) []*Condition {
 		if here := f.status(id); here != nil {
 			next, named := f.index[f.next(id, here.Gate)]
 			c.Due = !named || next >= to
+		}
+		// Rule R13's question, and the blockage tree's: the same entry as the
+		// files stand at the tip of the originating project's trunk.
+		if e.Subproject != nil && origin.log != nil {
+			if tip := origin.past(origin.log.Trunk.Tip); tip != nil {
+				there := tip.status(c.Origin)
+				from, fromNamed := tip.index[c.From]
+				if there != nil && fromNamed {
+					stands, named := tip.index[there.Gate]
+					c.AtTrunk = known(named && stands >= from)
+				}
+			}
 		}
 	}
 	f.conditions[id] = list

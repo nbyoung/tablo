@@ -57,7 +57,12 @@ func exercise(f *Facts, depth int) int {
 			_ = c.Word()
 		}
 		_ = f.Dependents(id)
+		_, _, _, _ = f.Authorisation(id), f.Reviews(id), f.Handoff(id), f.Events(id)
+		if log := f.Log(); log != nil {
+			_, _ = f.AuthorisationAt(id, log.Source), f.AuthorisationAt(id, "none")
+		}
 		for _, gate := range gates {
+			_ = f.Accepted(id, gate)
 			if j := f.Junction(id, gate); j != nil {
 				_, _ = j.Marks(), j.Sources()
 			}
@@ -66,10 +71,20 @@ func exercise(f *Facts, depth int) int {
 			calls++
 		}
 	}
+	_, _ = f.History(), f.Unread()
 	if p == nil || depth > 3 {
 		return calls
 	}
+	if log := f.Log(); log != nil && depth == 0 {
+		// The past gives every fact the files alone give, at any commit.
+		for _, c := range log.Commits {
+			if past := f.At(c.ID); past != nil {
+				calls += exercise(past, 3)
+			}
+		}
+	}
 	for _, link := range append(p.Links, nil, &model.Link{}) {
+		_ = f.Pin(link)
 		if sub := f.Sub(link); sub != nil {
 			calls += exercise(sub, depth+1)
 		}

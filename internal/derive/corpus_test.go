@@ -345,11 +345,22 @@ func TestCorpusConditions(t *testing.T) {
 	})
 }
 
-// compareStatus compares what the files alone give of a status: the gate,
-// the state, the reason and the note, whether a roll-up gives them, and the
-// child they come from.
-func compareStatus(c *check, s *Status, stated map[string]any) {
+// compareStatus compares a status: the gate, the state, the reason and the
+// note, whether a roll-up gives them and the child they come from; then
+// what the history gives, the date, the recorder and the deciding commit.
+func compareStatus(c *check, e *expectation, s *Status, stated map[string]any) {
 	c.t.Helper()
+	c.eq("the status's date", s.Date, text(stated["date"]))
+	c.eq("the status's recorder", s.Recorder, text(stated["recorder"]))
+	commit := ""
+	if s.Commit != nil {
+		commit = s.Commit.ID
+	}
+	if stated["derived"] == true {
+		c.eq("the status's commit", commit, "")
+	} else {
+		c.eq("the status's commit", commit, e.hash(text(stated["commit"])))
+	}
 	c.eq("the status's gate", s.Gate, text(stated["gate"]))
 	if state, ok := stated["state"]; ok {
 		c.eq("the status's state", s.State, text(state))
@@ -366,7 +377,8 @@ func compareStatus(c *check, s *Status, stated map[string]any) {
 	}
 }
 
-// T13, the corpus: every derived status it states.
+// T13, the corpus: every derived status it states, with the date of the
+// oldest child considered.
 func TestCorpusRollUp(t *testing.T) {
 	eachTask(t, func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
 		stated, ok := want["status"].(map[string]any)
@@ -378,7 +390,7 @@ func TestCorpusRollUp(t *testing.T) {
 			c.eq("the status", nil, stated)
 			return
 		}
-		compareStatus(c, s, stated)
+		compareStatus(c, e, s, stated)
 		if f.Leaf(id) {
 			c.eq("the status's kind", s.Kind, Snapshotted)
 		} else {
@@ -388,8 +400,9 @@ func TestCorpusRollUp(t *testing.T) {
 	})
 }
 
-// The statuses the files alone state: a leaf's from its file or its
-// subproject, and undefined without a file.
+// T11, the corpus: every status of a leaf it states, with its date, its
+// recorder and its deciding commit: from its file, from the task its next
+// junction reads, or undefined without a file and dated by the task file.
 func TestCorpusLeafStatus(t *testing.T) {
 	eachTask(t, func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
 		stated, ok := want["status"].(map[string]any)
@@ -401,9 +414,159 @@ func TestCorpusLeafStatus(t *testing.T) {
 			c.eq("the status", nil, stated)
 			return
 		}
-		compareStatus(c, s, stated)
+		compareStatus(c, e, s, stated)
 		if _, recursive := want["subproject"]; recursive && s.Gate != "undefined" {
 			c.eq("the status's kind", s.Kind, Snapshotted)
+		}
+	})
+}
+
+// T10, the corpus: every authorisation it states, in view and at each ref.
+func TestCorpusAuthorisation(t *testing.T) {
+	compare := func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
+		stated, ok := want["authorisation"].(map[string]any)
+		if !ok {
+			return
+		}
+		a := f.Authorisation(id)
+		if a == nil {
+			c.eq("the authorisation", nil, stated)
+			return
+		}
+		state := "proposed"
+		if a.Authorised {
+			state = "authorised"
+		}
+		c.eq("the authorisation", state, text(stated["state"]))
+		if commit, ok := stated["commit"]; ok {
+			if a.Commit == nil {
+				c.eq("the deciding commit", nil, commit)
+			} else {
+				c.eq("the deciding commit", a.Commit.ID, e.hash(text(commit)))
+			}
+		}
+		if by, ok := stated["by"]; ok {
+			c.eq("the authorisation's hand", a.By, text(by))
+		}
+	}
+	eachTask(t, compare)
+	c := &check{t: t}
+	for _, e := range expectations(t) {
+		// How the trunk resolves, as the entry's trunk field states it.
+		if trunk, ok := e.want["trunk"].(map[string]any); ok {
+			f := e.at(t, e.ref)
+			c.where = e.name
+			for how, name := range trunk {
+				c.eq("how the trunk resolves", f.Trunk().How(), how)
+				if how != "undetermined" {
+					c.eq("the trunk's name", f.Trunk().Name, text(name))
+				}
+			}
+		}
+		refs, _ := e.want["refs"].(map[string]any)
+		for _, ref := range sortedKeys(refs) {
+			stated := refs[ref].(map[string]any)
+			f := e.at(t, ref)
+			c.where = e.name + " at " + ref
+			c.eq("the source", f.Log().Source, e.hash(text(stated["commit"])))
+			tasks, _ := stated["tasks"].(map[string]any)
+			for _, id := range sortedKeys(tasks) {
+				c.where = e.name + " at " + ref + " " + id
+				compare(c, e, f, id, tasks[id].(map[string]any))
+				if a := f.Authorisation(id); a != nil && !f.OnTrunk() {
+					c.eq("the reason", a.Why, OffTrunk)
+				}
+			}
+		}
+	}
+	if c.n == 0 {
+		t.Error("the corpus states no ref")
+	}
+	t.Logf("%d facts of the trunks and the refs agree or are reported", c.n)
+}
+
+// T12, the corpus: every reviews list it states.
+func TestCorpusReviews(t *testing.T) {
+	eachTask(t, func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
+		list, ok := want["reviews"].([]any)
+		if !ok {
+			return
+		}
+		var got, stated []string
+		for _, r := range f.Reviews(id) {
+			commit := "none"
+			if r.Commit != nil {
+				commit = r.Commit.ID
+			}
+			got = append(got, r.Gate+" "+r.Reviewer+" "+commit)
+			if r.Task != id || r.ByAuthorisation != (r.Gate == "defined") || (r.Commit != nil) != (r.By != "") {
+				c.t.Errorf("%s: the review is %+v", c.where, r)
+			}
+		}
+		for _, item := range list {
+			r := item.(map[string]any)
+			stated = append(stated, text(r["gate"])+" "+text(r["reviewer"])+" "+e.hash(text(r["commit"])))
+		}
+		c.eq("the reviews", got, stated)
+	})
+}
+
+// T14, the corpus: every events list it states, in order.
+func TestCorpusEvents(t *testing.T) {
+	eachTask(t, func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
+		list, ok := want["events"].([]any)
+		if !ok {
+			return
+		}
+		keys := []string{"date", "commit", "by", "task", "event", "subproject", "gate", "state", "reason", "note", "url", "old", "new"}
+		var got, stated []string
+		for _, ev := range f.Events(id) {
+			got = append(got, fmt.Sprint([]string{ev.Commit.Date(), ev.Commit.ID, ev.Commit.Author.Email, ev.Task, string(ev.Kind),
+				ev.Sub, ev.Gate, ev.State, ev.Reason, ev.Note, ev.URL, ev.Old, ev.New}))
+		}
+		for _, item := range list {
+			ev := item.(map[string]any)
+			var fields []string
+			for _, key := range keys {
+				value := text(ev[key])
+				if key == "commit" || key == "old" || key == "new" {
+					value = e.hash(value)
+				}
+				fields = append(fields, value)
+			}
+			stated = append(stated, fmt.Sprint(fields))
+		}
+		if c.n++; len(got) != len(stated) {
+			c.t.Errorf("%s: %d events; the corpus states %d\n got  %v\n want %v", c.where, len(got), len(stated), got, stated)
+			return
+		}
+		for i := range got {
+			c.eq(fmt.Sprintf("event %d", i), got[i], stated[i])
+		}
+	})
+}
+
+// T17, the corpus: the subproject each recursive junction reads, its pin
+// and the task read there.
+func TestCorpusSubprojects(t *testing.T) {
+	eachTask(t, func(c *check, e *expectation, f *Facts, id string, want map[string]any) {
+		stated, ok := want["subproject"].(map[string]any)
+		if !ok {
+			return
+		}
+		snapshots := f.Snapshots(id)
+		if c.eq("the count of snapshots", len(snapshots), 1); len(snapshots) != 1 {
+			return
+		}
+		s := snapshots[0]
+		c.eq("the subproject's url", s.Link.URL, text(stated["url"]))
+		c.eq("the subproject's task", s.Target, text(stated["task"]))
+		c.eq("the subproject's reason", s.Why, Determined)
+		pin := f.Pin(s.Link)
+		c.eq("the subproject's pin", pin.Commit, e.hash(text(stated["pin"])))
+		if s.Link.Form == model.Submodule {
+			c.eq("the gitlink of the source", pin.Recorded, pin.Commit)
+			c.eq("the checkout", pin.Moved, false)
 		}
 	})
 }
