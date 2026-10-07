@@ -70,8 +70,8 @@ front end in the family copies.
 
 `schemas/` holds a copy of the schema files that the
 [tableaux](https://github.com/nbyoung/tableaux) schema-files task produces;
-`schemas/README.md` records the commit copied. Until that task lands the
-directory holds no schema file and the package does not build.
+`schemas/README.md` records the commit copied, and `schemas/embed.go` embeds
+the five files into the binary.
 
 A prototype under `prototype/` is the function gate's demonstration. It goes when its task records `implementation`: the design's account of what it kept from the prototype and `git log -- prototype/<id>` keep what it showed, and the trunk builds what it ships.
 
@@ -120,7 +120,8 @@ rule and the loader task calls it.
 ## Dependencies
 
 The owner decided at the function gate, after every prototype wrote its own
-YAML reader, that the implementation takes two libraries:
+YAML reader, that the implementation takes two libraries, which make three
+modules:
 
 | Module                                    | Version | Purpose                                                        |
 |-------------------------------------------|---------|----------------------------------------------------------------|
@@ -132,9 +133,8 @@ as an indirect requirement that the binary links: it holds the message
 catalogue of the schema module, whose wording the Validator never prints.
 
 All three are pure Go, so the six release targets still build with `CGO_ENABLED=0`.
-The loader task adds the `require` lines when its implementation first imports
-them; `go` fetches the modules from the module proxy, and no one installs
-anything by hand. The prototypes under `prototype/` predate the decision and
+`go.mod` requires all three; `go` fetches the modules from the module proxy,
+and no one installs anything by hand. The prototypes under `prototype/` predate the decision and
 keep their stand-in readers.
 
 ## Plan

@@ -14,8 +14,8 @@ To copy them, record the tableaux commit here and refresh the files:
 
 | Field            | Value       |
 |------------------|-------------|
-| tableaux commit  | `7dde3bd`   |
-| tableaux version | `0.3.0`     |
+| tableaux commit  | `d95294b`   |
+| tableaux version | `0.3.1`     |
 
 The tableaux version copied here must be one the module accepts; see
 `Accepts` in the root package.
