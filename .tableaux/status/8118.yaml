@@ -1,3 +1,4 @@
 gate: function
 state: nominal
-note: prototype/8118 validates files against the embedded schemas and runs the tree, requirement and junction rules with positions; 32 corpus entries match expected.yaml and weather-station reports nothing
+reason: review
+note: design/8118.md on branch wave/8118 awaits the owner's review at the design gate

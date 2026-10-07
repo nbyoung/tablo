@@ -1,0 +1,199 @@
+# What validate.Files reports for each built corpus entry, read at the entry's ref
+# (main unless expected.yaml states another), with the entry's replace mapping.
+# One block per entry, in name order; an entry with no line reports nothing.
+# A line reads <file>:<line>:<col>: <severity>: <code> task=<id> gate=<key>: <message>
+# and drops the parts the diagnostic lacks; <file> is the path below .tableaux.
+# The test compares every part but the message. The Loader raises L1 to L4 and P4;
+# every other line is the Validator's. The rules that read derived facts (R9, R13,
+# P5, S11, J13, H1 to H6) are not here: facts.yaml fixes them.
+# A trial of this design produces the file from tableaux 93a6acc.
+# file-duplicate-key
+status/b2c9.yaml:3:1: error: L2 task=b2c9: the mapping states the key "gate" twice; the first stands
+# file-not-yaml
+status/b2c9.yaml:1: error: L1 task=b2c9: the file is not YAML: line 1: did not find expected ',' or ']'
+# file-stray-path
+NOTES.md: warning: L4: the layout names no such path; a tool leaves it unread
+# file-yaml-feature
+status/b2c9.yaml:3:1: error: L3 task=b2c9: the file holds a second YAML document; a tool reads the first
+# gates-bad-key
+gates.yaml:5:12: error: G5 gate=Design: gates.2.key Design does not match ^[a-z][a-z0-9_-]*$
+# gates-complete-nonzero-severity
+gates.yaml:12:44: error: G12: the state complete has a severity other than 0
+# gates-duplicate-gate
+gates.yaml:6:12: error: G6 gate=design: gate key design is stated twice
+# gates-duplicate-reason
+gates.yaml:16:12: error: G10: reason key blocked is stated twice
+# gates-duplicate-state
+gates.yaml:11:12: error: G9: state key nominal is stated twice
+# gates-first-not-undefined
+gates.yaml:3:12: error: G2: gates.0.key is defined, not undefined
+# gates-gate-missing-criteria
+gates.yaml:4:5: error: G4 gate=defined: gates.1 lacks criteria
+# gates-missing
+gates.yaml: error: G1: gates.yaml is missing
+# gates-negative-severity
+gates.yaml:10:44: error: G8: states.1.severity is -1, below 0
+# gates-no-states
+gates.yaml:2:1: error: G7: the file lacks states
+# gates-no-undefined-state
+gates.yaml:9:3: error: G12: states lacks undefined
+# gates-only-undefined
+gates.yaml:3:3: error: G3: gates holds 1, fewer than 2
+tasks/b2c9.yaml: error: J12 task=b2c9: no gate after undefined applies to b2c9
+tasks/e4a1.yaml: error: J12 task=e4a1: no gate after undefined applies to e4a1
+# gates-unknown-field
+gates.yaml:1:1: error: G11: title is no field of the file
+# handoff-inferred
+# handoff-stale
+# junction-all-not-applicable
+tasks/c3d7.yaml: error: J12 task=c3d7: no gate after undefined applies to c3d7
+# junction-applies-true
+tasks/b2c9.yaml:8:22: error: J6 task=b2c9 gate=design: junctions.design.applies is true, not false
+# junction-kinds
+# junction-mixed-kind
+tasks/b2c9.yaml:8:3: error: J4 task=b2c9 gate=design: the entry mixes the fields of more than one kind
+# junction-model-without-contributor
+tasks/b2c9.yaml:8:20: error: J5 task=b2c9 gate=design: junctions.design states model and no contributor
+# junction-subproject-without-url
+tasks/b2c9.yaml:8:26: error: J7 task=b2c9 gate=release: junctions.release.subproject lacks url
+# junction-undefined-not-applicable
+tasks/b2c9.yaml:8:3: error: J2 task=b2c9 gate=undefined: a not-applicable entry at undefined: the undefined gate always applies
+# junction-undefined-plain
+tasks/b2c9.yaml:8:3: error: J11 task=b2c9 gate=undefined: an entry at undefined: the undefined gate has no work of its own
+# junction-undefined-recursive
+tasks/b2c9.yaml:8:3: error: J11 task=b2c9 gate=undefined: an entry at undefined: the undefined gate has no work of its own
+# junction-unknown-field
+tasks/b2c9.yaml:8:13: error: J10 task=b2c9 gate=design: colour is no field of junctions.design
+# junction-unknown-gate
+tasks/b2c9.yaml:8:3: error: J1 task=b2c9 gate=nonesuch: junction key nonesuch names no gate in gates.yaml
+# model-mismatch
+# model-trailer-missing
+# no-tableaux-directory
+error: P1: no .tableaux directory at or above the repository's root
+# recursive-on-parent
+tasks/e4a1.yaml:8:3: error: J3 task=e4a1 gate=design: a parent states a recursive junction
+# requires-across-projects
+# requires-ancestor
+tasks/b2c9.yaml:8:11: error: R4 task=b2c9: b2c9 requires its ancestor e4a1
+# requires-commit-behind
+# requires-cycle
+tasks/b2c9.yaml:8:11: error: R2 task=b2c9: the requirement on c3d7 closes a cycle
+tasks/c3d7.yaml:6:11: error: R2 task=c3d7: the requirement on b2c9 closes a cycle
+# requires-descendant
+tasks/e4a1.yaml:8:11: error: R5 task=e4a1: e4a1 requires its descendant b2c9
+# requires-from-not-applicable
+tasks/b2c9.yaml:8:25: error: R6 task=b2c9 gate=design: from design does not apply to c3d7
+# requires-from-unknown-gate
+tasks/b2c9.yaml:8:25: error: R6 task=b2c9 gate=nonesuch: from nonesuch names no gate in the originating project's gates.yaml
+# requires-junction-target
+tasks/b2c9.yaml:8:19: warning: R12 task=b2c9: the requirement on 5a00 at sub names the task the design junction reads
+# requires-missing-task
+tasks/b2c9.yaml:8:11: error: R1 task=b2c9: requires 0c99, which names no task
+# requires-self
+tasks/b2c9.yaml:8:11: error: R3 task=b2c9: b2c9 requires itself
+# requires-subproject-without-id
+tasks/b2c9.yaml:8:19: error: R11 task=b2c9: requires.0.subproject lacks id
+# requires-to-not-applicable
+tasks/b2c9.yaml:10:40: error: R7 task=b2c9 gate=design: to design does not apply to b2c9
+# requires-to-undefined
+tasks/b2c9.yaml:8:40: error: R10 task=b2c9 gate=undefined: to is undefined: no work needs a result before definition
+# requires-unknown-field
+tasks/b2c9.yaml:8:36: error: R8 task=b2c9: why is no field of requires.0
+# review-by-non-reviewer
+# roll-up-tie
+# siblings-same-order
+tasks/e4a1.yaml: warning: T12 task=e4a1: b2c9 and c3d7 share order 1 under e4a1
+# status-complete-early
+status/b2c9.yaml:2:8: error: S12 task=b2c9 gate=defined: the state complete at defined, which is not the last applicable gate, release
+# status-defined-by-authorisation
+# status-gate-not-applicable
+status/b2c9.yaml:1:7: error: S7 task=b2c9 gate=design: gate design does not apply to b2c9
+# status-last-gate-not-complete
+status/b2c9.yaml:2:8: error: S8 task=b2c9 gate=release: b2c9 stands at its last applicable gate, release, without the state complete
+# status-missing-gate
+status/b2c9.yaml:1:1: error: S3 task=b2c9: the file lacks gate
+# status-no-state-plain
+status/b2c9.yaml:1:7: error: S10 task=b2c9 gate=defined: the next junction, design, is plain and the file states no state
+# status-no-task
+status/0c99.yaml: error: S1 task=0c99: the file name 0c99 is the id of no task
+# status-nominal-gate-undefined-state
+status/b2c9.yaml:1:7: error: S4 task=b2c9: gate is defined, not undefined
+# status-on-parent
+status/e4a1.yaml: error: S2 task=e4a1: e4a1 is a parent: its status derives from its children
+# status-state-with-recursive
+status/b2c9.yaml:2:1: error: S9 task=b2c9 gate=defined: the next junction, design, is recursive, so the file holds only the gate
+# status-undefined-gate-nominal-state
+status/b2c9.yaml:2:8: error: S4 task=b2c9: state is nominal, not undefined
+# status-unknown-field
+status/b2c9.yaml:3:1: error: S3 task=b2c9: colour is no field of the file
+# status-unknown-gate
+status/b2c9.yaml:1:7: error: S5 task=b2c9 gate=nonesuch: gate nonesuch names no gate in gates.yaml
+# status-unknown-reason
+status/b2c9.yaml:3:9: error: S6 task=b2c9: reason nonesuch names no reason in gates.yaml
+# status-unknown-state
+status/b2c9.yaml:2:8: error: S6 task=b2c9: state nonesuch names no state in gates.yaml
+# status-unreviewed-gate
+# submodule-subproject
+# subproject-by-url
+# subproject-commit-malformed
+tasks/b2c9.yaml:8:45: error: J14 task=b2c9 gate=design: junctions.design.subproject.commit abc123 does not match ^[0-9a-f]{40}$
+# subproject-commit-off-pin
+tasks/b2c9.yaml:8:45: error: J17 task=b2c9 gate=design: commit 7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981 is not the commit the submodule sub pins, 2aeb31a1f1729bad254dc89d30ff134fd64494b5
+# subproject-directory-with-commit
+tasks/b2c9.yaml:8:45: error: J16 task=b2c9 gate=design: url lib is a directory of this repository, which nothing pins
+# subproject-path-missing
+tasks/b2c9.yaml:8:33: error: J8 task=b2c9 gate=release: url elsewhere resolves to no Tableaux project the tool can read: missing
+# subproject-pin-off-trunk
+# subproject-same-repository
+# subproject-task-missing
+tasks/b2c9.yaml:8:42: error: J9 task=b2c9 gate=release: id 5c99 names no task in the project at sub
+# subproject-url-without-commit
+tasks/b2c9.yaml:8:25: error: J15 task=b2c9 gate=design: the absolute url https://example.org/lib.git states no commit
+# task-bad-email
+tasks/b2c9.yaml:4:11: error: T4 task=b2c9: assignee not-an-email is no email address
+# task-bad-filename
+tasks/leaf-two.yaml: error: T1 task=leaf-two: the file name leaf-two is not four lowercase hexadecimal digits
+# task-bad-id-pattern
+tasks/b2c9.yaml:8:11: error: R1 task=b2c9: requires XYZ1, which names no task
+tasks/b2c9.yaml:8:11: error: T6 task=b2c9: requires.0.id XYZ1 does not match ^[0-9a-f]{4}$
+# task-id-field
+tasks/b2c9.yaml:1:1: error: T3 task=b2c9: id is no field of the file
+# task-missing-assignee
+tasks/b2c9.yaml:2:1: error: T2 task=b2c9: the file lacks assignee
+# task-parent-order-not-integer
+tasks/b2c9.yaml:7:30: error: T11 task=b2c9: parent.order is a string, not an integer
+# task-parent-order-zero
+tasks/b2c9.yaml:7:30: error: T11 task=b2c9: parent.order is 0, below 1
+# task-reference-without-url
+tasks/b2c9.yaml:6:5: error: T5 task=b2c9: references.0 lacks url
+# tree-no-root
+error: T8: no task is the root: every task file states a parent
+tasks/b2c9.yaml:7:15: error: T10 task=b2c9: the parent chain of b2c9 loops and never reaches the root
+tasks/e4a1.yaml:7:15: error: T10 task=e4a1: the parent chain of e4a1 loops and never reaches the root
+# tree-parent-cycle
+tasks/c3d7.yaml:5:15: error: T10 task=c3d7: the parent chain of c3d7 loops and never reaches the root
+tasks/d4e8.yaml:5:15: error: T10 task=d4e8: the parent chain of d4e8 loops and never reaches the root
+# tree-parent-missing
+tasks/b2c9.yaml:7:15: error: T9 task=b2c9: parent 0c99 names no task
+# tree-two-roots
+error: T8: 2 tasks state no parent: c3d7, e4a1
+# trunk-inferred
+# trunk-stated
+# trunk-undetermined
+# unknown-trailer
+# unmet-requirement
+# unquoted-id
+tasks/1a00.yaml:5:15: warning: T7 task=1a00: parent.id is written as the integer 1000, not the string "1000"
+# version-bad-pattern
+version.yaml:1:11: error: P3: tableaux 0.2 does not match ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$
+# version-major-mismatch
+version.yaml:1:11: error: P4: the project states tableaux 1.0.0; the module accepts major 0 up to minor 3
+# version-minor-ahead
+version.yaml:1:11: error: P4: the project states tableaux 0.4.0; the module accepts major 0 up to minor 3
+# version-missing
+version.yaml: error: P2: version.yaml is missing
+# version-trunk-empty
+version.yaml:2:8: error: P3: trunk is empty
+# version-unknown-field
+version.yaml:3:1: error: P3: owner is no field of the file
+# weather-station
