@@ -84,7 +84,36 @@ func (e factsEntry) facts(t *testing.T, p *model.Project) *Facts {
 		}
 		f.History.Commits = append(f.History.Commits, commit)
 	}
+	stand(f)
 	return f
+}
+
+// stand gives every commit of f that states no junctions of its own the ones
+// it needs, as f resolves them in view: the facts of a plan whose junctions
+// never change. A commit needs each junction it is at and each one a
+// Reviewed: trailer of two words names.
+func stand(f *Facts) {
+	if f.History == nil {
+		return
+	}
+	for i := range f.History.Commits {
+		c := &f.History.Commits[i]
+		if c.Junctions != nil {
+			continue
+		}
+		c.Junctions = map[Junction]Resolved{}
+		named := append([]Junction(nil), c.At...)
+		for _, trailer := range c.Trailers {
+			if words := strings.Fields(trailer.Value); trailer.Key == keyReviewed && len(words) == 2 {
+				named = append(named, Junction{Task: words[0], Gate: words[1]})
+			}
+		}
+		for _, j := range named {
+			if junction, ok := f.Junctions[j]; ok {
+				c.Junctions[j] = junction
+			}
+		}
+	}
 }
 
 // factsEntries reads testdata/facts.yaml.
@@ -185,12 +214,56 @@ func TestDerivedRules(t *testing.T) {
 	two.At = []Junction{design, {Task: "b2c9", Gate: "release"}}
 	f.History.Commits = []Commit{two, committed, by("C2", "olive@example.org", "Reviewed: b2c9 release"), by("C1", "olive@example.org", "Reviewed: b2c9 design")}
 	f.History.Reviews = map[Junction]string{design: "C3"}
+	stand(f)
 	want = []string{
 		"warning: H2 task=b2c9 gate=design commit=C1",
 		"warning: H3 task=b2c9 gate=design commit=C4",
 	}
 	if got := sorted(derived(t, mismatch, f)); !reflect.DeepEqual(got, want) {
 		t.Errorf("H2 and H3:\n got  %s\n want %s", strings.Join(got, "\n      "), strings.Join(want, "\n      "))
+	}
+
+	// The files at a commit judge the commit (27a3 decision 2). The plan in
+	// view names olive as the reviewer and claude-opus as the model; when C1,
+	// C3 and C4 were made it named pat and claude-fable. So C1, olive's
+	// review, is from the wrong hand then, though she reviews now, and C4
+	// still stands outside the model of its day alone.
+	then := f.Junctions[design]
+	f.Junctions[design] = Resolved{Contributor: "bot@example.org", Model: "claude-opus", Reviewer: "olive@example.org"}
+	if got := sorted(derived(t, mismatch, f)); !reflect.DeepEqual(got, want) {
+		t.Errorf("H2 and H3 after the plan changes:\n got  %s\n want %s", strings.Join(got, "\n      "), strings.Join(want, "\n      "))
+	}
+	// The reverse: the commits stand as the plan in view has them, and the
+	// plan of their day named olive and claude-opus. C3, which pat commits,
+	// and C4, whose first model is claude-fable-5-1, are then at fault.
+	f.Junctions[design] = then
+	for i := range f.History.Commits {
+		c := &f.History.Commits[i]
+		if _, ok := c.Junctions[design]; ok {
+			c.Junctions[design] = Resolved{Contributor: "bot@example.org", Model: "claude-opus", Reviewer: "olive@example.org"}
+		}
+	}
+	want = []string{
+		"warning: H2 task=b2c9 gate=design commit=C3",
+		"warning: H3 task=b2c9 gate=design commit=C4",
+	}
+	if got := sorted(derived(t, mismatch, f)); !reflect.DeepEqual(got, want) {
+		t.Errorf("H2 and H3 by the plan of the day:\n got  %s\n want %s", strings.Join(got, "\n      "), strings.Join(want, "\n      "))
+	}
+	// A commit that states no junction draws none of H2, H3 and H6, whatever
+	// the plan in view says: the rules never fall back on Facts.Junctions.
+	f.Junctions[design] = then
+	silent := by("C5", "bot@example.org")
+	silent.At = []Junction{design}
+	f.History.Commits = []Commit{silent, by("C1", "olive@example.org", "Reviewed: b2c9 design"), by("C4", "bot@example.org", "Model: gpt")}
+	f.History.Commits[2].At = []Junction{design}
+	if got := derived(t, mismatch, f); len(got) != 0 {
+		t.Errorf("commits that state no junction: %v", got)
+	}
+	// With its junction, the commit that carries no Model: trailer is H6.
+	f.History.Commits[0].Junctions = map[Junction]Resolved{design: then}
+	if got, want := derived(t, mismatch, f), []string{"warning: H6 task=b2c9 gate=design commit=C5"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("H6 by the plan of the day: %v; want %v", got, want)
 	}
 
 	// H4 needs a junction that nothing accepts yet (decision 13 f): the facts
@@ -290,8 +363,8 @@ func TestDerivedTrustsNoFact(t *testing.T) {
 		History: &History{
 			Trunk: "main",
 			Commits: []Commit{
-				{Hash: "X2", Author: "bot@example.org", At: []Junction{ghost, nowhere, {}}, Events: []Event{{Task: "zzzz", Kind: "status", Gate: "nowhere"}, {}}},
-				{Hash: "X1", Author: "pat@example.org", Trailers: []Trailer{{Key: "Model", Value: "gpt"}, {Key: "", Value: ""}, {Key: "Other", Value: "zzzz"}}, At: []Junction{ghost, nowhere}},
+				{Hash: "X2", Author: "bot@example.org", At: []Junction{ghost, nowhere, {}}, Junctions: map[Junction]Resolved{ghost: agent, nowhere: agent, {}: agent}, Events: []Event{{Task: "zzzz", Kind: "status", Gate: "nowhere"}, {}}},
+				{Hash: "X1", Author: "pat@example.org", Trailers: []Trailer{{Key: "Model", Value: "gpt"}, {Key: "", Value: ""}, {Key: "Other", Value: "zzzz"}}, At: []Junction{ghost, nowhere}, Junctions: map[Junction]Resolved{ghost: agent, nowhere: agent}},
 			},
 			OffTrunk: []Pin{
 				{Task: "zzzz", Gate: "design", Index: -1},

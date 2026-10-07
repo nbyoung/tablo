@@ -55,6 +55,13 @@ type Commit struct {
 	Trailers          []Trailer  // Authorised, Reviewed, Reaffirmed and Model, in message order
 	Events            []Event    // the events of the history view that the commit gives
 	At                []Junction // the junctions the commit is at, as README.md "Junctions" defines it
+
+	// Junctions holds, as the files stand at the commit, each junction of At
+	// and each junction that a Reviewed: trailer of the commit names. The
+	// files at a commit judge the commit, so H2, H3 and H6 read the reviewer,
+	// the contributor and the model here and never from Facts.Junctions. Of
+	// a junction with no entry the three rules say nothing.
+	Junctions map[Junction]Resolved
 }
 
 // Trailer is one trailer of a commit: "Reviewed" and "9f31 design".
@@ -112,20 +119,20 @@ func (r *run) commit(code string, pos model.Pos, j Junction, hash, trailer, form
 	last.Commit, last.Trailer = hash, trailer
 }
 
-// reviewed returns a junction as the facts resolve it, when it is plain with
-// a reviewer, and the task and the gate are the project's.
+// reviewed returns a junction as the facts resolve it in view, when it is
+// plain with a reviewer, and the task and the gate are the project's.
 func (r *run) reviewed(j Junction) (Resolved, bool) {
 	junction, ok := r.facts.Junctions[j]
 	_, gate := r.shape.gate[j.Gate]
 	return junction, ok && gate && r.project.Tasks[j.Task] != nil && !junction.Recursive && junction.Reviewer != ""
 }
 
-// modelled returns a junction as the facts resolve it, when it is plain and
-// states a model, and the task and the gate are the project's.
-func (r *run) modelled(j Junction) (Resolved, bool) {
-	junction, ok := r.facts.Junctions[j]
+// stood returns a junction as the files resolve it at a commit, when it is
+// plain there, and the task and the gate are the project's.
+func (r *run) stood(c Commit, j Junction) (Resolved, bool) {
+	junction, ok := c.Junctions[j]
 	_, gate := r.shape.gate[j.Gate]
-	return junction, ok && gate && r.project.Tasks[j.Task] != nil && !junction.Recursive && junction.Model != ""
+	return junction, ok && gate && r.project.Tasks[j.Task] != nil && !junction.Recursive
 }
 
 // standing is a leaf that S11, H4 and H5 read: its status, when it has a
@@ -333,11 +340,11 @@ func (r *run) h1(c Commit, trailer Trailer) (Junction, bool) {
 
 // h2 warns of a review from a hand that is not the reviewer's: a Reviewed:
 // trailer at a junction with a reviewer, on a commit that the reviewer
-// neither authors nor commits. It stays silent at a junction with no
-// reviewer.
+// neither authors nor commits. The reviewer is the junction's as the files
+// stand at the commit. It stays silent at a junction with no reviewer.
 func (r *run) h2(c Commit, j Junction) bool {
-	junction, ok := r.reviewed(j)
-	if !ok || c.Author == junction.Reviewer || c.Committer == junction.Reviewer {
+	junction, ok := r.stood(c, j)
+	if !ok || junction.Reviewer == "" || c.Author == junction.Reviewer || c.Committer == junction.Reviewer {
 		return false
 	}
 	r.commit("H2", model.Pos{}, j, c.Hash, "", "%s is not the reviewer of the %s junction; %s is", c.Author, j.Gate, junction.Reviewer)
@@ -345,7 +352,7 @@ func (r *run) h2(c Commit, j Junction) bool {
 }
 
 // models applies H3 and H6 to every commit at a plain junction that states a
-// model.
+// model as the files stand at the commit.
 func (r *run) models() {
 	for _, c := range r.facts.History.Commits {
 		var models []string
@@ -355,8 +362,8 @@ func (r *run) models() {
 			}
 		}
 		for _, j := range c.At {
-			junction, ok := r.modelled(j)
-			if !ok {
+			junction, ok := r.stood(c, j)
+			if !ok || junction.Model == "" {
 				continue
 			}
 			r.h3(c, j, junction, models)

@@ -12,6 +12,11 @@
 # Derivation gives it: the label of the commit that accepts it. A junction it
 # does not name has none yet. S11, H4 and H5 read it and search no trailer.
 #
+# junctions holds each junction as the plan in view resolves it. No entry
+# here changes a junction in its history, so the test gives every commit the
+# same reading for the junctions it is at and the ones its Reviewed: trailers
+# name; H2, H3 and H6 read that reading, the files as they stand at the commit.
+#
 # A line of want reads as a line of corpus.expected.txt, with commit=<label>
 # and trailer=<line> where the diagnostic carries them.
 plan: &plan
@@ -101,8 +106,8 @@ entries:
     want:
       - "warning: H6 task=b2c9 gate=design commit=M4"
       # Nothing accepts design yet, the newest event is the contributor's and
-      # the status states no review, so README.md's sentence for H4 holds. The
-      # corpus's expected.yaml states no H4 for the entry.
+      # the status states no review, so README.md's sentence for H4 holds, as
+      # the corpus's expected.yaml states since the owner's ruling of 2026-10-07.
       - "status/b2c9.yaml: information: H4 task=b2c9 gate=design commit=M4"
 
   - entry: trunk-undetermined
