@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -75,6 +76,24 @@ func expected(t testing.TB, name string) expectation {
 		t.Fatalf("%s: %v", name, err)
 	}
 	return e
+}
+
+// built returns the corpus entries that the build made, by name: each entry
+// directory with a repository under build.
+func built(t testing.TB) []string {
+	t.Helper()
+	list, err := os.ReadDir(beside(t, "entries"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, entry := range list {
+		if info, err := os.Stat(filepath.Join(corpus(t), entry.Name())); err == nil && info.IsDir() {
+			names = append(names, entry.Name())
+		}
+	}
+	sort.Strings(names)
+	return names
 }
 
 // entry loads a built corpus entry as its expected.yaml says: at its ref,
@@ -238,4 +257,97 @@ func where(d model.Diagnostic) string {
 		b.WriteString(" trailer=" + d.Trailer)
 	}
 	return b.String()
+}
+
+// places returns where each diagnostic sits.
+func places(all []model.Diagnostic) []string {
+	lines := make([]string, len(all))
+	for i, d := range all {
+		lines[i] = where(d)
+	}
+	return lines
+}
+
+// codes returns the code of each diagnostic, in order.
+func codes(all []model.Diagnostic) string {
+	list := make([]string, len(all))
+	for i, d := range all {
+		list[i] = d.Code
+	}
+	return strings.Join(list, " ")
+}
+
+// copyTree copies a directory with its symbolic links and file modes.
+func copyTree(t testing.TB, from, to string) {
+	t.Helper()
+	err := filepath.WalkDir(from, func(p string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(from, p)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(to, rel)
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		switch {
+		case d.IsDir():
+			return os.MkdirAll(target, 0o755)
+		case info.Mode()&os.ModeSymlink != 0:
+			link, err := os.Readlink(p)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(link, target)
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, data, info.Mode().Perm()|0o200)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// copyOf copies a built corpus entry, with its Git directory and whatever its
+// working tree holds, under t.TempDir() and returns the copy's path. A test
+// changes the copy and never the corpus.
+func copyOf(t testing.TB, name string) string {
+	t.Helper()
+	repo := filepath.Join(t.TempDir(), name)
+	copyTree(t, filepath.Join(corpus(t), name), repo)
+	return repo
+}
+
+// write writes one file below .tableaux of a repository.
+func write(t testing.TB, repo, path, content string) {
+	t.Helper()
+	full := filepath.Join(repo, ".tableaux", filepath.FromSlash(path))
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// read returns one file below .tableaux of a repository.
+func read(t testing.TB, repo, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(repo, ".tableaux", filepath.FromSlash(path)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
+}
+
+// worktree loads the working tree of a repository.
+func worktree(t testing.TB, repo string) *model.Project {
+	t.Helper()
+	return loadAt(t, load.Options{}, repo, "")
 }

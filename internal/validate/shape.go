@@ -1,9 +1,17 @@
 package validate
 
 import (
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/nbyoung/tablo/internal/model"
+)
+
+// idPattern and keyPattern are the patterns the schemas give an id and a key.
+var (
+	idPattern  = regexp.MustCompile(`^[0-9a-f]{4}$`)
+	keyPattern = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
 )
 
 // undefined is the key of the first gate and of its state.
@@ -185,4 +193,34 @@ func (s *shape) applicable(id string) []string {
 	}
 	s.applies[id] = gates
 	return gates
+}
+
+// appliesTo reports whether a gate applies to a task.
+func (s *shape) appliesTo(id, gate string) bool {
+	return indexOf(s.applicable(id), gate) >= 0
+}
+
+// isParent reports whether a task names id as its parent.
+func (s *shape) isParent(id string) bool {
+	return len(s.children[id]) > 0
+}
+
+// indexOf returns the index of an item in a list, or -1.
+func indexOf(list []string, item string) int {
+	for i, x := range list {
+		if x == item {
+			return i
+		}
+	}
+	return -1
+}
+
+// sortedKeys returns the keys of a set in byte order.
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
