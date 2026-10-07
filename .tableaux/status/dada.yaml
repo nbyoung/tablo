@@ -1,3 +1,4 @@
 gate: function
 state: nominal
-note: prototype/dada finds proposed, unreviewed, non-reviewer and model-mismatch findings against the corpus; design is next
+reason: review
+note: design/dada.md on branch wave/dada awaits the owner's review at the design gate
