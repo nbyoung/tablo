@@ -224,59 +224,102 @@ func candidates(dir string) []string {
 	return dirs
 }
 
-// assemble parses the files of a listing and builds the project they state,
-// without its links. It returns the subproject fields the files hold, by
-// task id and then in file order, for the Loader to resolve.
-func assemble(where model.Location, l listing) (*model.Project, []*model.Subproject) {
-	p := &model.Project{Where: where, Exists: l.exists}
-	if !l.exists {
-		return p, nil
+// Piece is one file of the layout, parsed: the file, what it builds and the
+// diagnostics it earns. A Piece is immutable.
+type Piece struct {
+	kind        int    // which file of the layout it is
+	id          string // the id a task or status file carries
+	file        *model.File
+	version     *model.Version
+	gating      *model.Gating
+	task        *model.Task
+	status      *model.Status
+	diagnostics []model.Diagnostic
+}
+
+// Parse reads data as the file at path, a path below .tableaux. It returns
+// nil for a path the layout does not name, whatever the data: such a path is
+// stray, and a tool leaves it unread.
+func Parse(path string, data []byte) *Piece {
+	return parse(content{path: path, data: data})
+}
+
+// parse reads one file as a source gives it. A file the source cannot read
+// earns the diagnostic of a file that is no YAML.
+func parse(c content) *Piece {
+	kind, id := layout(c.path)
+	if kind == strayFile {
+		return nil
 	}
-	p.Stray = l.stray
-	p.Tasks = map[string]*model.Task{}
-	p.Statuses = map[string]*model.Status{}
-	for _, stray := range l.stray {
+	piece := &Piece{kind: kind, id: id, file: &model.File{Path: c.path}}
+	var parsed bool
+	if c.err != nil {
+		piece.diagnostics = []model.Diagnostic{{
+			Code:     codeNotYAML,
+			Severity: model.Error,
+			Pos:      model.Pos{File: c.path},
+			Message:  "the file cannot be read: " + c.err.Error(),
+		}}
+	} else {
+		piece.file.Root, parsed, piece.diagnostics = readYAML(c.path, c.data)
+	}
+	if parsed {
+		switch kind {
+		case versionFile:
+			var more []model.Diagnostic
+			piece.version, more = buildVersion(piece.file)
+			piece.diagnostics = append(piece.diagnostics, more...)
+		case gatesFile:
+			piece.gating = buildGating(piece.file)
+		case taskFile:
+			piece.task = buildTask(id, piece.file)
+		case statusFile:
+			piece.status = buildStatus(id, piece.file)
+		}
+	}
+	for i := range piece.diagnostics {
+		piece.diagnostics[i].Task = id
+	}
+	return piece
+}
+
+// Compose joins pieces into the project they state, without its links: the
+// project's Links is nil and each Subproject.Link is nil. stray lists the
+// paths under .tableaux that the layout does not name. The project exists
+// when it holds a piece or a stray path, and its files stand in the order of
+// pieces, which a caller gives by path. A nil piece is left out.
+func Compose(where model.Location, pieces []*Piece, stray []string) *model.Project {
+	p := &model.Project{
+		Where:    where,
+		Exists:   len(pieces) > 0 || len(stray) > 0,
+		Stray:    stray,
+		Tasks:    map[string]*model.Task{},
+		Statuses: map[string]*model.Status{},
+	}
+	for _, path := range stray {
 		p.Diagnostics = append(p.Diagnostics, model.Diagnostic{
 			Code:     codeStrayPath,
 			Severity: model.Warning,
-			Pos:      model.Pos{File: stray},
+			Pos:      model.Pos{File: path},
 			Message:  "the layout names no such path; a tool leaves it unread",
 		})
 	}
-	for _, c := range l.files {
-		kind, id := layout(c.path)
-		file := &model.File{Path: c.path}
-		p.Files = append(p.Files, file)
-		var parsed bool
-		var diagnostics []model.Diagnostic
-		if c.err != nil {
-			diagnostics = []model.Diagnostic{{
-				Code:     codeNotYAML,
-				Severity: model.Error,
-				Pos:      model.Pos{File: c.path},
-				Message:  "the file cannot be read: " + c.err.Error(),
-			}}
-		} else {
-			file.Root, parsed, diagnostics = readYAML(c.path, c.data)
+	for _, piece := range pieces {
+		if piece == nil {
+			continue
 		}
-		if parsed {
-			switch kind {
-			case versionFile:
-				var more []model.Diagnostic
-				p.Version, more = buildVersion(file)
-				diagnostics = append(diagnostics, more...)
-			case gatesFile:
-				p.Gating = buildGating(file)
-			case taskFile:
-				p.Tasks[id] = buildTask(id, file)
-			case statusFile:
-				p.Statuses[id] = buildStatus(id, file)
-			}
+		p.Files = append(p.Files, piece.file)
+		switch {
+		case piece.version != nil:
+			p.Version = piece.version
+		case piece.gating != nil:
+			p.Gating = piece.gating
+		case piece.task != nil:
+			p.Tasks[piece.id] = piece.task
+		case piece.status != nil:
+			p.Statuses[piece.id] = piece.status
 		}
-		for i := range diagnostics {
-			diagnostics[i].Task = id
-		}
-		p.Diagnostics = append(p.Diagnostics, diagnostics...)
+		p.Diagnostics = append(p.Diagnostics, piece.diagnostics...)
 	}
 	sort.SliceStable(p.Diagnostics, func(i, j int) bool {
 		a, b := p.Diagnostics[i], p.Diagnostics[j]
@@ -290,6 +333,22 @@ func assemble(where model.Location, l listing) (*model.Project, []*model.Subproj
 		}
 		return a.Code < b.Code
 	})
+	return p
+}
+
+// assemble parses the files of a listing and builds the project they state,
+// without its links. It returns the subproject fields the files hold, by
+// task id and then in file order, for the Loader to resolve.
+func assemble(where model.Location, l listing) (*model.Project, []*model.Subproject) {
+	if !l.exists {
+		return &model.Project{Where: where}, nil
+	}
+	pieces := make([]*Piece, len(l.files))
+	for i, c := range l.files {
+		pieces[i] = parse(c)
+	}
+	p := Compose(where, pieces, l.stray)
+	p.Exists = true
 	var fields []*model.Subproject
 	for _, id := range p.TaskIDs() {
 		fields = append(fields, subprojects(p.Tasks[id])...)

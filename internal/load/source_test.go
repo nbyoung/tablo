@@ -453,3 +453,47 @@ func TestNearestProject(t *testing.T) {
 		}
 	}
 }
+
+// Parse reads one file alone, and Compose joins the pieces: the project they
+// state has no link, and a path the layout does not name gives no piece.
+func TestParseAndCompose(t *testing.T) {
+	if Parse("notes.txt", []byte("a: 1\n")) != nil || Parse("tasks/deep/a000.yaml", nil) != nil {
+		t.Error("Parse gives a piece for a path the layout does not name")
+	}
+	task := []byte("title: Leaf\nassignee: pat@example.org\nparent: { id: \"e4a1\", order: 1 }\n" +
+		"junctions:\n  design: { subproject: { url: lib } }\n")
+	pieces := []*Piece{
+		Parse("gates.yaml", []byte("gates:\n  - { key: undefined }\n  - { key: design }\n")),
+		Parse("status/b2c9.yaml", []byte("gate: design\n")),
+		Parse("tasks/b2c9.yaml", task),
+		Parse("tasks/e4a1.yaml", []byte("title: [unclosed\n")),
+		Parse("version.yaml", []byte("tableaux: 9.0.0\n")),
+	}
+	where := model.Location{Dir: "lib", Commit: "c0ffee"}
+	p := Compose(where, pieces, []string{"notes.txt"})
+	if !p.Exists || p.Where != where || len(p.Files) != 5 || !reflect.DeepEqual(p.Stray, []string{"notes.txt"}) {
+		t.Fatalf("Compose gives %+v", p)
+	}
+	if len(p.Gating.Gates) != 2 || p.Statuses["b2c9"].Gate.V != "design" || p.Version.Accepted || p.Tasks["e4a1"] != nil {
+		t.Errorf("Compose builds the gating %+v, the status %+v, the version %+v and the task %+v",
+			p.Gating, p.Statuses["b2c9"], p.Version, p.Tasks["e4a1"])
+	}
+	leaf := p.Tasks["b2c9"]
+	if leaf == nil || leaf.Junctions[0].Subproject == nil || leaf.Junctions[0].Subproject.Link != nil || p.Links != nil {
+		t.Errorf("Compose gives the task %+v and the links %v; want a subproject field with no link", leaf, p.Links)
+	}
+	var codes []string
+	for _, d := range p.Diagnostics {
+		codes = append(codes, d.Pos.File+" "+d.Code+" "+d.Task)
+	}
+	if want := []string{"notes.txt L4 ", "tasks/e4a1.yaml L1 e4a1", "version.yaml P4 "}; !reflect.DeepEqual(codes, want) {
+		t.Errorf("the diagnostics are %q; want %q", codes, want)
+	}
+	// The same pieces compose twice: a Piece is immutable.
+	if q := Compose(where, pieces, []string{"notes.txt"}); !reflect.DeepEqual(p, q) {
+		t.Error("two compositions of the same pieces differ")
+	}
+	if empty := Compose(where, nil, nil); empty.Exists || empty.Tasks == nil {
+		t.Errorf("Compose of nothing gives %+v; want a project that does not exist", empty)
+	}
+}
