@@ -29,5 +29,7 @@ type Diagnostic struct {
 	Pos      Pos
 	Task     string // the task it concerns, when it concerns one
 	Gate     string // the gate it concerns, when it concerns one
+	Commit   string // the commit it concerns, in full, when it concerns one
+	Trailer  string // the trailer line it concerns, as Key: value, when it concerns one
 	Message  string
 }

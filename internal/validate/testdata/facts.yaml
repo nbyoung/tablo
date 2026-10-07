@@ -1,0 +1,121 @@
+# Fixtures for validate.Derived: per corpus entry, the facts a test hands the
+# Validator and the diagnostics it then gives. The entry loads at main; the
+# facts are written by hand from the entry's history.sh, with the corpus label
+# of a commit standing for its hash, since Derived copies a hash and never
+# reads one. Every commit has one identity as author and committer.
+#
+# plan is the entry's first commit, by olive: it writes every file.
+# pat: the plain default for b2c9 at defined, design and release, contributor
+# pat@example.org, which each entry overrides at one gate.
+#
+# reviews holds the accepting review of a junction with a reviewer, as the
+# Derivation gives it: the label of the commit that accepts it. A junction it
+# does not name has none yet. S11, H4 and H5 read it and search no trailer.
+#
+# A line of want reads as a line of corpus.expected.txt, with commit=<label>
+# and trailer=<line> where the diagnostic carries them.
+plan: &plan
+  hash: P0
+  by: olive@example.org
+  tableaux: 0.3.1
+  events: [{ task: e4a1, kind: task }, { task: b2c9, kind: task }, { task: b2c9, kind: status, gate: defined }]
+  at: [{ task: b2c9, gate: defined }]
+
+entries:
+  - entry: handoff-inferred
+    junctions: { b2c9 design: { contributor: pat@example.org, reviewer: olive@example.org } }
+    history:
+      trunk: main
+      commits:
+        - { hash: I2, by: pat@example.org, tableaux: 0.3.1, events: [{ task: b2c9, kind: status, gate: defined }], at: [{ task: b2c9, gate: design }] }
+        - *plan
+    want:
+      - "status/b2c9.yaml: information: H4 task=b2c9 gate=design commit=I2"
+
+  - entry: handoff-stale
+    junctions: { b2c9 design: { contributor: pat@example.org, reviewer: olive@example.org } }
+    history:
+      trunk: main
+      commits:
+        - { hash: S3, by: olive@example.org, tableaux: 0.3.1, trailers: ["Reviewed: b2c9 design"], events: [{ task: b2c9, kind: reviewed, gate: design }] }
+        - { hash: S2, by: pat@example.org, tableaux: 0.3.1, events: [{ task: b2c9, kind: status, gate: defined }], at: [{ task: b2c9, gate: design }] }
+        - *plan
+      reviews: { b2c9 design: S3 }
+    want:
+      - "status/b2c9.yaml:3:9: warning: H5 task=b2c9 gate=design commit=S3"
+
+  - entry: review-by-non-reviewer
+    junctions: { b2c9 design: { contributor: pat@example.org, reviewer: olive@example.org } }
+    history:
+      trunk: main
+      commits:
+        - { hash: R2, by: pat@example.org, tableaux: 0.3.1, trailers: ["Reviewed: b2c9 design"], events: [{ task: b2c9, kind: reviewed, gate: design }] }
+        - *plan
+    want:                                    # and no H4: the trailer H2 reports is no event
+      - "warning: H2 task=b2c9 gate=design commit=R2"
+
+  - entry: unknown-trailer
+    junctions: {}
+    history:
+      trunk: main
+      commits:
+        - { hash: U3, by: olive@example.org, tableaux: 0.3.1, trailers: ["Model: claude-sonnet-5"] }
+        - { hash: U2, by: olive@example.org, tableaux: 0.3.1, trailers: ["Authorised: zzzz", "Reviewed: 9f31 nowhere"] }
+        - *plan
+    want:
+      - "warning: H1 commit=U2 trailer=Authorised: zzzz"
+      - "warning: H1 commit=U2 trailer=Reviewed: 9f31 nowhere"
+
+  - entry: status-unreviewed-gate
+    junctions: { b2c9 design: { contributor: pat@example.org, reviewer: olive@example.org } }
+    history: { trunk: main, commits: [*plan] }
+    want:
+      - "status/b2c9.yaml:1:7: error: S11 task=b2c9 gate=design"
+
+  - entry: status-unreviewed-gate           # the same files with no history: a tree
+    junctions: { b2c9 design: { contributor: pat@example.org, reviewer: olive@example.org } }
+    want: []
+
+  - entry: model-mismatch
+    junctions: { b2c9 design: { contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org } }
+    history:
+      trunk: main
+      commits:
+        - { hash: M4, by: bot@example.org, tableaux: 0.3.1, trailers: ["Model: claude-fable-5-1"], events: [{ task: b2c9, kind: status, gate: design }], at: [{ task: b2c9, gate: release }] }
+        - { hash: M3, by: pat@example.org, tableaux: 0.3.1, trailers: ["Reviewed: b2c9 design"], events: [{ task: b2c9, kind: reviewed, gate: design }] }
+        - { hash: M2, by: bot@example.org, tableaux: 0.3.1, trailers: ["Model: claude-sonnet-5"], events: [{ task: b2c9, kind: status, gate: design }], at: [{ task: b2c9, gate: design }] }
+        - *plan
+      reviews: { b2c9 design: M3 }
+    want:
+      - "warning: H3 task=b2c9 gate=design commit=M2"
+
+  - entry: model-trailer-missing
+    junctions: { b2c9 design: { contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org } }
+    history:
+      trunk: main
+      commits:
+        - { hash: M4, by: bot@example.org, tableaux: 0.3.1, events: [{ task: b2c9, kind: status, gate: defined }], at: [{ task: b2c9, gate: design }] }
+        - { hash: M3, by: olive@example.org, tableaux: 0.3.1 }
+        - { hash: M2, by: bot@example.org, tableaux: 0.2.0, events: [{ task: b2c9, kind: status, gate: defined }], at: [{ task: b2c9, gate: design }] }
+        - *plan
+    want:
+      - "warning: H6 task=b2c9 gate=design commit=M4"
+      # Nothing accepts design yet, the newest event is the contributor's and
+      # the status states no review, so README.md's sentence for H4 holds. The
+      # corpus's expected.yaml states no H4 for the entry.
+      - "status/b2c9.yaml: information: H4 task=b2c9 gate=design commit=M4"
+
+  - entry: trunk-undetermined
+    junctions: {}
+    history: { trunk: "", commits: [*plan] }
+    want:
+      - "version.yaml: warning: P5"
+
+  - entry: unmet-requirement
+    junctions: {}
+    requirements:
+      - { task: c3d7, index: 0, origin: b2c9, from: design, to: release, stands: defined, met: false, due: true }
+      - { task: d4e8, index: 0, origin: b2c9, from: design, to: release, stands: defined, met: false, due: false }    # pending: no finding
+      - { task: c3d7, index: 9, origin: b2c9, from: design, to: release, stands: defined, met: false, due: true }     # no such entry: skipped
+    want:
+      - "tasks/c3d7.yaml:6:5: warning: R9 task=c3d7"

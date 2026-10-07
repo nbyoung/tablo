@@ -46,6 +46,7 @@ front end in the family copies.
 ├── version.go                 # Version and the tableaux versions the module accepts
 ├── version_test.go
 ├── cmd/tablo/main.go          # command tablo: the plumbing command
+├── internal/validate/         # the Validator: the rules of the method's RULES.md over a loaded project
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
 ├── .github/workflows/
@@ -114,7 +115,11 @@ YAML reader, that the implementation takes two libraries:
 | `gopkg.in/yaml.v3`                        | v3      | Parse project files; `yaml.Node` keeps the line and column of every value |
 | `github.com/santhosh-tekuri/jsonschema/v6` | v6      | Validate files against the embedded JSON Schema 2020-12 schemas |
 
-Both are pure Go, so the six release targets still build with `CGO_ENABLED=0`.
+The schema module brings a third, `golang.org/x/text` v0.14.0 (BSD-3-Clause),
+as an indirect requirement that the binary links: it holds the message
+catalogue of the schema module, whose wording the Validator never prints.
+
+All three are pure Go, so the six release targets still build with `CGO_ENABLED=0`.
 The loader task adds the `require` lines when its implementation first imports
 them; `go` fetches the modules from the module proxy, and no one installs
 anything by hand. The prototypes under `prototype/` predate the decision and

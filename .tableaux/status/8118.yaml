@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: design/8118.md is on the trunk with the owner's decisions of 2026-10-07; implementation is next, on the Loader as built, and the adapter that fills validate.Facts waits in snapshot.go for the Derivation (27a3)
+note: internal/validate stands with Files, Derived, Sort and Rules, and its tests T1 to T18 pass on the 102 built corpus entries; the unit gate runs go test ./internal/validate with TABLEAUX_CORPUS set; the adapter that fills validate.Facts, History.Reviews with it, waits in snapshot.go on the Derivation (27a3) and the Plumbing command (4ed9), and the corpus proof of the eleven fact rules waits on the Conformance run (4b4f), where model-trailer-missing gives an H4 its expected.yaml lacks
