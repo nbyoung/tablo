@@ -1,0 +1,68 @@
+tablo assignment --ref 3cdae52 --level detail
+tablo assignment --ref 3cdae52 --level glance
+tablo assignment --ref 3cdae52 --level provenance
+tablo audit --ref main --stale 7 --person nbyoung@nbyoung.com --level detail
+tablo audit --ref main --stale 7 --level detail
+tablo audit --ref main --stale 7 --level glance
+tablo audit --ref main --stale 7 --level provenance
+tablo authority --ref main --level detail
+tablo authority --ref main --level glance
+tablo authority --ref main --level provenance
+tablo authority --ref main --proposed
+tablo blockage --ref 3cdae52 --level detail
+tablo blockage --ref 3cdae52 --level glance
+tablo blockage --ref 3cdae52 --level provenance
+tablo context --person nbyoung@nbyoung.com --level detail
+tablo context --person nbyoung@nbyoung.com --level glance
+tablo context --person nbyoung@nbyoung.com --level provenance
+tablo context --task 2034 --level detail
+tablo context --task 2034 --level glance
+tablo context --task 2034 --level provenance
+tablo -C subprojects/tableaud history --ref 59783a9
+tablo -C subprojects/tableaud history --ref cffbfa6..e6ec4ec
+tablo -C subprojects/tablo history --ref dc669dd
+tablo -C subprojects/tabloio history --ref 46521bc
+tablo -C subprojects/tabloio history --ref 62261d4..7eba1e5
+tablo -C subprojects/tabloio history --ref cb9ff8f..4593882
+tablo -C subprojects/tablotui history --ref 334df71..a2878b5
+tablo -C subprojects/tablotui history --ref 4544042
+tablo gates --ref 3cdae52 --level detail
+tablo gates --ref 3cdae52 --level glance
+tablo gates --ref 3cdae52 --level provenance
+tablo gates --ref 3cdae52 --task e9c6 --level detail
+tablo history --ref 0704a09..main --level detail
+tablo history --ref 0704a09..main --level glance
+tablo history --ref 0704a09..main --level provenance
+tablo history --ref a7932ae..37a08e9
+tablo history --task e9c6 --ref main --level detail
+tablo history --task e9c6 --ref main --level glance
+tablo history --task e9c6 --ref main --level provenance
+tablo queue --person noreply@anthropic.com --ref 3cdae52 --brief c74a mockup
+tablo queue --person noreply@anthropic.com --ref main --brief 05a9 mockup
+tablo queue --person noreply@anthropic.com --ref main --brief 7166 implementation
+tablo queue --person noreply@anthropic.com --ref main --brief 7861 validate
+tablo queue --person noreply@anthropic.com --ref main --brief 99f0 mockup
+tablo queue --person noreply@anthropic.com --ref main --brief 9f3f implementation
+tablo queue --person noreply@anthropic.com --ref main --brief a9ce mockup
+tablo queue --person noreply@anthropic.com --ref main --brief ac33 implementation
+tablo queue --person noreply@anthropic.com --ref main --brief c2ad validate
+tablo queue --person noreply@anthropic.com --ref main --brief e3cb validate
+tablo queue --person noreply@anthropic.com --ref main --brief e9c6 implementation
+tablo queue --person noreply@anthropic.com --ref main --brief fcec unit
+tablo queue --person noreply@anthropic.com --ref main --level detail
+tablo queue --person noreply@anthropic.com --ref main --level glance
+tablo queue --ref main --level detail
+tablo queue --ref main --level glance
+tablo tableau --ref main --level detail
+tablo tableau --ref main --level detail --historical
+tablo tableau --ref main --level detail --person nbyoung@nbyoung.com
+tablo tableau --ref main --level detail --window 0
+tablo tableau --ref main --level glance
+tablo tableau --ref main --level provenance
+tablo task 595e --ref 3cdae52 --person nbyoung@nbyoung.com --level glance
+tablo task 595e --ref 3cdae52 --person nbyoung@nbyoung.com --level provenance
+tablo task 5fe3 --ref 3cdae52 --person nbyoung@nbyoung.com --level glance
+tablo task c74a --ref 3cdae52
+tablo task e9c6 --ref 3cdae52 --person nbyoung@nbyoung.com --level detail
+tablo task e9c6 --ref 3cdae52 --person nbyoung@nbyoung.com --level glance
+tablo task e9c6 --ref 3cdae52 --person nbyoung@nbyoung.com --level provenance
