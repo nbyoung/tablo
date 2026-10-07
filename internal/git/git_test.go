@@ -308,3 +308,158 @@ func TestRunErrors(t *testing.T) {
 		t.Errorf("a cancelled context: %v", err)
 	}
 }
+
+// built returns a repository of the built conformance corpus and the commits
+// its build labels, and skips the test when the corpus is absent:
+// TABLEAUX_CORPUS, else ../tableaux/corpus/build beside the checkout.
+func built(t *testing.T, entry string) (dir string, labels map[string]string) {
+	t.Helper()
+	root := os.Getenv("TABLEAUX_CORPUS")
+	if root == "" {
+		root = filepath.Join("..", "..", "..", "tableaux", "corpus", "build")
+	}
+	data, err := os.ReadFile(filepath.Join(root, entry+".labels.txt"))
+	if err != nil {
+		t.Skipf("the built corpus is absent at %s; set TABLEAUX_CORPUS", root)
+	}
+	labels = map[string]string{}
+	for _, line := range strings.Split(string(data), "\n") {
+		if label, hash, ok := strings.Cut(line, " "); ok {
+			labels[label] = hash
+		}
+	}
+	return filepath.Join(root, entry), labels
+}
+
+// T1: Log reads a record. The weather station holds a merge, a commit with a
+// trailer and no change, a first pin and a root commit.
+func TestLog(t *testing.T) {
+	ctx := context.Background()
+	dir, labels := built(t, "weather-station")
+	var r Runner
+	commits, err := r.Log(ctx, Repo{Dir: dir}, []string{labels["W13"]}, []string{".tableaux", "firmware"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) != 13 || commits[0].ID != labels["W13"] {
+		t.Fatalf("Log returns %d commits from %v; want the thirteen, W13 first", len(commits), commits[0].ID)
+	}
+	by := map[string]LogCommit{}
+	for i, c := range commits {
+		by[c.ID] = c
+		for _, parent := range c.Parents {
+			if _, seen := by[parent]; seen {
+				t.Errorf("commit %d, %s, follows its parent %s", i, c.ID, parent)
+			}
+		}
+	}
+	paths := func(c LogCommit) []string {
+		var list []string
+		for _, change := range c.Changes {
+			list = append(list, change.Path)
+		}
+		return list
+	}
+
+	// The merge: two parents, the change against the first, and its trailer.
+	w4 := by[labels["W4"]]
+	if want := []string{labels["W2"], labels["W3"]}; !reflect.DeepEqual(w4.Parents, want) {
+		t.Errorf("W4 has the parents %v; want %v", w4.Parents, want)
+	}
+	if got := paths(w4); !reflect.DeepEqual(got, []string{".tableaux/tasks/9f31.yaml"}) {
+		t.Errorf("W4 changes %v; want the task file of 9f31 alone", got)
+	}
+	if !reflect.DeepEqual(w4.Trailers, []string{"Authorised: 9f31"}) {
+		t.Errorf("W4 carries %q; want Authorised: 9f31", w4.Trailers)
+	}
+	if c := w4.Changes[0]; c.OldMode != "000000" || c.NewMode != "100644" || strings.Trim(c.Old, "0") != "" || len(c.New) != 40 {
+		t.Errorf("W4 changes the file as %+v; want an addition with full ids", c)
+	}
+
+	// A trailer and no change.
+	w6 := by[labels["W6"]]
+	if len(w6.Changes) != 0 || !reflect.DeepEqual(w6.Trailers, []string{"Authorised: 3c5d"}) {
+		t.Errorf("W6 has the changes %v and the trailers %q; want none and Authorised: 3c5d", w6.Changes, w6.Trailers)
+	}
+	if w6.AuthorEmail != "ada@example.org" || w6.AuthorName != "Ada Byron" || w6.CommitterEmail != "ada@example.org" ||
+		w6.AuthorZone != 0 || w6.AuthorTime != 1789992000 || w6.Subject == "" {
+		t.Errorf("W6 reads as %+v", w6)
+	}
+
+	// The first pin is a gitlink beside the status file.
+	w11 := by[labels["W11"]]
+	if got := paths(w11); !reflect.DeepEqual(got, []string{".tableaux/status/c07d.yaml", "firmware"}) {
+		t.Fatalf("W11 changes %v; want the status of c07d and the gitlink", got)
+	}
+	if c := w11.Changes[1]; c.NewMode != ModeGitlink || c.OldMode != "000000" {
+		t.Errorf("W11 changes firmware as %+v; want a new gitlink", c)
+	}
+
+	// The root commit lists every file it holds among the paths.
+	w1 := by[labels["W1"]]
+	listed, err := r.LsTree(ctx, Repo{Dir: dir}, labels["W1"], true, ".tableaux")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var want []string
+	for _, e := range listed {
+		want = append(want, e.Path)
+	}
+	if got := paths(w1); len(w1.Parents) != 0 || len(got) == 0 || !reflect.DeepEqual(got, want) {
+		t.Errorf("W1 has the parents %v and changes %v; want none and %v", w1.Parents, got, want)
+	}
+}
+
+func TestLogZone(t *testing.T) {
+	dir, _ := repository(t)
+	if err := os.WriteFile(filepath.Join(dir, "one.txt"), []byte("two\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command("git", "-c", "commit.gpgsign=false", "commit", "-q", "-a", "-m", "East of UTC",
+		"-m", "Reviewed: 9f31 design\nModel: one\n  folded")
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME=Pat Singh", "GIT_AUTHOR_EMAIL=pat@example.org",
+		"GIT_COMMITTER_NAME=Olive Marsh", "GIT_COMMITTER_EMAIL=olive@example.org",
+		"GIT_AUTHOR_DATE=2026-09-02T01:30:00+05:30", "GIT_COMMITTER_DATE=2026-09-03T12:00:00-08:00",
+		"GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_SYSTEM="+os.DevNull,
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git commit: %v\n%s", err, out)
+	}
+	var r Runner
+	commits, err := r.Log(context.Background(), Repo{Dir: dir}, []string{"HEAD"}, []string{"one.txt"})
+	if err != nil || len(commits) != 2 {
+		t.Fatalf("Log: %d commits, %v; want two", len(commits), err)
+	}
+	c := commits[0]
+	if c.AuthorZone != 330 || c.AuthorTime != 1788292800 || c.AuthorEmail != "pat@example.org" || c.CommitterName != "Olive Marsh" {
+		t.Errorf("the commit reads as %+v; want the author's time and zone, +05:30", c)
+	}
+	if want := []string{"Reviewed: 9f31 design", "Model: one folded"}; !reflect.DeepEqual(c.Trailers, want) {
+		t.Errorf("the trailers are %q; want %q", c.Trailers, want)
+	}
+}
+
+func TestRefs(t *testing.T) {
+	ctx := context.Background()
+	dir, commit := repository(t)
+	run(t, dir, "branch", "side")
+	run(t, dir, "update-ref", "refs/remotes/origin/main", commit)
+	run(t, dir, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+	run(t, dir, "tag", "v1")
+	var r Runner
+	got, err := r.Refs(ctx, Repo{Dir: dir}, "refs/heads", "refs/remotes")
+	want := []Ref{
+		{Name: "refs/heads/main", Commit: commit},
+		{Name: "refs/heads/side", Commit: commit},
+		{Name: "refs/remotes/origin/HEAD", Commit: commit, Target: "refs/remotes/origin/main"},
+		{Name: "refs/remotes/origin/main", Commit: commit},
+	}
+	if err != nil || !reflect.DeepEqual(got, want) {
+		t.Errorf("Refs: %+v, %v; want %+v", got, err, want)
+	}
+	if got, err := r.Refs(ctx, Repo{Dir: dir}, "refs/nowhere"); err != nil || len(got) != 0 {
+		t.Errorf("Refs of an empty prefix: %+v, %v; want none", got, err)
+	}
+}

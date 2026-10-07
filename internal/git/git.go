@@ -391,3 +391,131 @@ func (r Runner) Blobs(ctx context.Context, repo Repo, ids []string) ([][]byte, e
 	}
 	return blobs, nil
 }
+
+// Ref is one branch or remote-tracking ref.
+type Ref struct {
+	Name   string // in full: refs/heads/main
+	Commit string // the commit it names, in full
+	Target string // for a symbolic ref, the ref it names; else ""
+}
+
+// Refs lists the refs under the prefixes given, by name, in one for-each-ref.
+func (r Runner) Refs(ctx context.Context, repo Repo, prefixes ...string) ([]Ref, error) {
+	args := append([]string{"for-each-ref", "--format=%(refname)%00%(objectname)%00%(symref)"}, prefixes...)
+	out, err := r.Run(ctx, repo, nil, args...)
+	if err != nil {
+		return nil, err
+	}
+	var refs []Ref
+	for _, line := range strings.Split(string(out), "\n") {
+		if line == "" {
+			continue
+		}
+		fields := strings.Split(line, "\x00")
+		if len(fields) != 3 {
+			return nil, fmt.Errorf("git for-each-ref: unexpected record %q", line)
+		}
+		refs = append(refs, Ref{Name: fields[0], Commit: fields[1], Target: fields[2]})
+	}
+	return refs, nil
+}
+
+// LogChange is one path a commit changes against its first parent.
+type LogChange struct {
+	Path             string // relative to the repository root
+	OldMode, NewMode string // 000000 where the path is absent
+	Old, New         string // the object ids, in full; all zeros where the path is absent
+}
+
+// LogCommit is one commit as Log prints it.
+type LogCommit struct {
+	ID                            string
+	Parents                       []string
+	AuthorName, AuthorEmail       string
+	AuthorTime                    int64 // seconds since the epoch
+	AuthorZone                    int   // minutes east of UTC
+	CommitterName, CommitterEmail string
+	Subject                       string
+	Trailers                      []string // the lines of the trailer block, unfolded, in order
+	Changes                       []LogChange
+}
+
+// logFormat prints one commit as a record that starts with the byte 1 and
+// holds nine fields, each ended by a NUL: the id, the parents, the author's
+// name, email and raw date, the committer's name and email, the subject and
+// the trailer block.
+const logFormat = "%x01%H%x00%P%x00%an%x00%ae%x00%ad%x00%cn%x00%ce%x00%s%x00%(trailers:only,unfold)%x00"
+
+// Log walks the history of tips in one git log and returns every commit, the
+// newest first in Git's date order, each with the changes it makes among
+// paths against its first parent. It prunes no commit: one that changes none
+// of the paths returns with no change. The command line pins what a
+// configuration could vary: the signature display, the colour, the rename
+// detection, the date format and the diff of a root commit. It needs Git
+// 2.31, for --diff-merges.
+func (r Runner) Log(ctx context.Context, repo Repo, tips, paths []string) ([]LogCommit, error) {
+	args := []string{"-c", "log.showSignature=false", "log", "--date-order", "--date=raw",
+		"--diff-merges=first-parent", "--raw", "--no-abbrev", "--no-renames", "--no-color", "-z",
+		"--full-history", "--sparse", "--root", "--format=" + logFormat, "--end-of-options"}
+	args = append(args, tips...)
+	args = append(args, "--")
+	args = append(args, paths...)
+	out, err := r.Run(ctx, repo, nil, args...)
+	if err != nil {
+		return nil, err
+	}
+	var commits []LogCommit
+	for _, record := range strings.Split(string(out), "\x01")[1:] {
+		c, err := logRecord(record)
+		if err != nil {
+			return nil, err
+		}
+		commits = append(commits, c)
+	}
+	return commits, nil
+}
+
+// logRecord parses one record of Log's output: the nine fields, then one
+// pair per change, ":<mode> <mode> <id> <id> <status>" and the path.
+func logRecord(record string) (LogCommit, error) {
+	parts := strings.Split(record, "\x00")
+	if len(parts) < 9 {
+		return LogCommit{}, fmt.Errorf("git log: unexpected record %q", record)
+	}
+	c := LogCommit{
+		ID:            parts[0],
+		Parents:       strings.Fields(parts[1]),
+		AuthorName:    parts[2],
+		AuthorEmail:   parts[3],
+		CommitterName: parts[5], CommitterEmail: parts[6],
+		Subject: parts[7],
+	}
+	when, zone, ok := strings.Cut(parts[4], " ")
+	seconds, err := strconv.ParseInt(when, 10, 64)
+	offset, zoneErr := strconv.Atoi(strings.TrimLeft(zone, "+-"))
+	if !ok || err != nil || zoneErr != nil {
+		return LogCommit{}, fmt.Errorf("git log: unexpected date %q of %s", parts[4], c.ID)
+	}
+	c.AuthorTime, c.AuthorZone = seconds, offset/100*60+offset%100
+	if strings.HasPrefix(zone, "-") {
+		c.AuthorZone = -c.AuthorZone
+	}
+	for _, line := range strings.Split(parts[8], "\n") {
+		if line != "" {
+			c.Trailers = append(c.Trailers, line)
+		}
+	}
+	for i := 9; i+1 < len(parts); i++ {
+		meta, ok := strings.CutPrefix(strings.TrimLeft(parts[i], "\n"), ":")
+		if !ok {
+			continue
+		}
+		fields := strings.Fields(meta)
+		if len(fields) != 5 {
+			return LogCommit{}, fmt.Errorf("git log: unexpected change %q of %s", parts[i], c.ID)
+		}
+		i++
+		c.Changes = append(c.Changes, LogChange{Path: parts[i], OldMode: fields[0], NewMode: fields[1], Old: fields[2], New: fields[3]})
+	}
+	return c, nil
+}
