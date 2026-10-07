@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/nbyoung/tablo/internal/load"
 	"github.com/nbyoung/tablo/internal/model"
 )
@@ -44,6 +46,52 @@ func beside(t testing.TB, path ...string) string {
 		t.Skipf("the corpus holds no %s beside its build", filepath.Join(path...))
 	}
 	return p
+}
+
+// finding is one finding of an entry's expected.yaml.
+type finding struct {
+	Rule, Severity, Task, File, Gate, Commit, Trailer string
+}
+
+// expectation is what the tests read of an entry's expected.yaml.
+type expectation struct {
+	Ref      string
+	Replace  map[string]string
+	Findings []finding
+	Tasks    map[string]struct {
+		Applicable []string
+	}
+}
+
+// expected reads the expected.yaml of a corpus entry.
+func expected(t testing.TB, name string) expectation {
+	t.Helper()
+	data, err := os.ReadFile(beside(t, "entries", name, "expected.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var e expectation
+	if err := yaml.Unmarshal(data, &e); err != nil {
+		t.Fatalf("%s: %v", name, err)
+	}
+	return e
+}
+
+// entry loads a built corpus entry as its expected.yaml says: at its ref,
+// main unless it states another, with its replace mapping. A test reads the
+// corpus and never changes it.
+func entry(t testing.TB, name string) *model.Project {
+	t.Helper()
+	e := expected(t, name)
+	ref := e.Ref
+	if ref == "" {
+		ref = "main"
+	}
+	replace := map[string]string{}
+	for url, sub := range e.Replace {
+		replace[url] = filepath.Join(corpus(t), name+"."+sub)
+	}
+	return loadAt(t, load.Options{Replace: replace}, filepath.Join(corpus(t), name), ref)
 }
 
 // loadAt reads a source with a Loader whose cache is an empty temporary
