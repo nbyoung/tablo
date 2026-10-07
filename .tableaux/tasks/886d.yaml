@@ -15,6 +15,7 @@ references:
   - { url: https://github.com/nbyoung/tablotui/blob/main/design/0afa.md, text: "What the blockage and queue panes expect (A3, A4, A7, A9)" }
   - { url: https://github.com/nbyoung/tablotui/blob/main/design/f394.md, text: "The person form, its row labels and the cells a person acts at (A4 to A8)" }
   - { url: https://github.com/nbyoung/tablotui/blob/main/design/518e.md, text: "The row ids and gate keys the actions act on (A9)" }
+  - { url: https://github.com/nbyoung/tablo/blob/main/design/27a3.md, text: "The derived facts the status views show, the roll-up and its chain among them (A5, decision 1)" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Roll-up and requirement conditions }
 junctions:

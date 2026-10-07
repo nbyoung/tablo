@@ -10,6 +10,8 @@ references:
   - { url: https://github.com/nbyoung/tableaud/blob/main/design/9a9c.md, text: "The history page's days and effects (decisions 2 and 5)" }
   - { url: https://github.com/nbyoung/tabloio/blob/main/design/b618.md, text: "The junction a commit is at (decision 8), which the history reads" }
   - { url: https://github.com/nbyoung/tablotui/blob/main/design/0afa.md, text: "What the history pane expects of the history data (A3, A4, A8)" }
+  - { url: https://github.com/nbyoung/tablo/blob/main/design/27a3.md, text: "The one pass the history view reads, and the files that judge a commit (A4, decision 2)" }
+  - { url: https://github.com/nbyoung/tablo/blob/main/design/8118.md, text: "The commits the trailer rules read, in the history view's order (A5)" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Events and status at a ref }
   - { id: "dada", from: implementation, to: design, text: The findings the audit view lists }
