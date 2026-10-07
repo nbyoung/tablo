@@ -60,6 +60,8 @@ front end in the family copies.
 `schemas/README.md` records the commit copied. Until that task lands the
 directory holds no schema file and the package does not build.
 
+A prototype under `prototype/` is the function gate's demonstration. It goes when its task records `implementation`: the design's account of what it kept from the prototype and `git log -- prototype/<id>` keep what it showed, and the trunk builds what it ships.
+
 ## Build and test
 
 Go builds the module with no other tool; the version in `go.mod` decides which

@@ -1,0 +1,11 @@
+# tasks/f555.yaml : ids that YAML 1.2 reads as numbers, written without quotes
+title: Unquoted ids
+description: The parent and the requirements name ids that are numbers under YAML 1.2.
+assignee: pat@example.org
+requires:
+  - { id: 07e0 }
+  - { id: 40e8, from: release }
+  - { subproject: { url: lib, id: 1000 } }
+junctions:
+  release: { subproject: { url: lib, id: 0010 } }
+parent: { id: a000, order: 5 }

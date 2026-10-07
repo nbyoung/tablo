@@ -1,0 +1,7 @@
+# tasks/d333.yaml : two documents; the Loader reads the first
+title: Two documents
+description: A file that holds a second YAML document.
+assignee: pat@example.org
+parent: { id: "a000", order: 3 }
+---
+title: The second document
