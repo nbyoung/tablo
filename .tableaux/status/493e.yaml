@@ -1,3 +1,4 @@
 gate: function
 state: nominal
-note: prototype/493e derives the gate, task, authority and assignment views as JSON from weather-station; the corpus roll-up of 4e2b disagrees with README.md and waits for the design gate
+reason: review
+note: design/493e.md on branch wave/493e awaits the owner's review at the design gate
