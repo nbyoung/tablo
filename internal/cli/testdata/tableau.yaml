@@ -1,0 +1,62 @@
+schema: "tablo/1"
+command: "tableau"
+source:
+  ref: "main"
+  worktree: false
+  commit: "edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a"
+  date: "2026-09-28"
+  from: null
+  trunk:
+    name: "main"
+    resolved: "stated"
+  on_trunk: true
+project:
+  tableaux: "0.3.1"
+  root: "a1c0"
+  title: "Weather station"
+  owner: "ada@example.org"
+viewer:
+  email: "ada@example.org"
+  roles:
+    - "owner"
+    - "authority"
+    - "assignee"
+    - "contributor"
+params:
+  person: null
+  window: 1
+  columns: null
+  historical: false
+  role: null
+  level: "detail"
+data:
+  columns:
+    - gate: "mockup"
+      symbol: "📌"
+    - gate: "function"
+      symbol: "⚙️"
+  folded:
+    - side: "after"
+      from: "integrate"
+      to: "release"
+      count: 0
+  rows:
+    - id: "9f31"
+      title: "Sensor board"
+      depth: 2
+      status:
+        gate: "function"
+        state: "stalled"
+        reason: "blocked"
+        note: "Barometer ICs on 14-week backorder"
+        date: "2026-09-28"
+        recorder: "ada@example.org"
+        commit: "edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a"
+      cells:
+        - gate: "mockup"
+          kind: "blank"
+          symbols: ""
+        - gate: "function"
+          kind: "status"
+          symbols: "🔴⛔"
+diagnostics: []
