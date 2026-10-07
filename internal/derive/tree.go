@@ -137,3 +137,62 @@ func (f *Facts) Severity(state string) int {
 	}
 	return f.severity[state]
 }
+
+// Role is a role of README.md#roles.
+type Role string
+
+// The roles, in README.md's order.
+const (
+	Owner       Role = "owner"
+	AuthorityOf Role = "authority"
+	Assignee    Role = "assignee"
+	Contributor Role = "contributor"
+	Agent       Role = "agent"
+	Reviewer    Role = "reviewer"
+	Observer    Role = "observer"
+)
+
+// Roles returns the roles the email holds anywhere in the project, in
+// README.md's order, or Observer alone: owner; authority for the assignee
+// of a task with children; assignee; contributor and reviewer at any
+// junction of a leaf, since a parent's junctions are defaults; and agent
+// beside contributor where the junction states a model.
+func (f *Facts) Roles(email string) []Role {
+	if !f.enter() {
+		return nil
+	}
+	defer f.leave()
+	held := map[Role]bool{}
+	if email != "" {
+		held[Owner] = f.p.Tasks[f.root].Assignee.V == email
+		for _, id := range f.order {
+			if f.p.Tasks[id].Assignee.V == email {
+				held[Assignee] = true
+				held[AuthorityOf] = held[AuthorityOf] || len(f.children[id]) > 0
+			}
+			if len(f.children[id]) > 0 {
+				continue
+			}
+			for _, j := range f.resolved(id) {
+				if j.Kind != model.Plain {
+					continue
+				}
+				if j.Contributor.V == email {
+					held[Contributor] = true
+					held[Agent] = held[Agent] || j.Model.V != ""
+				}
+				held[Reviewer] = held[Reviewer] || j.Reviewer.V == email
+			}
+		}
+	}
+	var roles []Role
+	for _, role := range []Role{Owner, AuthorityOf, Assignee, Contributor, Agent, Reviewer} {
+		if held[role] {
+			roles = append(roles, role)
+		}
+	}
+	if roles == nil {
+		roles = []Role{Observer}
+	}
+	return roles
+}
