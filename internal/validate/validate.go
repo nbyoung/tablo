@@ -21,6 +21,7 @@ type run struct {
 	project *model.Project
 	shape   *shape
 	linked  map[*model.Project]*shape // the shape of each linked project a rule reads
+	facts   *Facts                    // Derived alone
 	edges   []edge                    // the requirement edges R2 reads
 	found   []model.Diagnostic
 }
