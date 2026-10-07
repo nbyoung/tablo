@@ -314,6 +314,14 @@ func TestTooling(t *testing.T) {
 			}
 		}
 	}
+	// The plan only grows, and its pins stay on their trunks, which a linked
+	// repository's remote-tracking branch makes true (decision 5).
+	if len(f.Order()) < 37 {
+		t.Errorf("the plan holds %d tasks; the design counts 37", len(f.Order()))
+	}
+	if pins < 4 || onTrunk != pins {
+		t.Errorf("%d pins, %d on their trunks; want at least four, all on their trunks", pins, onTrunk)
+	}
 	exercise(f, 0)
 	t.Logf("%d tasks (the design counts 37), %d leaves, %d proposed (none), %d commits, %d events", len(f.Order()), leaves, proposed, len(f.Log().Commits), len(events))
 	t.Logf("%d pins, %d on their trunks (four of four); %d subproject tasks, %d proposed (none of 42)", pins, onTrunk, subTasks, subProposed)
