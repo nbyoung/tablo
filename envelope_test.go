@@ -464,6 +464,30 @@ func TestSchemaHolds(t *testing.T) {
 	}
 }
 
+// TestDiagnosticNamesWhatIsMalformed holds the schema to the Validator's
+// design (8118, decision 12): a diagnostic's task and gate are strings of any
+// form, since T1 reports the task leaf-two and G5 the gate Design, as the
+// corpus states them. A task or a gate that is no string still fails.
+func TestDiagnosticNamesWhatIsMalformed(t *testing.T) {
+	s := schema(t)
+	e := validateEnvelope()
+	e.Diagnostics = []Diagnostic{
+		{Severity: "error", Code: "T1", Path: ".tableaux/tasks/leaf-two.yaml", Task: "leaf-two", Message: "the file name leaf-two is not four lowercase hexadecimal digits"},
+		{Severity: "error", Code: "G5", Path: ".tableaux/gates.yaml", Line: 5, Col: 12, Gate: "Design", Message: "gates.2.key Design does not match ^[a-z][a-z0-9_-]*$"},
+		{Severity: "warning", Code: "H1", Commit: strings.Repeat("a", 40), Trailer: "Reviewed: 9f31 nowhere", Message: "9f31 names no task and nowhere names no gate"},
+	}
+	if err := validates(t, s, decodeMap(t, e.JSON())); err != nil {
+		t.Errorf("leaf-two and Design: %v", err)
+	}
+	for _, field := range []string{"task", "gate"} {
+		m := decodeMap(t, e.JSON())
+		m["diagnostics"].([]any)[0].(map[string]any)[field] = 7
+		if err := validates(t, s, m); err == nil {
+			t.Errorf("the schema accepts a %s that is no string", field)
+		}
+	}
+}
+
 // TestVersionIsOneFact is T13 as far as it reads no command: SchemaVersion, the
 // const in the schema, version.json and the version in code agree. The plain
 // line joins them when the command lands.

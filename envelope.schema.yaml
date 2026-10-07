@@ -166,8 +166,8 @@ $defs:
       path:     { type: string, pattern: "^\\.tableaux(/|$)" }   # relative to the directory -C names, with / on every host
       line:     { type: integer, minimum: 1 }
       col:      { type: integer, minimum: 1 }
-      task:     { $ref: "#/$defs/id" }
-      gate:     { $ref: "#/$defs/key" }
+      task:     { type: string }   # the name of the file the finding sits in, whatever it is: T1 reports leaf-two
+      gate:     { type: string }   # the key as written: G5 reports Design
       commit:   { $ref: "#/$defs/commit" }
       trailer:  { type: string }
       message:  { type: string, minLength: 1 }
