@@ -1,10 +1,12 @@
 # The corpus test
 
-Test T2 of [design dada](../dada.md#tests), as the trial runs it: it lands as `internal/audit/corpus_test.go`, beside the helpers `corpus` and `derived` that `internal/derive/helpers_test.go` already holds and this package copies until `corpustest` stands (4b4f). It writes one block per entry and ref and compares the whole with [`corpus.expected.txt`](corpus.expected.txt), which lands as `testdata/corpus.expected.txt`.
+Test T2 of [design dada](../dada.md#tests): it lands as `internal/audit/corpus_test.go`, beside the helpers `corpus` and `derived` that `internal/derive/helpers_test.go` already holds and this package copies until `corpustest` stands (4b4f). It writes one block per entry and ref and compares the whole with [`corpus.expected.txt`](corpus.expected.txt), which lands as `testdata/corpus.expected.txt`.
 
 No adapter from `derive.Facts` to `validate.Facts` stands before the Plumbing command (4ed9), so the test builds the Validator's diagnostics in three parts: `validate.Files` for real; `validate.Derived` with the requirements alone, for R9; and one literal diagnostic per finding that `expected.yaml` states under a history rule, with the entry's own message, H4 and H5 placed in the status file. The history rules' messages in the golden file are therefore the corpus's words, not the Validator's.
 
-An entry prints when one of its findings has an act other than `revise`, or is P5, or when `samples` names it; a second block prints the stale statuses at three days, where there are any; an entry the Derivation refuses prints `refused`.
+The test passes `Now` as the author date of the source commit, since the library requires a date, and lists at the minimum `information`, so the golden file shows every row. An entry prints when one of its findings has an act other than `revise` and is no sole review, or is P5, or when `samples` names it; a second block prints the stale statuses at three days, where there are any; an entry the Derivation refuses prints `refused`. A row prints its typed facts by name, per task: T7 and T14 hold each to the value of the Derivation. A row of sole reviews prints one line.
+
+The file as it stands is no single run. Its diagnostics, messages, commits, commands and the facts each row names come from the first trial's output, rewritten by a script: the action lines go, the worded facts become their names, a path takes `.tableaux/`, `advance` reads `await`, and `most` skips the act `none`. Its rows of sole reviews and its counts of information come from a second trial over `derive.Facts` on `main` at `0883ec1`, which also finds that no entry demotes a finding. The implementation regenerates the file and reads the difference.
 
 ```go
 func str(v any) string {
@@ -51,6 +53,23 @@ func diagnostics(f *derive.Facts, want map[string]any, labels map[string]string)
 }
 
 var samples = map[string]bool{"file-duplicate-key": true, "gates-bad-key": true, "task-bad-filename": true, "siblings-same-order": true, "status-on-parent": true, "status-no-task": true, "subproject-path-missing": true}
+
+// factNames names the typed facts a finding holds, in the order of Facts.
+func factNames(f Facts) []string {
+	var has []string
+	for _, x := range []struct {
+		name string
+		set  bool
+	}{
+		{"junction", f.Junction != nil}, {"status", f.Status != nil}, {"requirement", f.Requirement != nil},
+		{"authorisation", f.Authorisation != nil}, {"linkage", f.Snapshot != nil}, {"model", f.Reading != nil},
+	} {
+		if x.set {
+			has = append(has, x.name)
+		}
+	}
+	return has
+}
 
 func TestCorpus(t *testing.T) {
 	build := corpus(t)
@@ -107,8 +126,15 @@ func TestCorpus(t *testing.T) {
 			if ref == refs[0] {
 				w = want
 			}
+			now := ""
+			if c := f.Log().Commit(f.Log().Source); c != nil {
+				now = c.Date()
+			}
 			for _, stale := range []int{0, 3} {
-				rep := Run(Input{Facts: f, Diagnostics: diagnostics(f, w, labels), Stale: stale})
+				rep, err := Run(Input{Facts: f, Diagnostics: diagnostics(f, w, labels), Now: now, Stale: stale})
+				if err != nil {
+					t.Fatalf("%s %s: %v", d.Name(), ref, err)
+				}
 				if rep == nil {
 					if stale == 0 {
 						fmt.Fprintf(&b, "%s %s: refused\n", d.Name(), ref)
@@ -124,7 +150,7 @@ func TestCorpus(t *testing.T) {
 				}
 				plain := true
 				for _, x := range rep.Findings {
-					plain = plain && x.Act == Revise && x.Key != "P5"
+					plain = plain && (x.Act == Revise || x.Key == SoleReview) && x.Key != "P5"
 				}
 				if plain && !samples[d.Name()] {
 					continue
@@ -135,18 +161,37 @@ func TestCorpus(t *testing.T) {
 					fmt.Fprintf(&b, "; most %s %d", m.Email, m.Count)
 				}
 				b.WriteString("\n")
-				for _, x := range rep.Rows() {
-					var ids, commits []string
-					for _, task := range x.Tasks {
-						ids = append(ids, task.ID)
+				for _, row := range rep.Rows(model.Information) {
+					x := row[0]
+					var ids, files, commits []string
+					seen := map[string]bool{}
+					for _, y := range row {
+						if y.Task != "" {
+							ids = append(ids, y.Task)
+						}
+						if y.File != "" && !seen[y.File] {
+							seen[y.File] = true
+							files = append(files, y.File)
+						}
+						for _, c := range y.Commits {
+							if !seen[c.ID] {
+								seen[c.ID] = true
+								commits = append(commits, names[c.ID])
+							}
+						}
 					}
-					for _, c := range x.Commits {
-						commits = append(commits, names[c.ID])
+					fmt.Fprintf(&b, "  %s %s [%s] at %q in [%s]: %s -> %s\n", x.Key, x.Severity, strings.Join(ids, " "), x.Gate, strings.Join(files, " "), x.Act, x.Resolver)
+					if x.Sentence == "" || x.Source.URL == "" || x.Kind == "" {
+						t.Errorf("%s %s: no sentence, source or kind", d.Name(), x.Key)
 					}
-					fmt.Fprintf(&b, "  %s %s [%s] at %q in %v: %s -> %s\n", x.Key, x.Severity, strings.Join(ids, " "), x.Gate, x.Files, x.Act, x.Resolver)
-					fmt.Fprintf(&b, "    message: %s\n    action: %s\n    commits: %s\n", x.Message, x.Action, strings.Join(commits, " "))
-					for _, fact := range x.Facts {
-						fmt.Fprintf(&b, "    %s: %s\n", fact.Name, fact.Value)
+					if x.Key == SoleReview {
+						continue
+					}
+					fmt.Fprintf(&b, "    message: %s\n    commits: %s\n", x.Message, strings.Join(commits, " "))
+					for _, y := range row {
+						if has := factNames(y.Facts); len(has) > 0 {
+							fmt.Fprintf(&b, "    facts %s: %s\n", y.Task, strings.Join(has, " "))
+						}
 					}
 					for _, c := range x.Commands {
 						text := c.Text
@@ -154,12 +199,6 @@ func TestCorpus(t *testing.T) {
 							text = strings.ReplaceAll(text, hash, "<"+name+">")
 						}
 						fmt.Fprintf(&b, "    $ %s  # %s\n", text, c.Comment)
-					}
-					if x.Sentence == "" || x.Source.URL == "" || x.Kind == "" {
-						t.Errorf("%s %s: no sentence, source or kind", d.Name(), x.Key)
-					}
-					if _, err := json.Marshal(x); err != nil {
-						t.Error(err)
 					}
 				}
 			}

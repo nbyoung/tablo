@@ -1,70 +1,72 @@
-# The words
+# The words and the typed facts
 
-Every text the Audit writes beyond the rows of [`rules.md`](rules.md). A value stands in angle brackets. The Audit writes an id, a gate key, a state, a path, a hash, a URL, a model and a trailer in backticks, and an email and a date bare (tabloio `e3ed`, R17). A hash is always the full hash. [`corpus.expected.txt`](corpus.expected.txt) shows each text on the corpus.
+What a finding holds beyond the rows of [`rules.md`](rules.md): the three kinds no rule states, with their messages, the only texts the Audit words; the typed facts each rule and kind carries; the commits; the commands. The Audit words no action and no fact (decision 8 of [design dada](../dada.md#decisions-at-review)): a front end words the action from the act and renders each fact as it renders it in every other view. A value stands in angle brackets. A hash is always the full hash. [`corpus.expected.txt`](corpus.expected.txt) shows each on the corpus.
 
-## The two kinds
+## The three kinds
 
-| Field    | `proposed`                                               | `stale`                                                  |
-|----------|----------------------------------------------------------|----------------------------------------------------------|
-| Severity | `warning`                                                | `warning`                                                |
-| Kind     | A proposed task                                          | A stale status                                           |
-| Task     | The task                                                 | The task                                                 |
-| Gate     | None                                                     | The gate the status states                               |
-| Files    | `tasks/<id>.yaml`                                        | `status/<id>.yaml`                                       |
-| Act      | `authorise`                                              | `reaffirm`                                               |
-| Resolver | The first of `Authorities(id)`; for the root the first of `Authorisation.Judges`; else `Owner()` | The recorder, as the design defines the role |
-| Commits  | `Authorisation.Commit`, when there is one                | `Status.Commit`                                          |
-| Sentence | The task is authorised when the deciding commit's author or committer is one of its authorities, and proposed otherwise. | A review that finds no change reaffirms with an empty commit, so a status is never older than its last confirmation. |
-| Source   | README.md, Proposed and authorised tasks: `https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks` | README.md, Status: `https://github.com/nbyoung/tableaux/blob/main/README.md#status` |
+| Field    | `proposed`                                | `stale`                                   | `sole_review`                                      |
+|----------|-------------------------------------------|-------------------------------------------|----------------------------------------------------|
+| Severity | `warning`                                 | `warning`                                 | `information`                                      |
+| Kind     | A proposed task                           | A stale status                            | A junction nobody else reviews                     |
+| Task     | The task                                  | The leaf                                  | The leaf                                           |
+| Gate     | None                                      | The gate the status states                | The junction's gate                                |
+| File     | `.tableaux/tasks/<id>.yaml`               | `.tableaux/status/<id>.yaml`              | `.tableaux/tasks/<id>.yaml`                        |
+| Act      | `authorise`                               | `reaffirm`                                | `none`                                             |
+| Resolver | The first of `Authorities(id)`; for the root the first of `Authorisation.Judges`; else `Owner()` | The recorder, as the design defines the role | The first of `Authorities(id)`; `Owner()` for the root |
+| Commits  | `Authorisation.Commit`, when there is one | `Status.Commit`                           | None                                               |
+| Sentence | The task is authorised when the deciding commit's author or committer is one of its authorities, and proposed otherwise. | A review that finds no change reaffirms with an empty commit, so a status is never older than its last confirmation. | An agent contributor with no stated reviewer takes the assignee as reviewer; a person's plain junction with no stated reviewer has none, and its status completes the gate on the contributor's word. |
+| Source   | README.md, Proposed and authorised tasks: `https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks` | README.md, Status: `https://github.com/nbyoung/tableaux/blob/main/README.md#status` | README.md, Junctions: `https://github.com/nbyoung/tableaux/blob/main/README.md#junctions` |
 
-The message and the action of a proposed task follow `Authorisation.Why`:
+The messages. No message ends in a full stop, and none names an act: the act and the typed facts say what resolves the finding.
 
-| Case                                    | Message                                                                                             | Action                                         |
-|-----------------------------------------|-----------------------------------------------------------------------------------------------------|------------------------------------------------|
-| `Determined`, with a deciding commit    | The task stands proposed: &lt;author's email&gt;, the author of its deciding commit, is none of its authorities | Authorise: commit `` `Authorised: <id>` ``     |
-| `NoCommit`                              | The task stands proposed: no commit on the trunk holds its file                                     | Authorise: commit `` `tasks/<id>.yaml` `` on the trunk |
-| `OffTrunk`, and `Differs`               | The task stands proposed: the source changes its file and is off the trunk `` `<trunk>` ``          | Authorise: merge the source into `` `<trunk>` `` |
+| Kind          | Case                                                    | Message                                                                                                         |
+|---------------|---------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| `proposed`    | `Authorisation.Why` is `Determined`, with a deciding commit | The task stands proposed: &lt;author's email&gt;, the author of its deciding commit, is none of its authorities |
+| `proposed`    | `NoCommit`                                              | The task stands proposed: no commit on the trunk holds its file                                                 |
+| `proposed`    | `OffTrunk`, and `Differs`                               | The task stands proposed: the source changes its file and is off the trunk `` `<trunk>` ``                      |
+| `stale`       | Always                                                  | The status dates from &lt;date&gt;, more than &lt;n&gt; days before &lt;now&gt;                                 |
+| `sole_review` | Always, in both cases                                   | Nobody but the contributor reviews the work at the gate                                                         |
 
-A stale status reads: `The status dates from <date>, more than <n> days before <now>`, and its action ``Reaffirm: commit `Reaffirmed: <id>`, or record the next status``. No message ends in a full stop.
+The two cases of a sole review read from the Junction fact and from no second kind: `reviewer` equals `contributor` where the contributor reviews its own work, an agent's where `model` is not empty; `reviewer` is `""` where a person's plain junction states none.
 
-## Actions
+## The typed facts
 
-The texts that take a value or a condition; every other rule takes the text of its row.
+`Facts` of a finding holds values of the Derivation; the view writes each through the builder of `internal/views` that every other view uses ([`model.md`](model.md#from-a-finding-to-the-data)). `id` and `gate` are the finding's task and gate. A fact is nil when the finding names no task of the project, when its condition fails, or when the method returns nil.
 
-| Rule | Condition                                             | Act              | Resolver    | Action                                                                                             |
-|------|-------------------------------------------------------|------------------|-------------|----------------------------------------------------------------------------------------------------|
-| J8   | The link's `Problem` is `NoClone` or `CommitAbsent`, and its `Form` is `Submodule` | `checkout` | nobody | Check out the submodule `` `<url>` ``                                                 |
-| J8   | The same problems, any other form                     | `checkout`       | nobody      | Check out the subproject: give the tool a clone of `` `<url>` `` that holds the commit             |
-| J8   | Any other problem, or no link found                   | `revise`         | keeper      | Revise the file                                                                                    |
-| H2   | `Accepted(id, gate)` has no commit                    | `review`         | reviewer    | Review: commit `` `Reviewed: <id> <gate>` ``                                                       |
-| H2   | `Accepted(id, gate)` has a commit                     | `none`           | author      | Nothing resolves it: the commit stands in the history                                              |
-| S11  | Always                                                | `review`         | reviewer    | Review: commit `` `Reviewed: <id> <gate>` ``                                                       |
-| H4   | `Handoff(id).Self` is false                           | `record_handoff` | contributor | Record the hand-off: the reason `` `review` `` when the work is done; or work on                   |
-| H4   | `Handoff(id).Self` is true                            | `record_handoff` | contributor | Record the gate with `` `Reviewed: <id> <gate>` `` on the commit that records the status; or work on |
-| H5   | Always                                                | `clear_handoff`  | contributor | Clear the hand-off: record the status at `` `<gate>` ``                                            |
-| R9   | The condition is found                                | `advance`        | origin      | Advance `` `<origin>` `` past `` `<from>` ``                                                       |
-| R9   | No condition is found                                 | `advance`        | origin      | Advance the originating task                                                                       |
+| Fact            | `view` type, key                | From `derive.Facts`                                                             | A finding carries it when                                                                                  |
+|-----------------|---------------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `Junction`      | `Junction`, `junction`          | `Junction(id, gate)`                                                            | It names a task and a gate after `undefined` that `gates.yaml` holds: every rule finding that does, and `sole_review` |
+| `Status`        | `Status`, `status`              | `Status(id)`                                                                    | Its file is `.tableaux/status/<id>.yaml` and the task is a leaf whose status is `Recorded` or `Snapshotted`; and `stale`. A finding demoted carries it too, since the status says the junction is passed |
+| `Requirement`   | `Requirement`, `requirement`    | The entry of `Requires(id)` the diagnostic stands at, by its position           | R9, R12 or R13, the condition found                                                                        |
+| `Authorisation` | `Authorisation`, `authorisation` | `Authorisation(id)`                                                            | `proposed`                                                                                                 |
+| `Snapshot`      | `Linkage`, `linkage`            | `Junction(id, gate).Snapshot`; the view reads `Pin(Snapshot.Link)` for the pin   | J8, J9 and J13 to J17, where the junction is recursive                                                     |
+| `Reading`       | `ModelCheck`, `model`           | The `Reading` of the event of `Events(id)` that has no `Sub`, the finding's commit and the finding's gate | H3 or H6, the event found                                                    |
 
-## Facts
+By rule and by kind, what a finding holds. ● always, where the task and the gate are of the project; ○ by the condition of the table above; a blank never.
 
-A finding takes each fact whose condition holds, in this order.
+| Key                          | Act                        | junction | status | requirement | authorisation | linkage | model | Commits                               |
+|------------------------------|----------------------------|----------|--------|-------------|---------------|---------|-------|---------------------------------------|
+| `proposed`                   | `authorise`                |          |        |             | ●             |         |       | The deciding commit, when there is one |
+| `stale`                      | `reaffirm`                 |          | ●      |             |               |         |       | `Status.Commit`                        |
+| `sole_review`                | `none`                     | ●        |        |             |               |         |       | None                                   |
+| S11                          | `review`                   | ●        | ●      |             |               |         |       | The status's deciding commit           |
+| R9                           | `await`                    |          |        | ○           |               |         |       | None                                   |
+| R12                          | `revise`                   |          |        | ○           |               |         |       | None                                   |
+| R13                          | `move_pin`                 |          |        | ○           |               |         |       | None                                   |
+| J8, J9                       | `checkout` or `revise`     | ●        |        |             |               | ○       |       | None                                   |
+| J13 to J17                   | `move_pin` or `revise`     | ●        |        |             |               | ○       |       | None                                   |
+| H1                           | `none`                     | ○        | ○      |             |               |         |       | The commit the diagnostic names        |
+| H2                           | `review` or `none`         | ●        | ○      |             |               |         |       | The commit; with `none`, also `Accepted(id, gate).Commit` |
+| H3, H6                       | `none`                     | ●        | ○      |             |               |         | ○     | The commit                             |
+| H4, H5                       | `record_handoff`, `clear_handoff` | ●  | ●      |             |               |         |       | `Handoff(id).Commit`, and the status's deciding commit |
+| P5                           | `revise`                   |          |        |             |               |         |       | None                                   |
+| Every other rule             | `revise`                   | ○        | ○      |             |               |         |       | The status's deciding commit where the Status fact holds |
 
-| Name          | Condition                                                                 | Value                                                                                      |
-|---------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| Junction      | A rule finding with a task and a gate, where `Junction(id, gate)` is plain | &lt;contributor&gt; contributes at `` `<gate>` ``; then `` under the model `<model>` `` where it states one; then `; <reviewer> reviews.`, `; the contributor reviews its own work.` or `; nobody reviews.` |
-| Junction      | The same, recursive                                                       | `` `<gate>` reads `<target>` of `<url>` at `<commit>`. `` without `` `<target>` of `` when the snapshot names none, without the commit for a directory, and `` `<gate>` reads a subproject. `` with no link |
-| Junction      | The same, not applicable                                                  | `` `<gate>` does not apply. ``                                                             |
-| Status        | The one file is `status/<id>.yaml`, the task is a leaf, and its status is `Recorded` or `Snapshotted` | `` `<id>` stands at `<gate>` ``; then `` , `<state>` `` and `` , `<reason>` `` where the status has them; then `, since <date>` and `, recorded by <recorder>` where it has them; then a full stop |
-| Authorisation | A proposed task with a deciding commit                                    | &lt;author&gt; authors the deciding commit and &lt;committer&gt; commits it; the authorities are &lt;judges, joined by a comma and a space&gt;. |
-| Authorisation | A proposed task, `NoCommit`                                               | No commit on the trunk decides the task.                                                   |
-| Authorisation | A proposed task, `OffTrunk`                                               | The source is off the trunk `` `<trunk>` ``.                                               |
-| Requirement   | R9 or R13, the condition found                                            | `` `<task>` requires `<origin>` from `<from>` to `<to>`; `<origin>` stands at `<stands>`. `` |
-| Model         | H3 or H6, with the event of `Events(id)` that has no `Sub`, the finding's commit and a `Reading` at its gate | `` The junction states `<stated>`; the commit carries `Model: <trailer>`. `` or `` … carries no `Model:` trailer. `` |
-| Pin           | J13, J17 or R13, the link found                                           | `` `<url>` reads at `<commit>` ``; then `` ; the tip of its trunk is `<tip>` `` where `Pin(link).Tip` is not empty; then a full stop |
+A requirement on a subproject carries its link in the `Requirement` itself, as `subproject`, `commit` and `at_trunk`, so R13 needs no linkage. The hand-off of H4 and H5 is `Facts.Handoff(id)`, which the Validator reads to raise them (886d A7); the finding carries its junction and its status and no fact of its own.
 
 ## Commits
 
-A finding's commits are, each once and the oldest first by `Commit.Seq`: the commit its diagnostic names, when the pass holds it; for a finding whose Status fact holds, the status's deciding commit, `Status.Commit` for a recorded status and `Status.Own` for a snapshot; and the commits of the two kinds above.
+A finding's commits are, each once and the oldest first by `Commit.Seq`: the commit its diagnostic names, when the pass holds it; for a finding whose Status fact holds by its file, the status's deciding commit, `Status.Commit` for a recorded status and `Status.Own` for a snapshot; for an H2 with the act `none`, the commit that accepts the junction; and the commits of the kinds above.
 
 ## Commands
 
@@ -73,9 +75,9 @@ The first command shows the finding, with the comment `shows the finding`; the s
 | Case                                              | Text                                                                                   |
 |---------------------------------------------------|----------------------------------------------------------------------------------------|
 | Shows: the finding has a commit                   | `git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <its newest commit>`       |
-| Shows: else it has a file                         | `git log -1 --format='%as %H %ae' -- <Where.Dir>/.tableaux/<its first file>`, the path joined and cleaned |
+| Shows: else it has a file                         | `git log -1 --format='%as %H %ae' -- <Where.Dir>/<its file>`, the path joined and cleaned |
 | Shows: else                                       | No command                                                                             |
-| Resolves: `authorise`, the action names a trailer | `git commit --allow-empty --trailer 'Authorised: <id>'`                                |
+| Resolves: `authorise`, `Authorisation.Why` is `Determined` | `git commit --allow-empty --trailer 'Authorised: <id>'`                       |
 | Resolves: `review`                                | `git commit --allow-empty --trailer 'Reviewed: <id> <gate>'`                           |
 | Resolves: `reaffirm`                              | `git commit --allow-empty --trailer 'Reaffirmed: <id>'`                                |
-| Resolves: `checkout`, a submodule                 | `git submodule update --init <url>`                                                    |
+| Resolves: `checkout`, the link's `Form` is `Submodule` | `git submodule update --init <url>`                                               |
