@@ -1,4 +1,3 @@
-gate: function
+gate: design
 state: nominal
-reason: review
-note: design/27a3.md on branch wave/27a3 awaits the owner's review at the design gate
+note: design/27a3.md is on the trunk with the owner's decisions of 2026-10-07; implementation is next, on the Loader as built, and the umbrella's README.md, PLAN.md and corpus still owe what decisions 1 and 5 name
