@@ -1,0 +1,286 @@
+# Draft of design 886d. The implementation appends the allOf entries below to
+# the allOf of envelope.schema.yaml and the $defs to its $defs, after those
+# of design 493e, whose rules this draft follows and whose $defs it names:
+# view_legend, view_task_ref, view_column, view_status, view_step,
+# view_commit, view_command, view_junction, view_supplier, view_linkage,
+# view_requirement, view_reference, view_authorisation and view_gate.
+#
+# The data of the four status views. tableau and context share one object.
+# A key that a level adds is required from that level on and absent below
+# it, in the object and in each item that nests a level: a row, a queue item
+# and a cause. A tableau holds the same keys at glance and at detail.
+allOf:
+  - if:   { required: [command], properties: { command: { const: tableau } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_tableau" }] } } }
+  - if:   { required: [command], properties: { command: { const: context } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_tableau" }] } } }
+  - if:   { required: [command], properties: { command: { const: queue } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_queue" }] } } }
+  - if:   { required: [command], properties: { command: { const: blockage } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_blockage" }] } } }
+  # The keys of each level: required from the level on, absent below it.
+  - if:   { required: [command, data, params], properties: { command: { enum: [tableau, context] }, data: { type: object }, params: { required: [level], properties: { level: { enum: [glance, detail] } } } } }
+    then: { properties: { data: { properties: { commands: false, rows: { items: { properties: { status_commit: false, chain: false, junctions: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { enum: [tableau, context] }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [commands], properties: { rows: { items: { required: [status_commit, own_commit, chain, junctions, sources, linkages] } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: queue }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
+    then: { properties: { data: { properties: { brief: false, items: { items: { properties: { junction: false, requires: false, status: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: queue }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
+    then: { properties: { data: { properties: { brief: false, items: { items: { required: [junction, sources, task_references, requires, unblocks, also_required_by, parent_unblocks, status, status_commit, authorisation] } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: queue }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [brief], properties: { items: { items: { required: [junction, sources, task_references, requires, unblocks, also_required_by, parent_unblocks, status, status_commit, authorisation] } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: blockage }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
+    then: { properties: { data: { properties: { not_due: false, commands: false, causes: { items: { properties: { held: false, resolve: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: blockage }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
+    then: { properties: { data: { required: [not_due], properties: { commands: false, causes: { items: { required: [held], properties: { resolve: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: blockage }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [not_due, commands], properties: { causes: { items: { required: [held, status_commit, junction, authorisation, linkage, resolve] } } } } } }
+
+$defs:
+  view_blockage:
+    type: object
+    required: [legend, causes, kinds, not_due_count, not_due_unmet]
+    properties:
+      legend: { $ref: "#/$defs/view_legend" }
+      causes: { type: array, items: { $ref: "#/$defs/view_cause" } }
+      kinds: { type: array, items: { $ref: "#/$defs/view_kind_count" } }
+      not_due_count: { type: integer }
+      not_due_unmet: { type: integer }
+      not_due: { type: array, items: { $ref: "#/$defs/view_waiting" } }
+      commands: { type: array, items: { $ref: "#/$defs/view_command" } }
+  view_brief:
+    type: object
+    required: [kind, causes, task, gate, junction, supplier, requires, dependents, parent, status]
+    properties:
+      kind: { type: string }
+      causes: { type: array, items: { $ref: "#/$defs/view_wait" } }
+      task: { $ref: "#/$defs/view_brief_task" }
+      gate: { $ref: "#/$defs/view_brief_gate" }
+      junction: { $ref: "#/$defs/view_brief_junction" }
+      supplier: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_brief_supplier" }] }
+      requires: { type: array, items: { $ref: "#/$defs/view_brief_edge" } }
+      dependents: { type: array, items: { $ref: "#/$defs/view_brief_edge" } }
+      parent: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_brief_parent" }] }
+      status: { $ref: "#/$defs/view_brief_status" }
+  view_brief_edge:
+    type: object
+    required: [id, title, from, to, text, condition, url, commit]
+    properties:
+      id: { type: string }
+      title: { type: string }
+      from: { type: string }
+      to: { type: string }
+      text: { type: string }
+      condition: { type: string }
+      url: { type: string }
+      commit: { type: string }
+  view_brief_field:
+    type: object
+    required: [value, source]
+    properties:
+      value: { type: string }
+      source: { $ref: "#/$defs/view_brief_source" }
+  view_brief_gate:
+    type: object
+    required: [key, symbol, name, criteria, follows]
+    properties:
+      key: { type: string }
+      symbol: { type: string }
+      name: { type: string }
+      criteria: { type: string }
+      follows: { type: string }
+  view_brief_junction:
+    type: object
+    required: [contributor, model, reviewer, references]
+    properties:
+      contributor: { $ref: "#/$defs/view_brief_field" }
+      model: { $ref: "#/$defs/view_brief_field" }
+      reviewer: { $ref: "#/$defs/view_brief_field" }
+      references: { type: array, items: { $ref: "#/$defs/view_brief_reference" } }
+  view_brief_parent:
+    type: object
+    required: [id, title, dependents]
+    properties:
+      id: { type: string }
+      title: { type: string }
+      dependents: { type: array, items: { $ref: "#/$defs/view_brief_edge" } }
+  view_brief_reference:
+    type: object
+    required: [url, text, source]
+    properties:
+      url: { type: string }
+      text: { type: string }
+      source: { $ref: "#/$defs/view_brief_source" }
+  view_brief_source:
+    type: object
+    required: [kind, id, title]
+    properties:
+      kind: { type: string }
+      id: { type: string }
+      title: { type: string }
+  view_brief_status:
+    type: object
+    required: [path, gate, gate_symbol, state, state_symbol, reason, reason_symbol, note, date, recorder, commit]
+    properties:
+      path: { type: string }
+      gate: { type: string }
+      gate_symbol: { type: string }
+      state: { type: string }
+      state_symbol: { type: string }
+      reason: { type: string }
+      reason_symbol: { type: string }
+      note: { type: string }
+      date: { type: string }
+      recorder: { type: string }
+      commit: { type: string }
+  view_brief_supplier:
+    type: object
+    required: [id, title, description]
+    properties:
+      id: { type: string }
+      title: { type: string }
+      description: { type: string }
+  view_brief_task:
+    type: object
+    required: [id, title, description, references, path]
+    properties:
+      id: { type: string }
+      title: { type: string }
+      description: { type: string }
+      references: { type: array, items: { $ref: "#/$defs/view_reference" } }
+      path: { type: array, items: { $ref: "#/$defs/view_task_ref" } }
+  view_cause:
+    type: object
+    required: [kind, task, url, gate, status, pin, tip, resolver, mark, act, holds]
+    properties:
+      kind: { type: string }
+      task: { $ref: "#/$defs/view_task_ref" }
+      url: { type: string }
+      gate: { type: string }
+      status: { $ref: "#/$defs/view_status" }
+      pin: { type: string }
+      tip: { type: string }
+      resolver: { type: string }
+      mark: { type: string }
+      act: { type: string }
+      holds: { type: integer }
+      held: { type: array, items: { $ref: "#/$defs/view_held" } }
+      status_commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
+      junction: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_junction" }] }
+      authorisation: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_authorisation" }] }
+      linkage: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_linkage" }] }
+      resolve: { type: array, items: { $ref: "#/$defs/view_command" } }
+  view_cell:
+    type: object
+    required: [kind, historical, state, reason, marks, acts]
+    properties:
+      kind: { type: string }
+      historical: { type: boolean }
+      state: { type: string }
+      reason: { type: string }
+      marks: { type: array, items: { type: string } }
+      acts: { type: boolean }
+  view_grid_row:
+    type: object
+    required: [id, title, under, depth, parent, hidden, label, status, leaf, cells]
+    properties:
+      id: { type: string }
+      title: { type: string }
+      under: { type: string }
+      depth: { type: integer }
+      parent: { type: boolean }
+      hidden: { type: integer }
+      label: { type: string }
+      status: { $ref: "#/$defs/view_status" }
+      leaf: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_leaf" }] }
+      cells: { type: array, items: { $ref: "#/$defs/view_cell" } }
+      status_commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
+      own_commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
+      chain: { type: array, items: { $ref: "#/$defs/view_step" } }
+      junctions: { type: array, items: { $ref: "#/$defs/view_junction" } }
+      sources: { type: array, items: { $ref: "#/$defs/view_supplier" } }
+      linkages: { type: array, items: { $ref: "#/$defs/view_linkage" } }
+  view_held:
+    type: object
+    required: [task, gate, parent, via, child, requires, contributor, also, held]
+    properties:
+      task: { $ref: "#/$defs/view_task_ref" }
+      gate: { type: string }
+      parent: { type: boolean }
+      via: { type: string }
+      child: { type: string }
+      requires: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
+      contributor: { type: string }
+      also: { type: array, items: { type: integer } }
+      held: { type: array, items: { $ref: "#/$defs/view_held" } }
+  view_kind_count:
+    type: object
+    required: [kind, count]
+    properties:
+      kind: { type: string }
+      count: { type: integer }
+  view_leaf:
+    type: object
+    required: [task, url]
+    properties:
+      task: { $ref: "#/$defs/view_task_ref" }
+      url: { type: string }
+  view_parent_edge:
+    type: object
+    required: [parent, requires]
+    properties:
+      parent: { $ref: "#/$defs/view_task_ref" }
+      requires: { $ref: "#/$defs/view_requirement" }
+  view_queue:
+    type: object
+    required: [legend, items]
+    properties:
+      legend: { $ref: "#/$defs/view_legend" }
+      items: { type: array, items: { $ref: "#/$defs/view_queue_item" } }
+      brief: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_brief" }] }
+  view_queue_item:
+    type: object
+    required: [kind, task, gate, model, since, age, causes]
+    properties:
+      kind: { type: string }
+      task: { $ref: "#/$defs/view_task_ref" }
+      gate: { type: string }
+      model: { type: string }
+      since: { type: string }
+      age: { type: integer }
+      causes: { type: array, items: { $ref: "#/$defs/view_wait" } }
+      junction: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_junction" }] }
+      sources: { type: array, items: { $ref: "#/$defs/view_supplier" } }
+      task_references: { type: array, items: { $ref: "#/$defs/view_reference" } }
+      requires: { type: array, items: { $ref: "#/$defs/view_requirement" } }
+      unblocks: { type: array, items: { $ref: "#/$defs/view_requirement" } }
+      also_required_by: { type: array, items: { $ref: "#/$defs/view_requirement" } }
+      parent_unblocks: { type: array, items: { $ref: "#/$defs/view_parent_edge" } }
+      status: { $ref: "#/$defs/view_status" }
+      status_commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
+      authorisation: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_authorisation" }] }
+  view_tableau:
+    type: object
+    required: [legend, subject, columns, rows]
+    properties:
+      legend: { $ref: "#/$defs/view_legend" }
+      subject: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_task_ref" }] }
+      columns: { type: array, items: { $ref: "#/$defs/view_column" } }
+      rows: { type: array, items: { $ref: "#/$defs/view_grid_row" } }
+      commands: { type: array, items: { $ref: "#/$defs/view_command" } }
+  view_wait:
+    type: object
+    required: [kind, requires, reason, by]
+    properties:
+      kind: { type: string }
+      requires: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
+      reason: { type: string }
+      by: { type: string }
+  view_waiting:
+    type: object
+    required: [task, status, next, requires]
+    properties:
+      task: { $ref: "#/$defs/view_task_ref" }
+      status: { $ref: "#/$defs/view_status" }
+      next: { type: string }
+      requires: { type: array, items: { $ref: "#/$defs/view_requirement" } }
