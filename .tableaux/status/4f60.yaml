@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: internal/model, internal/git and internal/load stand with T1 to T27 as tests; the unit gate runs go test ./... with TABLEAUX_CORPUS set, since the corpus tests skip without it; the shared corpus helper waits on 4b4f, and macOS, Windows, SHA-256 repositories, a Git older than 2.47 and a network host stay unverified
+note: T1 to T27 pass under go test and go test -race with TABLEAUX_CORPUS set to the built corpus, with no skip; integrate needs the Validator and the Derivation to read the model on the whole corpus through 4b4f; macOS, Windows, SHA-256 repositories, a Git older than 2.47 and a network host stay unverified
