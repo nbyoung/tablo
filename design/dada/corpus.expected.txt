@@ -1,0 +1,243 @@
+file-duplicate-key main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  L2 error [b2c9] at "" in [status/b2c9.yaml]: revise -> olive@example.org
+    message: the mapping states the key "gate" twice; the first stands
+    action: Revise the file
+    commits: only
+    Status: `b2c9` stands at `defined`, `nominal`, since 2026-09-01, recorded by olive@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <only>  # shows the finding
+gates-bad-key main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  G5 error [] at "Design" in [gates.yaml]: revise -> olive@example.org
+    message: gates.2.key Design does not match ^[a-z][a-z0-9_-]*$
+    action: Revise the file
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/gates.yaml  # shows the finding
+gates-complete-nonzero-severity main: refused
+gates-duplicate-gate main: refused
+gates-duplicate-state main: refused
+gates-first-not-undefined main: refused
+gates-missing main: refused
+gates-negative-severity main: refused
+gates-no-states main: refused
+gates-no-undefined-state main: refused
+gates-only-undefined main: refused
+handoff-inferred main: now 2026-09-02, stale 7: 0 error(s), 0 warning(s), 1 information; most pat@example.org 1
+  H4 information [b2c9] at "design" in [status/b2c9.yaml]: record_handoff -> pat@example.org
+    message: The newest event is the contributor's and the status states no review; olive may have a design to review
+    action: Record the hand-off: the reason `review` when the work is done; or work on
+    commits: I2
+    Junction: pat@example.org contributes at `design`; olive@example.org reviews.
+    Status: `b2c9` stands at `defined`, `nominal`, since 2026-09-02, recorded by pat@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <I2>  # shows the finding
+handoff-stale main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 0 information; most pat@example.org 1
+  H5 warning [b2c9] at "design" in [status/b2c9.yaml]: clear_handoff -> pat@example.org
+    message: The status still states review after olive accepted design in S3
+    action: Clear the hand-off: record the status at `design`
+    commits: S2 S3
+    Junction: pat@example.org contributes at `design`; olive@example.org reviews.
+    Status: `b2c9` stands at `defined`, `nominal`, `review`, since 2026-09-02, recorded by pat@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <S3>  # shows the finding
+junction-kinds main: now 2026-09-10, stale 7: 0 error(s), 1 warning(s), 0 information; most bot@example.org 1
+  H3 warning [a300] at "design" in []: none -> bot@example.org
+    message: Model claude-sonnet-5 is outside the stated model claude-fable-5-1
+    action: Nothing resolves it: the commit stands in the history
+    commits: K8
+    Junction: bot@example.org contributes at `design` under the model `claude-fable-5-1`; the contributor reviews its own work.
+    Model: The junction states `claude-fable-5-1`; the commit carries `Model: claude-sonnet-5`.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K8>  # shows the finding
+junction-kinds main: now 2026-09-10, stale 3: 0 error(s), 2 warning(s), 0 information; most pat@example.org 1
+  stale warning [a210] at "defined" in [status/a210.yaml]: reaffirm -> pat@example.org
+    message: The status dates from 2026-09-04, more than 3 days before 2026-09-10
+    action: Reaffirm: commit `Reaffirmed: a210`, or record the next status
+    commits: K2
+    Status: `a210` stands at `defined`, `nominal`, since 2026-09-04, recorded by pat@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: a210'  # resolves it
+  stale warning [a600] at "defined" in [status/a600.yaml]: reaffirm -> ben@example.org
+    message: The status dates from 2026-09-05, more than 3 days before 2026-09-10
+    action: Reaffirm: commit `Reaffirmed: a600`, or record the next status
+    commits: K3
+    Status: `a600` stands at `defined`, `nominal`, since 2026-09-05, recorded by ben@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K3>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: a600'  # resolves it
+model-mismatch main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 0 information; most bot@example.org 1
+  H3 warning [b2c9] at "design" in []: none -> bot@example.org
+    message: Model claude-sonnet-5 is outside the stated model claude-fable
+    action: Nothing resolves it: the commit stands in the history
+    commits: M2
+    Junction: bot@example.org contributes at `design` under the model `claude-fable`; pat@example.org reviews.
+    Model: The junction states `claude-fable`; the commit carries `Model: claude-sonnet-5`.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M2>  # shows the finding
+model-trailer-missing main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 1 information; most bot@example.org 2
+  H6 warning [b2c9] at "design" in []: none -> bot@example.org
+    message: The contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable
+    action: Nothing resolves it: the commit stands in the history
+    commits: M4
+    Junction: bot@example.org contributes at `design` under the model `claude-fable`; pat@example.org reviews.
+    Model: The junction states `claude-fable`; the commit carries no `Model:` trailer.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
+  H4 information [b2c9] at "design" in [status/b2c9.yaml]: record_handoff -> bot@example.org
+    message: The newest event is the contributor's and the status states no review; pat may have a design to review
+    action: Record the hand-off: the reason `review` when the work is done; or work on
+    commits: M4
+    Junction: bot@example.org contributes at `design` under the model `claude-fable`; pat@example.org reviews.
+    Status: `b2c9` stands at `defined`, `nominal`, since 2026-09-04, recorded by bot@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
+no-tableaux-directory main: refused
+requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 0 information; most pat@example.org 2
+  R9 warning [b2c9] at "" in [tasks/b2c9.yaml]: advance -> pat@example.org
+    message: the requirement on 5a00 from design is due at release and unmet: 5a00 stands at defined
+    action: Advance `5a00` past `design`
+    commits: 
+    Requirement: `b2c9` requires `5a00` from `design` to `release`; `5a00` stands at `defined`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  R13 warning [b2c9] at "" in [tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: The requirement on 5a00 at https://example.org/lib.git is unmet at L1 and met at main in that repository, L2
+    action: Move the `commit` to the tip of the subproject's trunk
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+requires-from-not-applicable main: now 2026-09-01, stale 7: 1 error(s), 1 warning(s), 0 information; most olive@example.org 2
+  R6 error [b2c9] at "design" in [tasks/b2c9.yaml]: revise -> olive@example.org
+    message: from design does not apply to c3d7
+    action: Revise the file
+    commits: 
+    Junction: pat@example.org contributes at `design`; nobody reviews.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  R9 warning [b2c9] at "" in [tasks/b2c9.yaml]: advance -> olive@example.org
+    message: the requirement on c3d7 from design is due at defined and unmet: c3d7 stands at undefined
+    action: Advance `c3d7` past `design`
+    commits: 
+    Requirement: `b2c9` requires `c3d7` from `design` to `defined`; `c3d7` stands at `undefined`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 0 information; most olive@example.org 1
+  H2 warning [b2c9] at "design" in []: review -> olive@example.org
+    message: pat is not the reviewer of the design junction; olive is
+    action: Review: commit `Reviewed: b2c9 design`
+    commits: R2
+    Junction: pat@example.org contributes at `design`; olive@example.org reviews.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
+siblings-same-order main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 0 information; most olive@example.org 1
+  T12 warning [e4a1] at "" in [tasks/e4a1.yaml]: revise -> olive@example.org
+    message: b2c9 and c3d7 share order 1 under e4a1
+    action: Revise the file
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/e4a1.yaml  # shows the finding
+status-no-task main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  S1 error [0c99] at "" in [status/0c99.yaml]: revise -> olive@example.org
+    message: the file name 0c99 is the id of no task
+    action: Revise the file
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/status/0c99.yaml  # shows the finding
+status-on-parent main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  S2 error [e4a1] at "" in [status/e4a1.yaml]: revise -> olive@example.org
+    message: e4a1 is a parent: its status derives from its children
+    action: Revise the file
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/status/e4a1.yaml  # shows the finding
+status-unreviewed-gate main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  S11 error [b2c9] at "design" in [status/b2c9.yaml]: review -> olive@example.org
+    message: 
+    action: Review: commit `Reviewed: b2c9 design`
+    commits: only
+    Junction: pat@example.org contributes at `design`; olive@example.org reviews.
+    Status: `b2c9` stands at `design`, `nominal`, since 2026-09-01, recorded by olive@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <only>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
+subproject-commit-off-pin main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most pat@example.org 1
+  J17 error [b2c9] at "design" in [tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: commit 7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981 is not the commit the submodule sub pins, 2aeb31a1f1729bad254dc89d30ff134fd64494b5
+    action: Move the pin or the `commit` until the two agree
+    commits: 
+    Junction: `design` reads `5a00` of `sub` at `2aeb31a1f1729bad254dc89d30ff134fd64494b5`.
+    Pin: `sub` reads at `2aeb31a1f1729bad254dc89d30ff134fd64494b5`; the tip of its trunk is `7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+subproject-path-missing main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  J8 error [b2c9] at "release" in [tasks/b2c9.yaml]: revise -> olive@example.org
+    message: url elsewhere resolves to no Tableaux project the tool can read: missing
+    action: Revise the file
+    commits: 
+    Junction: `release` reads `elsewhere`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+subproject-pin-off-trunk main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 0 information; most pat@example.org 1
+  J13 warning [b2c9] at "design" in [tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: The pin sub is at S2, which main in the subproject does not contain
+    action: Move the pin onto the subproject's trunk
+    commits: 
+    Junction: `design` reads `5a00` of `sub` at `c279ad604b8ad18a57a651da290bdb3b9b320ee5`.
+    Pin: `sub` reads at `c279ad604b8ad18a57a651da290bdb3b9b320ee5`; the tip of its trunk is `7183c1437b74de02b8b42b3be97b0b0f9bd71c75`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+task-bad-filename main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 0 information; most olive@example.org 1
+  T1 error [leaf-two] at "" in [tasks/leaf-two.yaml]: revise -> olive@example.org
+    message: the file name leaf-two is not four lowercase hexadecimal digits
+    action: Revise the file
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/leaf-two.yaml  # shows the finding
+tree-no-root main: refused
+tree-parent-cycle main: refused
+tree-parent-missing main: refused
+tree-two-roots main: refused
+trunk-inferred main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 0 information; most olive@example.org 1
+  proposed warning [c3d7] at "" in [tasks/c3d7.yaml]: authorise -> olive@example.org
+    message: The task stands proposed: pat@example.org, the author of its deciding commit, is none of its authorities
+    action: Authorise: commit `Authorised: c3d7`
+    commits: I2
+    Authorisation: pat@example.org authors the deciding commit and pat@example.org commits it; the authorities are olive@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <I2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Authorised: c3d7'  # resolves it
+trunk-stated main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 0 information; most olive@example.org 1
+  proposed warning [c3d7] at "" in [tasks/c3d7.yaml]: authorise -> olive@example.org
+    message: The task stands proposed: the source changes its file and is off the trunk `develop`
+    action: Authorise: merge the source into `develop`
+    commits: 
+    Authorisation: The source is off the trunk `develop`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c3d7.yaml  # shows the finding
+trunk-undetermined main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 0 information; most olive@example.org 1
+  P5 warning [] at "" in [version.yaml]: revise -> olive@example.org
+    message: No trunk: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch
+    action: Revise the file: state `trunk` in `version.yaml`
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/version.yaml  # shows the finding
+unknown-trailer main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 0 information; most olive@example.org 2
+  H1 warning [] at "" in []: none -> olive@example.org
+    message: 9f31 names no task and nowhere names no gate
+    action: Nothing resolves it: the commit stands in the history
+    commits: U2
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U2>  # shows the finding
+  H1 warning [] at "" in []: none -> olive@example.org
+    message: zzzz names no task
+    action: Nothing resolves it: the commit stands in the history
+    commits: U2
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U2>  # shows the finding
+unmet-requirement main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 0 information; most pat@example.org 1
+  R9 warning [c3d7] at "" in [tasks/c3d7.yaml]: advance -> pat@example.org
+    message: the requirement on b2c9 from design is due at release and unmet: b2c9 stands at defined
+    action: Advance `b2c9` past `design`
+    commits: 
+    Requirement: `c3d7` requires `b2c9` from `design` to `release`; `b2c9` stands at `defined`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c3d7.yaml  # shows the finding
+version-bad-pattern main: refused
+version-major-mismatch main: refused
+version-minor-ahead main: refused
+version-missing main: refused
+weather-station main: now 2026-09-28, stale 7: 0 error(s), 2 warning(s), 0 information; most ada@example.org 2
+  R9 warning [c07d] at "" in [tasks/c07d.yaml]: advance -> ada@example.org
+    message: the requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function
+    action: Advance `9f31` past `design`
+    commits: 
+    Requirement: `c07d` requires `9f31` from `design` to `implementation`; `9f31` stands at `function`.
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c07d.yaml  # shows the finding
+  proposed warning [3c5d] at "" in [tasks/3c5d.yaml]: authorise -> ada@example.org
+    message: The task stands proposed: dan@example.org, the author of its deciding commit, is none of its authorities
+    action: Authorise: commit `Authorised: 3c5d`
+    commits: W12
+    Authorisation: dan@example.org authors the deciding commit and dan@example.org commits it; the authorities are ada@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <W12>  # shows the finding
+    $ git commit --allow-empty --trailer 'Authorised: 3c5d'  # resolves it
+weather-station main: now 2026-09-28, stale 3: 0 error(s), 1 warning(s), 0 information; most dan@example.org 1
+  stale warning [3c5d] at "defined" in [status/3c5d.yaml]: reaffirm -> dan@example.org
+    message: The status dates from 2026-09-22, more than 3 days before 2026-09-28
+    action: Reaffirm: commit `Reaffirmed: 3c5d`, or record the next status
+    commits: W8
+    Status: `3c5d` stands at `defined`, `nominal`, since 2026-09-22, recorded by dan@example.org.
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <W8>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: 3c5d'  # resolves it

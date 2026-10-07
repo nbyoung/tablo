@@ -1,0 +1,180 @@
+{
+  "findings": [
+    {
+      "key": "R9",
+      "rule": "R9",
+      "severity": "warning",
+      "kind": "An unmet requirement",
+      "tasks": [
+        {
+          "id": "c07d",
+          "title": "Node firmware"
+        }
+      ],
+      "gate": "",
+      "files": [
+        "tasks/c07d.yaml"
+      ],
+      "message": "the requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function",
+      "act": "advance",
+      "action": "Advance `9f31` past `design`",
+      "resolver": "ada@example.org",
+      "sentence": "A validator warns of an unmet requirement",
+      "source": {
+        "text": "README.md, Tasks",
+        "url": "https://github.com/nbyoung/tableaux/blob/main/README.md#tasks"
+      },
+      "facts": [
+        {
+          "name": "Requirement",
+          "value": "`c07d` requires `9f31` from `design` to `implementation`; `9f31` stands at `function`."
+        }
+      ],
+      "commands": [
+        {
+          "text": "git log -1 --format='%as %H %ae' -- .tableaux/tasks/c07d.yaml",
+          "comment": "shows the finding"
+        }
+      ],
+      "commits": []
+    },
+    {
+      "key": "proposed",
+      "rule": "",
+      "severity": "warning",
+      "kind": "A proposed task",
+      "tasks": [
+        {
+          "id": "3c5d",
+          "title": "Dashboard"
+        }
+      ],
+      "gate": "",
+      "files": [
+        "tasks/3c5d.yaml"
+      ],
+      "message": "The task stands proposed: dan@example.org, the author of its deciding commit, is none of its authorities",
+      "act": "authorise",
+      "action": "Authorise: commit `Authorised: 3c5d`",
+      "resolver": "ada@example.org",
+      "sentence": "The task is authorised when the deciding commit's author or committer is one of its authorities, and proposed otherwise.",
+      "source": {
+        "text": "README.md, Proposed and authorised tasks",
+        "url": "https://github.com/nbyoung/tableaux/blob/main/README.md#proposed-and-authorised-tasks"
+      },
+      "facts": [
+        {
+          "name": "Authorisation",
+          "value": "dan@example.org authors the deciding commit and dan@example.org commits it; the authorities are ada@example.org."
+        }
+      ],
+      "commands": [
+        {
+          "text": "git show --no-patch --format='%as %H %ae %ce%n%(trailers)' 1b8cfb16a248f50eeefb76e0994234693ff4f4a6",
+          "comment": "shows the finding"
+        },
+        {
+          "text": "git commit --allow-empty --trailer 'Authorised: 3c5d'",
+          "comment": "resolves it"
+        }
+      ],
+      "commits": [
+        "1b8cfb16a248f50eeefb76e0994234693ff4f4a6"
+      ]
+    }
+  ],
+  "errors": 0,
+  "warnings": 2,
+  "information": 0,
+  "most": {
+    "email": "ada@example.org",
+    "count": 2
+  },
+  "silent": [
+    {
+      "key": "P5",
+      "rule": "P5",
+      "kind": "An undetermined trunk"
+    },
+    {
+      "key": "R12",
+      "rule": "R12",
+      "kind": "A requirement on what a junction reads"
+    },
+    {
+      "key": "R13",
+      "rule": "R13",
+      "kind": "A requirement its commit alone leaves unmet"
+    },
+    {
+      "key": "J8",
+      "rule": "J8",
+      "kind": "A subproject the tool cannot read"
+    },
+    {
+      "key": "J9",
+      "rule": "J9",
+      "kind": "A subproject task that does not exist"
+    },
+    {
+      "key": "J13",
+      "rule": "J13",
+      "kind": "A commit off the subproject's trunk"
+    },
+    {
+      "key": "J14",
+      "rule": "J14",
+      "kind": "A malformed commit"
+    },
+    {
+      "key": "J15",
+      "rule": "J15",
+      "kind": "An absolute URL without a commit"
+    },
+    {
+      "key": "J16",
+      "rule": "J16",
+      "kind": "A commit on a same-repository path"
+    },
+    {
+      "key": "J17",
+      "rule": "J17",
+      "kind": "A commit off the submodule's pin"
+    },
+    {
+      "key": "H1",
+      "rule": "H1",
+      "kind": "A trailer that names nothing"
+    },
+    {
+      "key": "H2",
+      "rule": "H2",
+      "kind": "A review from the wrong hand"
+    },
+    {
+      "key": "H3",
+      "rule": "H3",
+      "kind": "A model outside the one stated"
+    },
+    {
+      "key": "H4",
+      "rule": "H4",
+      "kind": "A hand-off the history implies"
+    },
+    {
+      "key": "H5",
+      "rule": "H5",
+      "kind": "A stale hand-off"
+    },
+    {
+      "key": "H6",
+      "rule": "H6",
+      "kind": "No model trailer"
+    },
+    {
+      "key": "stale",
+      "rule": "",
+      "kind": "A stale status"
+    }
+  ]
+}
