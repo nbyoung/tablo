@@ -12,6 +12,7 @@ references:
   - { url: https://github.com/nbyoung/tabloio/blob/main/design/c48a.md, text: "What the authority and assignment renderers expect (A1 to A4)" }
   - { url: https://github.com/nbyoung/tableaud/blob/main/design/438a.md, text: "What the templates expect of the structural data and the commit fact (A7 to A12)" }
   - { url: https://github.com/nbyoung/tableaud/blob/main/design/49ce.md, text: "The roles the viewer holds, the subproject selection and the person default (A3 to A5)" }
+  - { url: https://github.com/nbyoung/tablotui/blob/main/design/0afa.md, text: "What the task pane expects of the task data (A3, A4, A6)" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Resolved junctions and authorisation }
 junctions:
