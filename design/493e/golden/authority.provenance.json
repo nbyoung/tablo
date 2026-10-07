@@ -1,0 +1,456 @@
+{
+  "legend": {
+    "gates": [
+      {
+        "key": "undefined",
+        "symbol": "❔",
+        "name": "Undefined",
+        "criteria": "No one has started work on the definition"
+      },
+      {
+        "key": "defined",
+        "symbol": "📝",
+        "name": "Defined",
+        "criteria": "Title, description, assignee and references exist"
+      },
+      {
+        "key": "mockup",
+        "symbol": "📌",
+        "name": "Mockup",
+        "criteria": "A non-technical mockup of the outcome exists"
+      },
+      {
+        "key": "function",
+        "symbol": "⚙️",
+        "name": "Functional prototype",
+        "criteria": "A technical demonstration of function exists"
+      },
+      {
+        "key": "performance",
+        "symbol": "⚡",
+        "name": "Performance prototype",
+        "criteria": "Target performance shown in the deliverable's technology"
+      },
+      {
+        "key": "reliability",
+        "symbol": "⚓",
+        "name": "Reliability prototype",
+        "criteria": "Target reliability shown in the fundamental technology"
+      },
+      {
+        "key": "design",
+        "symbol": "📐",
+        "name": "Design",
+        "criteria": "A model and sufficient tests exist"
+      },
+      {
+        "key": "implementation",
+        "symbol": "🛠️",
+        "name": "Implementation",
+        "criteria": "Artifacts suffice for unit, integration and validation tests"
+      },
+      {
+        "key": "unit",
+        "symbol": "🧩",
+        "name": "Unit test",
+        "criteria": "All prescribed tests pass"
+      },
+      {
+        "key": "integrate",
+        "symbol": "🖼️",
+        "name": "Integration",
+        "criteria": "Assembled with neighbouring components"
+      },
+      {
+        "key": "validate",
+        "symbol": "🌍",
+        "name": "Validation",
+        "criteria": "Passes user and field tests"
+      },
+      {
+        "key": "release",
+        "symbol": "🚀",
+        "name": "Release",
+        "criteria": "All variants documented and approved"
+      }
+    ],
+    "states": [
+      {
+        "key": "undefined",
+        "symbol": "⚪",
+        "severity": 0,
+        "synopsis": "The work has not yet been defined"
+      },
+      {
+        "key": "nominal",
+        "symbol": "🟢",
+        "severity": 1,
+        "synopsis": "The work is proceeding as expected"
+      },
+      {
+        "key": "at_risk",
+        "symbol": "🟡",
+        "severity": 2,
+        "synopsis": "The work is at risk of stalling"
+      },
+      {
+        "key": "stalled",
+        "symbol": "🔴",
+        "severity": 3,
+        "synopsis": "Practically all progress has stalled"
+      },
+      {
+        "key": "complete",
+        "symbol": "✅",
+        "severity": 0,
+        "synopsis": "All deliverables satisfy their requirements"
+      }
+    ],
+    "reasons": [
+      {
+        "key": "overloaded",
+        "symbol": "🪫",
+        "synopsis": "The assigned resource is overloaded",
+        "reserved": false
+      },
+      {
+        "key": "blocked",
+        "symbol": "⛔",
+        "synopsis": "An external resource is unavailable",
+        "reserved": false
+      }
+    ],
+    "marks": [
+      {
+        "key": "person",
+        "symbol": "🧑",
+        "meaning": "A person contributes",
+        "junction": "plain"
+      },
+      {
+        "key": "agent",
+        "symbol": "🤖",
+        "meaning": "An agent contributes",
+        "junction": "plain"
+      },
+      {
+        "key": "reviewer",
+        "symbol": "👀",
+        "meaning": "A reviewer accepts",
+        "junction": "plain"
+      },
+      {
+        "key": "subproject",
+        "symbol": "🪆",
+        "meaning": "A subproject does the work",
+        "junction": "recursive"
+      },
+      {
+        "key": "exempt",
+        "symbol": "—",
+        "meaning": "The gate does not apply",
+        "junction": "not_applicable"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "a1c0",
+      "title": "Weather station",
+      "depth": 0,
+      "assignee": "ada@example.org",
+      "parent": true,
+      "delegated": false,
+      "proposed": false,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    },
+    {
+      "id": "4e2b",
+      "title": "Sensor node",
+      "depth": 1,
+      "assignee": "ben@example.org",
+      "parent": true,
+      "delegated": true,
+      "proposed": false,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    },
+    {
+      "id": "9f31",
+      "title": "Sensor board",
+      "depth": 2,
+      "assignee": "ada@example.org",
+      "parent": false,
+      "delegated": true,
+      "proposed": false,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    },
+    {
+      "id": "c07d",
+      "title": "Node firmware",
+      "depth": 2,
+      "assignee": "ben@example.org",
+      "parent": false,
+      "delegated": false,
+      "proposed": false,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    },
+    {
+      "id": "7b2e",
+      "title": "Gateway",
+      "depth": 1,
+      "assignee": "ada@example.org",
+      "parent": false,
+      "delegated": false,
+      "proposed": false,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    },
+    {
+      "id": "3c5d",
+      "title": "Dashboard",
+      "depth": 1,
+      "assignee": "dan@example.org",
+      "parent": false,
+      "delegated": true,
+      "proposed": true,
+      "differs_from_trunk": false,
+      "uncommitted": false
+    }
+  ],
+  "parents": [
+    {
+      "id": "a1c0",
+      "title": "Weather station",
+      "assignee": "ada@example.org",
+      "authorities": [
+        {
+          "email": "ada@example.org",
+          "by": "a1c0"
+        }
+      ],
+      "children": [
+        "4e2b",
+        "7b2e",
+        "3c5d"
+      ],
+      "defaults": [],
+      "sources": []
+    },
+    {
+      "id": "4e2b",
+      "title": "Sensor node",
+      "assignee": "ben@example.org",
+      "authorities": [
+        {
+          "email": "ben@example.org",
+          "by": "4e2b"
+        },
+        {
+          "email": "ada@example.org",
+          "by": "a1c0"
+        }
+      ],
+      "children": [
+        "9f31",
+        "c07d"
+      ],
+      "defaults": [
+        {
+          "gate": "mockup",
+          "kind": "plain",
+          "marks": [
+            "person"
+          ],
+          "acts": false,
+          "contributor": "ben@example.org",
+          "model": "",
+          "reviewer": "ben@example.org",
+          "reviewer_by_default": false,
+          "subproject": null,
+          "references": [],
+          "stands": "",
+          "reviewed": false,
+          "from": [
+            "4e2b"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "gate": "mockup",
+          "field": "reviewer",
+          "value": "ben@example.org",
+          "by": "4e2b",
+          "key": "junctions.mockup.reviewer",
+          "file": ".tableaux/tasks/4e2b.yaml",
+          "line": 10,
+          "col": 23
+        }
+      ]
+    }
+  ],
+  "deciding": [
+    {
+      "commit": {
+        "hash": "1b8cfb16a248f50eeefb76e0994234693ff4f4a6",
+        "subject": "Revise the dashboard scope",
+        "date": "2026-09-27",
+        "author_time": "2026-09-27T12:00:00Z",
+        "author": {
+          "name": "Dan Reyes",
+          "email": "dan@example.org"
+        },
+        "committer": {
+          "name": "Dan Reyes",
+          "email": "dan@example.org"
+        },
+        "parents": [
+          "97e423122790a250e4e067d7d33bbf88622b00d5"
+        ],
+        "trailers": [],
+        "files": [
+          {
+            "path": ".tableaux/tasks/3c5d.yaml",
+            "change": "changed"
+          }
+        ]
+      },
+      "way": "change",
+      "merged": "",
+      "by": "",
+      "email": "dan@example.org",
+      "tasks": [
+        "3c5d"
+      ]
+    },
+    {
+      "commit": {
+        "hash": "f9e8746736beb13aeab99f2cd2ff7e315596e616",
+        "subject": "Merge the sensor board task",
+        "date": "2026-09-19",
+        "author_time": "2026-09-19T12:00:00Z",
+        "author": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "committer": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "parents": [
+          "22a758bec2a079fd908bba970db5eb51ecccd0c6",
+          "91aa7747f22ef4bb66becb6eab5d5f1f9c28836d"
+        ],
+        "trailers": [
+          "Authorised: 9f31"
+        ],
+        "files": [
+          {
+            "path": ".tableaux/tasks/9f31.yaml",
+            "change": "added"
+          }
+        ]
+      },
+      "way": "merge",
+      "merged": "91aa7747f22ef4bb66becb6eab5d5f1f9c28836d",
+      "by": "both",
+      "email": "ben@example.org",
+      "tasks": [
+        "9f31"
+      ]
+    },
+    {
+      "commit": {
+        "hash": "22a758bec2a079fd908bba970db5eb51ecccd0c6",
+        "subject": "Define the node firmware task",
+        "date": "2026-09-16",
+        "author_time": "2026-09-16T12:00:00Z",
+        "author": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "committer": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "parents": [
+          "68d9021206ec627755e2ead99b6be3f2c06ae815"
+        ],
+        "trailers": [],
+        "files": [
+          {
+            "path": ".tableaux/tasks/c07d.yaml",
+            "change": "added"
+          }
+        ]
+      },
+      "way": "change",
+      "merged": "",
+      "by": "both",
+      "email": "ben@example.org",
+      "tasks": [
+        "c07d"
+      ]
+    },
+    {
+      "commit": {
+        "hash": "68d9021206ec627755e2ead99b6be3f2c06ae815",
+        "subject": "Plan the weather station",
+        "date": "2026-09-15",
+        "author_time": "2026-09-15T12:00:00Z",
+        "author": {
+          "name": "Ada Byron",
+          "email": "ada@example.org"
+        },
+        "committer": {
+          "name": "Ada Byron",
+          "email": "ada@example.org"
+        },
+        "parents": [],
+        "trailers": [],
+        "files": [
+          {
+            "path": ".tableaux/gates.yaml",
+            "change": "added"
+          },
+          {
+            "path": ".tableaux/tasks/4e2b.yaml",
+            "change": "added"
+          },
+          {
+            "path": ".tableaux/tasks/7b2e.yaml",
+            "change": "added"
+          },
+          {
+            "path": ".tableaux/tasks/a1c0.yaml",
+            "change": "added"
+          },
+          {
+            "path": ".tableaux/version.yaml",
+            "change": "added"
+          }
+        ]
+      },
+      "way": "change",
+      "merged": "",
+      "by": "both",
+      "email": "ada@example.org",
+      "tasks": [
+        "a1c0",
+        "4e2b",
+        "7b2e"
+      ]
+    }
+  ],
+  "undecided": [],
+  "commands": [
+    {
+      "text": "git log --first-parent --format='%H %as %ae %ce %P' edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a -- .tableaux/tasks",
+      "comment": ""
+    }
+  ]
+}
