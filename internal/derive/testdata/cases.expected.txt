@@ -1,0 +1,117 @@
+# What the Derivation gives at each label of cases.sh, read at that label.
+# Per label: on or off the trunk; each task's authorisation, in display order; the status of b2c9 with
+# its date, recorder and deciding commit; its reviews; its hand-off. At C16, every event of every task:
+# date, commit, author, task, kind and what it records; then the junction a status or reaffirmed commit
+# is at, or the effect of a review.
+C1: on the trunk
+  e4a1 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C2: off the trunk
+  e4a1 proposed, no deciding commit
+  b2c9 proposed, no deciding commit
+  c3d7 proposed, no deciding commit
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C3: on the trunk
+  e4a1 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  c3d7 authorised at C3 by olive@example.org (author, committer), way merge, judges olive@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C4: on the trunk
+  e4a1 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C4 by olive@example.org (committer), way commit, judges olive@example.org
+  c3d7 authorised at C3 by olive@example.org (author, committer), way merge, judges olive@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C5: on the trunk
+  e4a1 authorised at C1 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C4 by olive@example.org (committer), way commit, judges olive@example.org
+  c3d7 proposed at C5 by pat@example.org (neither), way trailer, judges olive@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C6: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C4 by olive@example.org (committer), way commit, judges olive@example.org
+  c3d7 proposed at C5 by pat@example.org (neither), way trailer, judges olive@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C7: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C4 by olive@example.org (committer), way commit, judges olive@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+C8: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C8 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status defined nominal, 2026-09-01 olive@example.org at C1
+  b2c9 hand-off implied at design to olive@example.org, C8
+C9: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C8 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status defined nominal review, 2026-09-09 pat@example.org at C9
+  b2c9 hand-off stated at design to olive@example.org
+C10: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C8 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status defined nominal review, 2026-09-09 pat@example.org at C9
+  b2c9 hand-off stale at design to olive@example.org, C10
+C11: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C8 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal, 2026-09-11 pat@example.org at C11
+  b2c9 review design, reviewer olive@example.org: C10 by olive@example.org
+C12: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C8 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal, 2026-09-11 pat@example.org at C11
+  b2c9 review design, reviewer olive@example.org: C10 by olive@example.org
+C13: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C13 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal, 2026-09-11 pat@example.org at C11
+  b2c9 review design, reviewer dan@example.org: C10 by olive@example.org
+S1: off the trunk
+  e4a1 proposed, no deciding commit
+  b2c9 proposed, no deciding commit
+  c3d7 proposed, no deciding commit
+  b2c9 status design nominal "From the side branch", 2026-09-14 pat@example.org at S1
+  b2c9 review design, reviewer dan@example.org: C10 by olive@example.org
+C14: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C13 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal "From the trunk", 2026-09-15 pat@example.org at C14
+  b2c9 review design, reviewer dan@example.org: C10 by olive@example.org
+C15: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C13 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal "From both", 2026-09-16 pat@example.org at C15
+  b2c9 review design, reviewer dan@example.org: C10 by olive@example.org
+C16: on the trunk
+  e4a1 authorised at C6 by olive@example.org (author, committer), way commit, judges olive@example.org
+  b2c9 authorised at C13 by pat@example.org (author, committer), way commit, judges pat@example.org
+  c3d7 authorised at C7 by pat@example.org (author, committer), way trailer, judges pat@example.org
+  b2c9 status design nominal "From both", 2026-09-17 olive@example.org at C16
+  b2c9 review design, reviewer dan@example.org: C10 by olive@example.org
+  event 2026-09-01 C1 olive@example.org e4a1 task
+  event 2026-09-06 C6 olive@example.org e4a1 task
+  event 2026-09-01 C1 olive@example.org b2c9 task
+  event 2026-09-01 C1 olive@example.org b2c9 status defined nominal; at defined
+  event 2026-09-04 C4 pat@example.org b2c9 task
+  event 2026-09-08 C8 pat@example.org b2c9 task
+  event 2026-09-09 C9 pat@example.org b2c9 status defined nominal review; at design
+  event 2026-09-10 C10 olive@example.org b2c9 reviewed design; accepts
+  event 2026-09-11 C11 pat@example.org b2c9 status design nominal; at design
+  event 2026-09-12 C12 olive@example.org b2c9 reviewed design; repeats
+  event 2026-09-13 C13 pat@example.org b2c9 task
+  event 2026-09-14 S1 pat@example.org b2c9 status design nominal "From the side branch"; at release
+  event 2026-09-15 C14 pat@example.org b2c9 status design nominal "From the trunk"; at release
+  event 2026-09-16 C15 pat@example.org b2c9 status design nominal "From both"; at release
+  event 2026-09-17 C16 olive@example.org b2c9 reaffirmed; at release
+  event 2026-09-02 C2 pat@example.org c3d7 task
+  event 2026-09-05 C5 pat@example.org c3d7 authorised
+  event 2026-09-07 C7 pat@example.org c3d7 authorised
