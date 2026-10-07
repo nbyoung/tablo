@@ -49,11 +49,12 @@ func TestMemo(t *testing.T) {
 	exe, count := counter(t)
 	l := loader(t, Options{Git: exe})
 
-	// No subproject: one process for the working tree, three for a revision.
+	// No subproject: two processes for the working tree, the discovery and the
+	// ignored paths, and three for a revision.
 	plainEntry := entry(t, "unmet-requirement")
 	load(t, l, plainEntry, "")
-	if n := count(); n != 1 {
-		t.Errorf("the working tree, no subproject: %d processes, want 1", n)
+	if n := count(); n != 2 {
+		t.Errorf("the working tree, no subproject: %d processes, want 2", n)
 	}
 	load(t, l, plainEntry, "HEAD")
 	if n := count(); n != 3 {
@@ -64,12 +65,12 @@ func TestMemo(t *testing.T) {
 	repo := clone(t, "submodule-subproject")
 	sub := labels(t, "submodule-subproject.sub")
 	first := load(t, l, repo, "")
-	if n := count(); n != 1+3 {
-		t.Errorf("the working tree and a submodule, first: %d processes, want 4", n)
+	if n := count(); n != 2+3 {
+		t.Errorf("the working tree and a submodule, first: %d processes, want 5", n)
 	}
 	second := load(t, l, repo, "")
-	if n := count(); n != 1+1 {
-		t.Errorf("the working tree and a submodule, again: %d processes, want 2", n)
+	if n := count(); n != 2+1 {
+		t.Errorf("the working tree and a submodule, again: %d processes, want 3", n)
 	}
 	if link(t, first, "sub").Project != link(t, second, "sub").Project {
 		t.Error("the second load reads the submodule anew")
@@ -94,15 +95,15 @@ func TestMemo(t *testing.T) {
 	gitRun(t, filepath.Join(repo, "sub"), "checkout", "-q", sub["S4"])
 	count()
 	moved := load(t, l, repo, "")
-	if n := count(); n != 1+3 {
-		t.Errorf("after the pin moves: %d processes, want 4", n)
+	if n := count(); n != 2+3 {
+		t.Errorf("after the pin moves: %d processes, want 5", n)
 	}
 	if got := link(t, moved, "sub"); got.Commit != sub["S4"] || gate(t, got, "5a00") != "design" {
 		t.Errorf("after the pin moves: %+v", got)
 	}
 	gitRun(t, filepath.Join(repo, "sub"), "checkout", "-q", sub["S3"])
 	count()
-	if back := load(t, l, repo, ""); link(t, back, "sub").Project != link(t, first, "sub").Project || count() != 2 {
+	if back := load(t, l, repo, ""); link(t, back, "sub").Project != link(t, first, "sub").Project || count() != 3 {
 		t.Error("the pin moved back, and the memo does not serve the project it held")
 	}
 

@@ -177,6 +177,33 @@ func listDisk(top, dir string) (listing, error) {
 	return l, nil
 }
 
+// drop removes the files and the stray paths that paths names. Each of paths
+// is relative to the working tree's root and lies under plan, the project's
+// .tableaux directory there.
+func (l *listing) drop(plan string, paths []string) {
+	if len(paths) == 0 {
+		return
+	}
+	gone := make(map[string]bool, len(paths))
+	for _, p := range paths {
+		gone[strings.TrimPrefix(p, plan+"/")] = true
+	}
+	files := l.files[:0]
+	for _, f := range l.files {
+		if !gone[f.path] {
+			files = append(files, f)
+		}
+	}
+	l.files = files
+	stray := l.stray[:0]
+	for _, p := range l.stray {
+		if !gone[p] {
+			stray = append(stray, p)
+		}
+	}
+	l.stray = stray
+}
+
 // sort puts the files and the stray paths in byte order of their paths.
 func (l *listing) sort() {
 	sort.Slice(l.files, func(i, j int) bool { return l.files[i].path < l.files[j].path })

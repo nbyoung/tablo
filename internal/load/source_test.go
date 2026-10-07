@@ -208,6 +208,44 @@ func TestRevisionEqualsWorkingTree(t *testing.T) {
 	}
 }
 
+// The working tree is what `git add -A` would record: a path under .tableaux
+// that the ignore rules exclude is neither read nor stray, whether its name is
+// one the layout names or not, and a tracked file stays read whatever the
+// rules say.
+func TestWorkingTreeLeavesIgnoredPathsUnread(t *testing.T) {
+	repo := clone(t, "subproject-same-repository")
+	write(t, repo, ".gitignore", "*.swp\nlocal/\ndddd.yaml\nb2c9.yaml\n")
+	write(t, repo, ".tableaux/tasks/dddd.yaml", "title: Ignored\n")
+	write(t, repo, ".tableaux/tasks/.a1c0.yaml.swp", "An editor's file.\n")
+	write(t, repo, ".tableaux/local/notes.md", "An ignored directory.\n")
+	write(t, repo, ".tableaux/tasks/cccc.yaml", "title: Untracked and not ignored\n")
+	write(t, repo, ".tableaux/scratch.md", "A stray path, not ignored.\n")
+	write(t, repo, "lib/.tableaux/tasks/dddd.yaml", "title: Ignored in a directory project\n")
+	l := loader(t, Options{})
+	before := load(t, l, repo, "HEAD")
+	tree := load(t, l, repo, "")
+	for _, id := range before.TaskIDs() {
+		if tree.Tasks[id] == nil {
+			t.Errorf("the working tree drops the tracked task %s", id)
+		}
+	}
+	if tree.Tasks["dddd"] != nil || tree.Tasks["cccc"] == nil {
+		t.Errorf("the working tree: tasks %v", tree.TaskIDs())
+	}
+	if want := []string{"scratch.md"}; !reflect.DeepEqual(tree.Stray, want) {
+		t.Errorf("stray: %v, want %v", tree.Stray, want)
+	}
+	// From a directory below the root, and in a project a link reads from disk.
+	if lib := load(t, l, filepath.Join(repo, "lib"), ""); lib.Tasks["dddd"] != nil || len(lib.Stray) != 0 {
+		t.Errorf("the project in lib: tasks %v, stray %v", lib.TaskIDs(), lib.Stray)
+	}
+	for _, link := range tree.Links {
+		if link.Form == model.Directory && link.Project != nil && link.Project.Tasks["dddd"] != nil {
+			t.Errorf("the linked project in %s reads the ignored task", link.Project.Where.Dir)
+		}
+	}
+}
+
 // T11: the working tree shows what is not committed, and a revision does not.
 func TestWorkingTreeShowsUncommitted(t *testing.T) {
 	repo := clone(t, "weather-station")

@@ -165,7 +165,7 @@ func (s *session) resolveDirectory(ctx context.Context, n *node, t *target, dir 
 		where.Dir = dir
 		k := key{gitDir: where.GitDir, top: where.Top, dir: dir}
 		if project = s.seen[k]; project == nil {
-			read, err := s.readDisk(n.place, where, n.depth+1)
+			read, err := s.readDisk(ctx, n.place, where, n.depth+1)
 			if err != nil {
 				return err
 			}

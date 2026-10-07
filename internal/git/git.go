@@ -314,6 +314,18 @@ func (r Runner) LsFiles(ctx context.Context, repo Repo, paths ...string) ([]Entr
 	return entries, nil
 }
 
+// Ignored lists the untracked files at paths that the ignore rules exclude,
+// each relative to the working tree's root; repo.Dir is that root. They are
+// the files `git add -A` leaves out.
+func (r Runner) Ignored(ctx context.Context, repo Repo, paths ...string) ([]string, error) {
+	args := append([]string{"ls-files", "--others", "--ignored", "--exclude-standard", "-z", "--"}, paths...)
+	out, err := r.Run(ctx, repo, nil, args...)
+	if err != nil {
+		return nil, err
+	}
+	return records(out), nil
+}
+
 // records splits output that ends each record with a NUL.
 func records(out []byte) []string {
 	parts := strings.Split(string(out), "\x00")

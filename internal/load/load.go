@@ -175,7 +175,7 @@ func (l *Loader) Load(ctx context.Context, src Source) (*model.Project, error) {
 		}
 		where.Worktree = true
 		where.Dir = nearestOnDisk(found.Top, dirs)
-		root, err = s.readDisk(s.home, where, 0)
+		root, err = s.readDisk(ctx, s.home, where, 0)
 	} else {
 		treeish := found.Commit
 		if treeish == "" {
@@ -220,11 +220,20 @@ func (s *session) add(at place, k key, where model.Location, l listing, depth in
 	return n
 }
 
-// readDisk reads the project where names from the working tree.
-func (s *session) readDisk(at place, where model.Location, depth int) (*node, error) {
+// readDisk reads the project where names from the working tree, in one
+// process when the project exists: the reading is what `git add -A` would
+// record, so a path the ignore rules exclude is neither read nor stray.
+func (s *session) readDisk(ctx context.Context, at place, where model.Location, depth int) (*node, error) {
 	l, err := listDisk(where.Top, where.Dir)
 	if err != nil {
 		return nil, err
+	}
+	if l.exists {
+		ignored, err := s.run.Ignored(ctx, git.Repo{Dir: where.Top}, planPath(where.Dir))
+		if err != nil {
+			return nil, err
+		}
+		l.drop(planPath(where.Dir), ignored)
 	}
 	k := key{gitDir: where.GitDir, top: where.Top, dir: where.Dir}
 	return s.add(at, k, where, l, depth), nil
