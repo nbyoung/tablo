@@ -47,6 +47,8 @@ front end in the family copies.
 ├── version_test.go
 ├── cmd/tablo/main.go          # command tablo: the plumbing command
 ├── internal/validate/         # the Validator: the rules of the method's RULES.md over a loaded project
+├── internal/history/          # the one pass over the Git history that the Derivation reads
+├── internal/derive/           # the Derivation: the facts the files leave to Git and to inheritance
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
 ├── .github/workflows/
