@@ -1,9 +1,17 @@
 package validate
 
 import (
+	"bytes"
+	"context"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/nbyoung/tablo/internal/load"
+	"github.com/nbyoung/tablo/internal/model"
 )
 
 // corpus returns the directory of the built conformance corpus, and skips
@@ -36,4 +44,150 @@ func beside(t testing.TB, path ...string) string {
 		t.Skipf("the corpus holds no %s beside its build", filepath.Join(path...))
 	}
 	return p
+}
+
+// loadAt reads a source with a Loader whose cache is an empty temporary
+// directory, and fails the test on a load error.
+func loadAt(t testing.TB, options load.Options, dir, ref string) *model.Project {
+	t.Helper()
+	if options.CacheDir == "" {
+		options.CacheDir = t.TempDir()
+	}
+	p, err := load.New(options).Load(context.Background(), load.Source{Dir: dir, Ref: ref})
+	if err != nil {
+		t.Fatalf("Load(%q, %q): %v", dir, ref, err)
+	}
+	return p
+}
+
+// gitRun runs the git executable in dir with the fixed identity and date of
+// the Loader's tests and no configuration of the host's. It skips the test
+// when the host has no git.
+func gitRun(t testing.TB, dir string, args ...string) string {
+	t.Helper()
+	exe, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("the host has no git executable")
+	}
+	cmd := exec.Command(exe, append([]string{"-c", "protocol.file.allow=always", "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main"}, args...)...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME=Olive Marsh", "GIT_AUTHOR_EMAIL=olive@example.org",
+		"GIT_COMMITTER_NAME=Olive Marsh", "GIT_COMMITTER_EMAIL=olive@example.org",
+		"GIT_AUTHOR_DATE=2026-09-01T12:00:00+00:00", "GIT_COMMITTER_DATE=2026-09-01T12:00:00+00:00",
+		"GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_SYSTEM="+os.DevNull,
+	)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("git %s in %s: %v\n%s", strings.Join(args, " "), dir, err, stderr.String())
+	}
+	return strings.TrimSpace(string(out))
+}
+
+// The files of the smallest valid project, which a test overlays.
+const (
+	baseVersion = "tableaux: 0.3.1\ntrunk: main\n"
+	baseGates   = `gates:
+  - { key: undefined, symbol: "?", name: Undefined, criteria: No one has started work on the definition }
+  - { key: defined, symbol: D, name: Defined, criteria: The definition exists }
+  - { key: design, symbol: M, name: Design, criteria: A model and sufficient tests exist }
+  - { key: release, symbol: R, name: Release, criteria: All variants documented and approved }
+states:
+  - { key: undefined, symbol: U, severity: 0, synopsis: The work has not yet been defined }
+  - { key: nominal, symbol: N, severity: 1, synopsis: The work is proceeding as expected }
+  - { key: complete, symbol: C, severity: 0, synopsis: All deliverables satisfy their requirements }
+reasons:
+  - { key: blocked, symbol: B, synopsis: An external resource is unavailable }
+`
+	baseRoot = "title: Base\ndescription: The root.\nassignee: olive@example.org\n"
+	baseLeaf = "title: Leaf\ndescription: A leaf.\nassignee: pat@example.org\nparent: { id: \"e4a1\", order: 1 }\n"
+)
+
+// base returns the files of the smallest valid project, by path below
+// .tableaux: a root e4a1 and a leaf b2c9 with no status.
+func base() map[string]string {
+	return map[string]string{
+		"version.yaml":    baseVersion,
+		"gates.yaml":      baseGates,
+		"tasks/e4a1.yaml": baseRoot,
+		"tasks/b2c9.yaml": baseLeaf,
+	}
+}
+
+// with returns files overlaid with pairs of a path and its content; an empty
+// content drops the path.
+func with(files map[string]string, pairs ...string) map[string]string {
+	for i := 0; i+1 < len(pairs); i += 2 {
+		if pairs[i+1] == "" {
+			delete(files, pairs[i])
+		} else {
+			files[pairs[i]] = pairs[i+1]
+		}
+	}
+	return files
+}
+
+// repository writes files below .tableaux of a new repository with no commit
+// under t.TempDir() and returns its path. A path that starts with / is
+// relative to the repository's root.
+func repository(t testing.TB, files map[string]string) string {
+	t.Helper()
+	repo := filepath.Join(t.TempDir(), "repo")
+	if err := os.MkdirAll(repo, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, repo, "init", "-q", "-b", "main")
+	for path, content := range files {
+		full := filepath.Join(repo, ".tableaux", filepath.FromSlash(path))
+		if rest, ok := strings.CutPrefix(path, "/"); ok {
+			full = filepath.Join(repo, filepath.FromSlash(rest))
+		}
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return repo
+}
+
+// project builds a project from files and loads it from the working tree.
+func project(t testing.TB, files map[string]string) *model.Project {
+	t.Helper()
+	return loadAt(t, load.Options{}, repository(t, files), "")
+}
+
+// where writes where a diagnostic sits and what it names, as a line of
+// corpus.expected.txt does before its message: the file, line and column, the
+// severity, the code, the task and the gate, each part only when the
+// diagnostic has it.
+func where(d model.Diagnostic) string {
+	var b strings.Builder
+	if d.Pos.File != "" {
+		b.WriteString(d.Pos.File)
+		if d.Pos.Line > 0 {
+			fmt.Fprintf(&b, ":%d", d.Pos.Line)
+			if d.Pos.Col > 0 {
+				fmt.Fprintf(&b, ":%d", d.Pos.Col)
+			}
+		}
+		b.WriteString(": ")
+	}
+	fmt.Fprintf(&b, "%s: %s", d.Severity, d.Code)
+	if d.Task != "" {
+		b.WriteString(" task=" + d.Task)
+	}
+	if d.Gate != "" {
+		b.WriteString(" gate=" + d.Gate)
+	}
+	if d.Commit != "" {
+		b.WriteString(" commit=" + d.Commit)
+	}
+	if d.Trailer != "" {
+		b.WriteString(" trailer=" + d.Trailer)
+	}
+	return b.String()
 }
