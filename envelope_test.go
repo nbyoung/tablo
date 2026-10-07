@@ -112,6 +112,7 @@ func versionEnvelope() *Envelope {
 }
 
 func trailerEnvelope() *Envelope {
+	line, _ := Trailer{Kind: "reviewed", Task: "9f31", Gate: "validate"}.Line()
 	return &Envelope{
 		Schema:  SchemaVersion,
 		Command: "trailer",
@@ -123,7 +124,7 @@ func trailerEnvelope() *Envelope {
 			Task    *string `json:"task"`
 			Gate    *string `json:"gate"`
 			Model   *string `json:"model"`
-		}{"Reviewed: 9f31 validate", "reviewed", ptr("9f31"), ptr("validate"), nil},
+		}{line, "reviewed", ptr("9f31"), ptr("validate"), nil},
 	}
 }
 
