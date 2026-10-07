@@ -45,10 +45,20 @@ front end in the family copies.
 ├── doc.go                     # package tablo: the library
 ├── version.go                 # Version and the tableaux versions the module accepts
 ├── version_test.go
+├── params.go                  # the views, the levels, the roles and the parameters a view takes
+├── errors.go                  # the usage, not-found and read errors, which fix the exit code
+├── envelope.go                # the envelope every command's data travels in, and its JSON
+├── envelope.schema.yaml       # the envelope's schema, embedded
+├── yaml.go                    # the same envelope as YAML
+├── trailer.go                 # the four commit trailers as Git writes them
 ├── cmd/tablo/main.go          # command tablo: the plumbing command
+├── internal/model/            # the typed model of a project as its files state it, with positions
+├── internal/git/              # the one place that runs the git executable
+├── internal/load/             # the Loader: one project from the working tree or a revision, and its links
 ├── internal/validate/         # the Validator: the rules of the method's RULES.md over a loaded project
 ├── internal/history/          # the one pass over the Git history that the Derivation reads
 ├── internal/derive/           # the Derivation: the facts the files leave to Git and to inheritance
+├── internal/cli/              # the command's argument parser, plain forms and usage text
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
 ├── .github/workflows/
