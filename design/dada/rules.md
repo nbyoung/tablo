@@ -1,0 +1,102 @@
+# The rules, one row each
+
+Every rule of [corpus/RULES.md](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md), 81 in all, as the Audit wraps its diagnostic: the act and the resolver of [design dada](../dada.md#the-act-and-the-resolver), and the sentence a finding shows at provenance with the place it stands. The table lands as `table` in `internal/audit/rules.go`, one entry per row. It holds no action text: a front end words the action from the act and the typed facts ([`words.md`](words.md#the-typed-facts)). The three kinds that no rule states stand in [`words.md`](words.md).
+
+**Resolver.** The role the design defines: `keeper`, `owner`, `assignee`, `contributor`, `reviewer`, `author`, `origin` or nobody.
+
+**Two rules take their act by a condition**, read from the facts:
+
+| Rule | Condition                                                                                                   | Act        | Resolver |
+|------|-------------------------------------------------------------------------------------------------------------|------------|----------|
+| J8   | The link of `Junction(id, gate).Snapshot`, or of the condition the diagnostic stands at, has the `Problem` `NoClone` or `CommitAbsent` | `checkout` | nobody   |
+| J8   | Any other problem, or no link found                                                                         | `revise`   | keeper   |
+| H2   | `Accepted(id, gate)` has no commit                                                                          | `review`   | reviewer |
+| H2   | `Accepted(id, gate)` has a commit: a review accepts the junction since                                      | `none`     | author   |
+
+**The demotion.** A finding whose act is `none` lists as `information` once its junction is historical, or, with no task, once its commit is older than the stale age ([design dada](../dada.md#the-demotion)); the table states the act, and `validate.Rules` the rule's own severity.
+
+**Source and Sentence.** Where the Source column of RULES.md quotes README.md or SYNTAX.md, the sentence is its first quotation and the source is that text and section; "Same sentence" takes the row above. Where it names a schema alone, the sentence is the rule as RULES.md words it and the source is RULES.md. Test T1 holds every sentence to the row of RULES.md that the corpus carries. A script over RULES.md at tableaux `main` writes these two columns; the script does not land.
+
+| Id | Act | Resolver | Source | Sentence |
+|----|-----|----------|--------|----------|
+| P1 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | A Tableaux project is the `.tableaux` directory at the root of its Git repository. |
+| P2 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | `version.yaml`, `gates.yaml`: Fixed |
+| P3 | `revise` | keeper | [corpus/RULES.md, Project and version.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#project-and-versionyaml) | `version.yaml` matches its schema: `tableaux` required, `major.minor.patch`; `trunk`, when present, non-empty; no other field |
+| P4 | `revise` | keeper | [README.md, Version](https://github.com/nbyoung/tableaux/blob/main/README.md#version) | A tool accepts a project whose major version equals its own and whose minor version does not exceed it. |
+| P5 | `revise` | owner | [README.md, Project](https://github.com/nbyoung/tableaux/blob/main/README.md#project) | otherwise the trunk is undetermined, every task reads as proposed, and a validator warns |
+| L1 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | Every file is YAML |
+| L2 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | a mapping states each key once |
+| L3 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | one document of plain mappings, sequences and scalars |
+| L4 | `revise` | keeper | [corpus/RULES.md, Reading a file](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#reading-a-file) | Every path under `.tableaux` is one the layout names: `version.yaml`, `gates.yaml`, `tasks/<id>.yaml`, `status/<id>.yaml`, each a regular file; a tool leaves any other unread |
+| G1 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | `version.yaml`, `gates.yaml`: Fixed |
+| G2 | `revise` | keeper | [README.md, Gates](https://github.com/nbyoung/tableaux/blob/main/README.md#gates) | The first gate is always `undefined`. |
+| G3 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | At least two gates |
+| G4 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | Each gate has `key`, `symbol`, `name`, `criteria`, each non-empty, and no other field |
+| G5 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | Every key matches `^[a-z][a-z0-9_-]*$` |
+| G6 | `revise` | keeper | [SYNTAX.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#gatesyaml) | A unique identifier that other files use to name the gate |
+| G7 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | `states` exists with at least one state; each has `key`, `symbol`, `severity`, `synopsis` |
+| G8 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | `severity` is an integer of at least 0 |
+| G9 | `revise` | keeper | [SYNTAX.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#gatesyaml) | A unique identifier that status records use to name the state |
+| G10 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | Each reason has `key`, `symbol`, `synopsis`; reason keys are unique |
+| G11 | `revise` | keeper | [corpus/RULES.md, gates.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#gatesyaml) | No field other than `gates`, `states`, `reasons` |
+| G12 | `revise` | keeper | [README.md, Gates](https://github.com/nbyoung/tableaux/blob/main/README.md#gates) | The states always include `undefined` … and `complete` …, both with severity 0 so that roll-up sets them aside. |
+| T1 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
+| T2 | `revise` | keeper | [corpus/RULES.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#tasksidyaml) | `title`, `description` and `assignee` exist and are non-empty |
+| T3 | `revise` | keeper | [SYNTAX.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#tasksidyaml) | the file holds no `id` field. |
+| T4 | `revise` | keeper | [corpus/RULES.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#tasksidyaml) | `assignee`, `contributor` and `reviewer` are email addresses |
+| T5 | `revise` | keeper | [corpus/RULES.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#tasksidyaml) | Each reference has `url`, a URI reference; `text`, when present, is non-empty |
+| T6 | `revise` | keeper | [corpus/RULES.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#tasksidyaml) | Every id a file names matches `^[0-9a-f]{4}$` |
+| T7 | `revise` | keeper | [SYNTAX.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#tasksidyaml) | a validator warns of an unquoted id |
+| T8 | `revise` | owner | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | Exactly one task file has no `parent`; it is the **root** |
+| T9 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | Every other task names its parent by id. |
+| T10 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | Every parent chain ends at the root. |
+| T11 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | Siblings sort by `order`, a strictly positive integer |
+| T12 | `revise` | assignee | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | A tool warns of two siblings with the same `order`, since only the id then decides. |
+| R1 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | The **requires** relationship names the tasks whose results this task needs |
+| R2 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | The relation crosses the tree freely but forms no cycle |
+| R3 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | a task never requires itself, an ancestor or a descendant |
+| R4 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | a task never requires itself, an ancestor or a descendant |
+| R5 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | a task never requires itself, an ancestor or a descendant |
+| R6 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | A validator checks that each gate applies to its task. |
+| R7 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | A validator checks that each gate applies to its task. |
+| R8 | `revise` | keeper | [corpus/RULES.md, requires in a task file](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#requires-in-a-task-file) | Each entry has `id` or `subproject`; `text`, when present, is non-empty; no other field |
+| R9 | `await` | origin | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | A validator warns of an unmet requirement |
+| R10 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | `to` is never `undefined`, since no work needs a result before definition. |
+| R11 | `revise` | keeper | [SYNTAX.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#tasksidyaml) | One of `id`, `subproject` |
+| R12 | `revise` | keeper | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | A validator warns of a cross-project entry that names the task one of this task's recursive junctions already reads |
+| R13 | `move_pin` | assignee | [README.md, Tasks](https://github.com/nbyoung/tableaux/blob/main/README.md#tasks) | the audit reports … a cross-project requirement that is unmet at its `commit` and met at that trunk's tip |
+| J1 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | A validator checks that every junction key names a gate in `gates.yaml`. |
+| J2 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | The `undefined` gate always applies. |
+| J3 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | A recursive junction names one task's work and does not inherit, so a validator rejects one on a parent. |
+| J4 | `revise` | keeper | [SYNTAX.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#tasksidyaml) | `junctions.<gate>` is one of three kinds, told apart by its fields. |
+| J5 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | an entry that states a `model` states its `contributor` beside it rather than inheriting one. |
+| J6 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | `applies`, takes only the value `false`: the entry's presence exempts the gate, and `applies: true` would restate the default the file omits. |
+| J7 | `revise` | keeper | [corpus/RULES.md, junctions in a task file](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#junctions-in-a-task-file) | A recursive entry's `subproject` has `url`; `id`, when present, is an id; no field beyond `url`, `id`, `commit` |
+| J8 | `checkout` or `revise` | nobody or keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | A validator rejects a `url` that does not resolve to a Tableaux project it can read |
+| J9 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | and an `id` that names no task in that project |
+| J10 | `revise` | keeper | [corpus/RULES.md, junctions in a task file](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#junctions-in-a-task-file) | A plain entry has no field beyond `contributor`, `model`, `reviewer`, `references` |
+| J11 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | The `undefined` gate … has no work of its own, so a file states no entry of any kind at `undefined`. |
+| J12 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | At least one gate after `undefined` applies to every task |
+| J13 | `move_pin` | assignee | [README.md, Project](https://github.com/nbyoung/tableaux/blob/main/README.md#project) | A subproject's own `version.yaml` names its trunk, and the audit reports a commit, pinned by a submodule or named by a `commit` field, that is not on it. |
+| J14 | `revise` | keeper | [SYNTAX.md, tasks/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#tasksidyaml) | The full hash of the commit |
+| J15 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | A validator rejects … a `commit` that is absent on an absolute URL |
+| J16 | `revise` | keeper | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | Nothing pins it, so `commit` is an error there. |
+| J17 | `move_pin` | assignee | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | when present it restates the pin and must equal it |
+| S1 | `revise` | keeper | [SYNTAX.md, Layout](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#layout) | `<id>` is the id of a leaf task |
+| S2 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | A parent has no file; its status derives from its children. |
+| S3 | `revise` | keeper | [corpus/RULES.md, status/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/corpus/RULES.md#statusidyaml) | `gate` exists; `note`, when present, is non-empty; no other field |
+| S4 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | The gate is `undefined` exactly when the state is `undefined`. |
+| S5 | `revise` | keeper | [SYNTAX.md, status/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#statusidyaml) | The key of the last gate the task has completed |
+| S6 | `revise` | keeper | [SYNTAX.md, status/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#statusidyaml) | The key of the task's state |
+| S7 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | The gate applies to the task; a validator rejects a status at a gate that a not-applicable junction exempts. |
+| S8 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | A task at its last applicable gate has the state `complete`. |
+| S9 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | When the next junction is recursive, the file holds only the gate. |
+| S10 | `revise` | keeper | [SYNTAX.md, status/&lt;id&gt;.yaml](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#statusidyaml) | absent only when the next junction is recursive |
+| S11 | `review` | reviewer | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | A validator rejects a status whose gate passes a reviewed junction that has no such commit. |
+| S12 | `revise` | keeper | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | A task at its last applicable gate has the state `complete`, and only there. |
+| H1 | `none` | author | [SYNTAX.md, Commit trailers](https://github.com/nbyoung/tableaux/blob/main/SYNTAX.md#commit-trailers) | a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. |
+| H2 | `review` or `none` | reviewer or author | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it. |
+| H3 | `none` | author | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | the audit reports a commit at the junction whose trailer names a model outside the one stated |
+| H4 | `record_handoff` | contributor | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | it reports, as information, a task whose next junction has a reviewer and no `Reviewed:` commit from that reviewer yet, whose newest event is the contributor's and whose status states no `review` |
+| H5 | `clear_handoff` | contributor | [README.md, Status](https://github.com/nbyoung/tableaux/blob/main/README.md#status) | it reports a status that still states `review` after the reviewer's `Reviewed:` commit for that junction |
+| H6 | `none` | author | [README.md, Junctions](https://github.com/nbyoung/tableaux/blob/main/README.md#junctions) | a commit at the junction by its contributor that carries no trailer, unless the project's `version.yaml` at that commit states a language before 0.2.1 |

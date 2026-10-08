@@ -1,3 +1,3 @@
-gate: function
+gate: design
 state: nominal
-note: prototype/dada finds proposed, unreviewed, non-reviewer and model-mismatch findings against the corpus; design is next
+note: design/dada.md is on the trunk with the owner's decisions of 2026-10-07, after two revisions; implementation follows that of the structural views (493e), whose types view/audit.go names, and adds Facts.ByAuthorisation to the Derivation; the plan states no requirement on 493e yet
