@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: internal/validate stands with Files, Derived, Sort and Rules, and its tests T1 to T18 pass on the 102 built corpus entries; the unit gate runs go test ./internal/validate with TABLEAUX_CORPUS set; the adapter that fills validate.Facts, History.Reviews with it, waits in snapshot.go on the Derivation (27a3) and the Plumbing command (4ed9), and the corpus proof of the eleven fact rules waits on the Conformance run (4b4f)
+note: T1 to T18 pass under go test and go test -race with TABLEAUX_CORPUS set to the built corpus, with no skip; the eleven rules that read derived facts pass on literal facts and wait for integrate, where the snapshot of 4ed9 fills validate.Facts from the Derivation (27a3) and 4b4f compares all 81 rules on real facts

@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: internal/history and internal/derive stand on the Loader with T1 to T25 as Go tests, and Runner.Refs, Runner.Log, load.Parse and load.Compose beside them; the unit gate runs go test ./... with TABLEAUX_CORPUS set to the built corpus; the snapshot of 4ed9 fills validate.Facts of 8118 from these facts, and dada, 493e, 886d and 8ed1 read them
+note: T1 to T25 pass under go test and go test -race with TABLEAUX_CORPUS set to the built corpus, with no skip; T25 asserts at least 37 tasks and every pin on its trunk and logs the proposed tasks since the plan moves; integrate needs the snapshot of 4ed9 to fill validate.Facts from these facts and the corpus run of 4b4f; a shallow clone, a SHA-256 repository, macOS and Windows stay unverified
