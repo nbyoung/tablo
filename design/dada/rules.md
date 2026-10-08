@@ -13,7 +13,7 @@ Every rule of [corpus/RULES.md](https://github.com/nbyoung/tableaux/blob/main/co
 | H2   | `Accepted(id, gate)` has no commit                                                                          | `review`   | reviewer |
 | H2   | `Accepted(id, gate)` has a commit: a review accepts the junction since                                      | `none`     | author   |
 
-**The demotion.** A finding whose act is `none` lists as `information` once the task passes the junction ([design dada](../dada.md#the-demotion)); the table states the act, and `validate.Rules` the rule's own severity.
+**The demotion.** A finding whose act is `none` lists as `information` once its junction is historical, or, with no task, once its commit is older than the stale age ([design dada](../dada.md#the-demotion)); the table states the act, and `validate.Rules` the rule's own severity.
 
 **Source and Sentence.** Where the Source column of RULES.md quotes README.md or SYNTAX.md, the sentence is its first quotation and the source is that text and section; "Same sentence" takes the row above. Where it names a schema alone, the sentence is the rule as RULES.md words it and the source is RULES.md. Test T1 holds every sentence to the row of RULES.md that the corpus carries. A script over RULES.md at tableaux `main` writes these two columns; the script does not land.
 

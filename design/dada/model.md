@@ -38,7 +38,7 @@ type Finding struct {
 	Key      string    `json:"key"`      // a rule id of RULES.md, or proposed, stale or sole_review
 	Rule     string    `json:"rule"`     // the rule id; "" for the three kinds no rule states
 	Severity string    `json:"severity"` // error, warning or information, as the audit lists it
-	Demoted  bool      `json:"demoted"`  // the rule's own severity is higher: the task has passed the junction
+	Demoted  bool      `json:"demoted"`  // the rule's own severity is graver: the junction is historical, or the commit is old
 	Kind     string    `json:"kind"`     // the rule's title, or the kind's: tablo's words
 	Tasks    []TaskRef `json:"tasks"`    // in display order; empty for a finding that names none
 	Gate     string    `json:"gate"`     // "" when the finding names none
@@ -274,9 +274,10 @@ var table map[string]rule
 // order of validate.Rules: P5, R9, R12, R13, J8, J9, J13 to J17, H1 to H6.
 var silent []string
 
-// passed reports whether the task has passed its junction at the gate: the
-// one predicate of the demotion and of a sole review.
-func passed(f *derive.Facts, task, gate string) bool
+// historical reports whether the junction at the gate is one of the task's
+// historical junctions, or the task is complete: the one predicate of the
+// demotion and of a sole review.
+func historical(f *derive.Facts, task, gate string) bool
 ```
 
 ## From a finding to the data
@@ -299,3 +300,15 @@ The audit view (8ed1) writes `view.Audit` from a `*Report`, through the builders
 | `facts[].model`                     | A `ModelCheck` as the task definition writes one: the finding's newest commit, `Reading.Gate`, `.Stated`, `.Trailer`, and the word of `.Verdict` |
 | `commits`                           | `builder.commit` of each commit of the row, once, by `Commit.Seq`, the oldest first                       |
 | `commands`                          | `view.Command{Text, Comment}` of the first finding's                                                     |
+
+## `internal/derive`: one method more
+
+```go
+// ByAuthorisation reports whether the authorisation stands as the review of
+// a task's junction at a gate: a plain junction at the gate the method names
+// for that exception, whether or not it states a reviewer. It agrees with
+// Accepted(id, gate).ByAuthorisation wherever that review is not nil.
+func (f *Facts) ByAuthorisation(id, gate string) bool
+```
+
+Its body reads the junction between `f.enter()` and `f.leave()` and compares the gate with the constant `defined` of `review.go`, as `accepted` does; it adds no Git call.
