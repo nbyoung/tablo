@@ -61,6 +61,19 @@ func (f *Facts) Accepted(id, gate string) *Review {
 	return f.accepted(id, gate)
 }
 
+// ByAuthorisation reports whether the authorisation stands as the review of
+// a task's junction at a gate: a plain junction at the gate the method names
+// for that exception, whether or not it states a reviewer. It agrees with
+// Accepted(id, gate).ByAuthorisation wherever that review is not nil.
+func (f *Facts) ByAuthorisation(id, gate string) bool {
+	if !f.enter() {
+		return false
+	}
+	defer f.leave()
+	j := f.junction(id, gate)
+	return j != nil && j.Kind == model.Plain && gate == defined
+}
+
 // accepted finds the commit that accepts a junction with a reviewer: the
 // oldest one the source reaches that carries Reviewed: for it and whose
 // author or committer is the junction's reviewer as the files stand at that

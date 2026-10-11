@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: design/dada.md is on the trunk with the owner's decisions of 2026-10-07, after two revisions; implementation follows that of the structural views (493e), whose types view/audit.go names, and adds Facts.ByAuthorisation to the Derivation; the plan states no requirement on 493e yet
+note: view/audit.go and internal/audit give a finding per diagnostic, proposed task, stale status and sole review, with its act, its resolver and its typed facts, with Facts.ByAuthorisation in the Derivation, the definitions of the audit in envelope.schema.yaml and the two golden files; the unit gate runs T1 to T16 of design/dada.md on the built corpus; the audit view waits on 8ed1, and the audit command, its minimum and the diagnostics of the history rules wait on snapshot.go of 4ed9

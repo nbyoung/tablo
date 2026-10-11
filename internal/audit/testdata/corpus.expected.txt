@@ -1,0 +1,276 @@
+file-duplicate-key main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 information; most olive@example.org 1
+  L2 error [b2c9] at "" in [.tableaux/status/b2c9.yaml]: revise -> olive@example.org
+    message: the mapping states the key "gate" twice; the first stands
+    commits: only
+    facts b2c9: status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <only>  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+gates-bad-key main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 information; most olive@example.org 1
+  G5 error [] at "Design" in [.tableaux/gates.yaml]: revise -> olive@example.org
+    message: gates.2.key Design does not match ^[a-z][a-z0-9_-]*$
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/gates.yaml  # shows the finding
+  sole_review information [b2c9] at "Design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+gates-complete-nonzero-severity main: refused
+gates-duplicate-gate main: refused
+gates-duplicate-state main: refused
+gates-first-not-undefined main: refused
+gates-missing main: refused
+gates-negative-severity main: refused
+gates-no-states main: refused
+gates-no-undefined-state main: refused
+gates-only-undefined main: refused
+handoff-inferred main: now 2026-09-02, stale 7: 0 error(s), 0 warning(s), 2 information; most pat@example.org 1
+  H4 information [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: record_handoff -> pat@example.org
+    message: The newest event is the contributor's and the status states no review; olive may have a design to review
+    commits: I2
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <I2>  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+handoff-stale main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 1 information; most pat@example.org 1
+  H5 warning [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: clear_handoff -> pat@example.org
+    message: The status still states review after olive accepted design in S3
+    commits: S2 S3
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <S3>  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+junction-kinds main: now 2026-09-10, stale 7: 0 error(s), 1 warning(s), 41 information
+  H3 warning [a300] at "design" in []: none -> bot@example.org
+    message: Model claude-sonnet-5 is outside the stated model claude-fable-5-1
+    commits: K8
+    facts a300: junction model
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K8>  # shows the finding
+  sole_review information [a210 a220] at "mockup" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a210 a220] at "function" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a210 a220] at "performance" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a600] at "performance" in [.tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a210 a220] at "reliability" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a600] at "reliability" in [.tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a210 a220] at "design" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a300 a400 a600] at "design" in [.tableaux/tasks/a300.yaml .tableaux/tasks/a400.yaml .tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a110] at "implementation" in [.tableaux/tasks/a110.yaml]: none -> ben@example.org
+  sole_review information [a210 a220] at "implementation" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a300 a500 a600] at "implementation" in [.tableaux/tasks/a300.yaml .tableaux/tasks/a500.yaml .tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a210 a220] at "unit" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a300 a400 a600] at "unit" in [.tableaux/tasks/a300.yaml .tableaux/tasks/a400.yaml .tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a110] at "integrate" in [.tableaux/tasks/a110.yaml]: none -> ben@example.org
+  sole_review information [a210 a220] at "integrate" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a300 a400 a500 a600] at "integrate" in [.tableaux/tasks/a300.yaml .tableaux/tasks/a400.yaml .tableaux/tasks/a500.yaml .tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a110] at "validate" in [.tableaux/tasks/a110.yaml]: none -> ben@example.org
+  sole_review information [a210 a220] at "validate" in [.tableaux/tasks/a210.yaml .tableaux/tasks/a220.yaml]: none -> pat@example.org
+  sole_review information [a300 a400 a500 a600] at "validate" in [.tableaux/tasks/a300.yaml .tableaux/tasks/a400.yaml .tableaux/tasks/a500.yaml .tableaux/tasks/a600.yaml]: none -> olive@example.org
+  sole_review information [a210] at "release" in [.tableaux/tasks/a210.yaml]: none -> pat@example.org
+junction-kinds main: now 2026-09-10, stale 3: 0 error(s), 2 warning(s), 0 information; most pat@example.org 1
+  stale warning [a210] at "defined" in [.tableaux/status/a210.yaml]: reaffirm -> pat@example.org
+    message: The status dates from 2026-09-04, more than 3 days before 2026-09-10
+    commits: K2
+    facts a210: status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: a210'  # resolves it
+  stale warning [a600] at "defined" in [.tableaux/status/a600.yaml]: reaffirm -> ben@example.org
+    message: The status dates from 2026-09-05, more than 3 days before 2026-09-10
+    commits: K3
+    facts a600: status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <K3>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: a600'  # resolves it
+model-mismatch main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 1 information
+  H3 warning [b2c9] at "design" in []: none -> bot@example.org
+    message: Model claude-sonnet-5 is outside the stated model claude-fable
+    commits: M2
+    facts b2c9: junction model
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M2>  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+model-trailer-missing main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 2 information; most bot@example.org 1
+  H6 warning [b2c9] at "design" in []: none -> bot@example.org
+    message: The contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable
+    commits: M4
+    facts b2c9: junction model
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
+  H4 information [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: record_handoff -> bot@example.org
+    message: The newest event is the contributor's and the status states no review; pat may have a design to review
+    commits: M4
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+no-tableaux-directory main: refused
+requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 2 information; most pat@example.org 2
+  R9 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: await -> pat@example.org
+    message: the requirement on 5a00 from design is due at release and unmet: 5a00 stands at defined
+    commits: 
+    facts b2c9: requirement
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  R13 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: The requirement on 5a00 at https://example.org/lib.git is unmet at L1 and met at main in that repository, L2
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+requires-from-not-applicable main: now 2026-09-01, stale 7: 1 error(s), 1 warning(s), 3 information; most olive@example.org 2
+  R6 error [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: revise -> olive@example.org
+    message: from design does not apply to c3d7
+    commits: 
+    facts b2c9: junction
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  R9 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: await -> olive@example.org
+    message: the requirement on c3d7 from design is due at defined and unmet: c3d7 stands at undefined
+    commits: 
+    facts b2c9: requirement
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9 c3d7] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 1 information; most olive@example.org 1
+  H2 warning [b2c9] at "design" in []: review -> olive@example.org
+    message: pat is not the reviewer of the design junction; olive is
+    commits: R2
+    facts b2c9: junction
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+siblings-same-order main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 4 information; most olive@example.org 1
+  T12 warning [e4a1] at "" in [.tableaux/tasks/e4a1.yaml]: revise -> olive@example.org
+    message: b2c9 and c3d7 share order 1 under e4a1
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/e4a1.yaml  # shows the finding
+  sole_review information [b2c9 c3d7] at "design" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+  sole_review information [b2c9 c3d7] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+status-no-task main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 information; most olive@example.org 1
+  S1 error [0c99] at "" in [.tableaux/status/0c99.yaml]: revise -> olive@example.org
+    message: the file name 0c99 is the id of no task
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/status/0c99.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+status-on-parent main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 information; most olive@example.org 1
+  S2 error [e4a1] at "" in [.tableaux/status/e4a1.yaml]: revise -> olive@example.org
+    message: e4a1 is a parent: its status derives from its children
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/status/e4a1.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+status-unreviewed-gate main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
+  S11 error [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: review -> olive@example.org
+    message: 
+    commits: only
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <only>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+subproject-commit-off-pin main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 1 information; most pat@example.org 1
+  J17 error [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: commit 7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981 is not the commit the submodule sub pins, 2aeb31a1f1729bad254dc89d30ff134fd64494b5
+    commits: 
+    facts b2c9: junction linkage
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+subproject-path-missing main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
+  J8 error [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: revise -> olive@example.org
+    message: url elsewhere resolves to no Tableaux project the tool can read: missing
+    commits: 
+    facts b2c9: junction linkage
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+subproject-pin-off-trunk main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 1 information; most pat@example.org 1
+  J13 warning [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org
+    message: The pin sub is at S2, which main in the subproject does not contain
+    commits: 
+    facts b2c9: junction linkage
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+task-bad-filename main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 4 information; most olive@example.org 1
+  T1 error [leaf-two] at "" in [.tableaux/tasks/leaf-two.yaml]: revise -> olive@example.org
+    message: the file name leaf-two is not four lowercase hexadecimal digits
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/leaf-two.yaml  # shows the finding
+  sole_review information [b2c9 leaf-two] at "design" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/leaf-two.yaml]: none -> olive@example.org
+  sole_review information [b2c9 leaf-two] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/leaf-two.yaml]: none -> olive@example.org
+tree-no-root main: refused
+tree-parent-cycle main: refused
+tree-parent-missing main: refused
+tree-two-roots main: refused
+trunk-inferred main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 4 information; most olive@example.org 1
+  proposed warning [c3d7] at "" in [.tableaux/tasks/c3d7.yaml]: authorise -> olive@example.org
+    message: The task stands proposed: pat@example.org, the author of its deciding commit, is none of its authorities
+    commits: I2
+    facts c3d7: authorisation
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <I2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Authorised: c3d7'  # resolves it
+  sole_review information [b2c9 c3d7] at "design" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+  sole_review information [b2c9 c3d7] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+trunk-stated main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 2 information; most olive@example.org 1
+  proposed warning [c3d7] at "" in [.tableaux/tasks/c3d7.yaml]: authorise -> olive@example.org
+    message: The task stands proposed: the source changes its file and is off the trunk `develop`
+    commits: 
+    facts c3d7: authorisation
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c3d7.yaml  # shows the finding
+  sole_review information [c3d7] at "design" in [.tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+  sole_review information [c3d7] at "release" in [.tableaux/tasks/c3d7.yaml]: none -> olive@example.org
+trunk-undetermined main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 2 information; most olive@example.org 1
+  P5 warning [] at "" in [.tableaux/version.yaml]: revise -> olive@example.org
+    message: No trunk: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/version.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+unknown-trailer main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 2 information
+  H1 warning [] at "" in []: none -> olive@example.org
+    message: 9f31 names no task and nowhere names no gate
+    commits: U2
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U2>  # shows the finding
+  H1 warning [] at "" in []: none -> olive@example.org
+    message: zzzz names no task
+    commits: U2
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U2>  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+unmet-requirement main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 6 information; most pat@example.org 1
+  R9 warning [c3d7] at "" in [.tableaux/tasks/c3d7.yaml]: await -> pat@example.org
+    message: the requirement on b2c9 from design is due at release and unmet: b2c9 stands at defined
+    commits: 
+    facts c3d7: requirement
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c3d7.yaml  # shows the finding
+  sole_review information [b2c9 c3d7 d4e8] at "design" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml .tableaux/tasks/d4e8.yaml]: none -> olive@example.org
+  sole_review information [b2c9 c3d7 d4e8] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml .tableaux/tasks/d4e8.yaml]: none -> olive@example.org
+version-bad-pattern main: refused
+version-major-mismatch main: refused
+version-minor-ahead main: refused
+version-missing main: refused
+weather-station main: now 2026-09-28, stale 7: 0 error(s), 2 warning(s), 32 information; most ada@example.org 2
+  R9 warning [c07d] at "" in [.tableaux/tasks/c07d.yaml]: await -> ada@example.org
+    message: the requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function
+    commits: 
+    facts c07d: requirement
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/c07d.yaml  # shows the finding
+  proposed warning [3c5d] at "" in [.tableaux/tasks/3c5d.yaml]: authorise -> ada@example.org
+    message: The task stands proposed: dan@example.org, the author of its deciding commit, is none of its authorities
+    commits: W12
+    facts 3c5d: authorisation
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <W12>  # shows the finding
+    $ git commit --allow-empty --trailer 'Authorised: 3c5d'  # resolves it
+  sole_review information [7b2e 3c5d] at "mockup" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31] at "function" in [.tableaux/tasks/9f31.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "function" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31] at "performance" in [.tableaux/tasks/9f31.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "performance" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31] at "reliability" in [.tableaux/tasks/9f31.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "reliability" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31 c07d] at "design" in [.tableaux/tasks/9f31.yaml .tableaux/tasks/c07d.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "design" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31] at "implementation" in [.tableaux/tasks/9f31.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "implementation" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31] at "unit" in [.tableaux/tasks/9f31.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "unit" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31 c07d] at "integrate" in [.tableaux/tasks/9f31.yaml .tableaux/tasks/c07d.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "integrate" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [c07d] at "validate" in [.tableaux/tasks/c07d.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "validate" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+  sole_review information [9f31 c07d] at "release" in [.tableaux/tasks/9f31.yaml .tableaux/tasks/c07d.yaml]: none -> ben@example.org
+  sole_review information [7b2e 3c5d] at "release" in [.tableaux/tasks/7b2e.yaml .tableaux/tasks/3c5d.yaml]: none -> ada@example.org
+weather-station main: now 2026-09-28, stale 3: 0 error(s), 1 warning(s), 0 information; most dan@example.org 1
+  stale warning [3c5d] at "defined" in [.tableaux/status/3c5d.yaml]: reaffirm -> dan@example.org
+    message: The status dates from 2026-09-22, more than 3 days before 2026-09-28
+    commits: W8
+    facts 3c5d: status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <W8>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reaffirmed: 3c5d'  # resolves it

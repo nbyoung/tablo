@@ -60,6 +60,7 @@ front end in the family copies.
 ├── internal/history/          # the one pass over the Git history that the Derivation reads
 ├── internal/derive/           # the Derivation: the facts the files leave to Git and to inheritance
 ├── internal/views/            # the views: one function per view over the derived facts, and the builders they share
+├── internal/audit/            # the Audit: a finding per diagnostic, proposed task, stale status and sole review, with who resolves it
 ├── internal/cli/              # the command's argument parser, plain forms and usage text
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
