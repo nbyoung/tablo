@@ -51,6 +51,7 @@ front end in the family copies.
 ├── envelope.schema.yaml       # the envelope's schema, embedded
 ├── yaml.go                    # the same envelope as YAML
 ├── trailer.go                 # the four commit trailers as Git writes them
+├── view/                      # package view: the data of each view, the types a front end names
 ├── cmd/tablo/main.go          # command tablo: the plumbing command
 ├── internal/model/            # the typed model of a project as its files state it, with positions
 ├── internal/git/              # the one place that runs the git executable
@@ -58,6 +59,7 @@ front end in the family copies.
 ├── internal/validate/         # the Validator: the rules of the method's RULES.md over a loaded project
 ├── internal/history/          # the one pass over the Git history that the Derivation reads
 ├── internal/derive/           # the Derivation: the facts the files leave to Git and to inheritance
+├── internal/views/            # the views: one function per view over the derived facts, and the builders they share
 ├── internal/cli/              # the command's argument parser, plain forms and usage text
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan

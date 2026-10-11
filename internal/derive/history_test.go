@@ -459,3 +459,54 @@ func TestNoHistory(t *testing.T) {
 		exercise(f, 0)
 	}
 }
+
+// T6 of design 493e: the newest commit that changes a file below .tableaux.
+func TestLastChange(t *testing.T) {
+	f, hashes := view(t, "weather-station")
+	for _, below := range []string{"gates.yaml", "version.yaml"} {
+		if c := f.LastChange(below); c == nil || c.ID != hashes["W1"] {
+			t.Errorf("weather-station: %s last changes at %+v; want W1", below, c)
+		}
+	}
+	if c := f.LastChange("tasks/3c5d.yaml"); c == nil || c.ID != hashes["W12"] {
+		t.Errorf("weather-station: tasks/3c5d.yaml last changes at %+v; want W12", c)
+	}
+	if c := f.LastChange("status/9f31.yaml"); c == nil || c.ID != hashes["W10"] {
+		t.Errorf("weather-station: status/9f31.yaml last changes at %+v; want W10, since W13 reaffirms and changes no file", c)
+	}
+	if f.LastChange("tasks/zzzz.yaml") != nil || f.LastChange("") != nil {
+		t.Error("weather-station: a path no commit changes has a last change")
+	}
+
+	// A later commit to gates.yaml moves that file's and leaves the other's.
+	repo := clone(t, "weather-station")
+	gates := filepath.Join(repo, ".tableaux", "gates.yaml")
+	data, err := os.ReadFile(gates)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(gates, append(data, []byte("# a later comment\n")...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, repo, "commit", "-q", "-m", "Comment the gates", "--", ".tableaux/gates.yaml")
+	head := gitRun(t, repo, "rev-parse", "HEAD")
+	later := derived(t, load.Options{}, repo, "main", "")
+	if c := later.LastChange("gates.yaml"); c == nil || c.ID != head || c.Subject != "Comment the gates" {
+		t.Errorf("after a commit to gates.yaml it last changes at %+v; want %s", c, head)
+	}
+	if c := later.LastChange("version.yaml"); c == nil || c.ID != hashes["W1"] {
+		t.Errorf("after a commit to gates.yaml, version.yaml last changes at %+v; want W1", c)
+	}
+
+	// A nil receiver, a refused project and no history give nil.
+	var none *Facts
+	if none.LastChange("gates.yaml") != nil {
+		t.Error("nil facts give a last change")
+	}
+	if New(&model.Project{}, nil).LastChange("gates.yaml") != nil {
+		t.Error("a refused project gives a last change")
+	}
+	if mem(t, map[string]string{"tasks/a000.yaml": leafOf("ada@example.org", "", 0, "")}).LastChange("gates.yaml") != nil {
+		t.Error("facts with no history give a last change")
+	}
+}

@@ -1,0 +1,884 @@
+{
+  "legend": {
+    "gates": [
+      {
+        "key": "undefined",
+        "symbol": "❔",
+        "name": "Undefined",
+        "criteria": "No one has started work on the definition"
+      },
+      {
+        "key": "defined",
+        "symbol": "📝",
+        "name": "Defined",
+        "criteria": "Title, description, assignee and references exist"
+      },
+      {
+        "key": "mockup",
+        "symbol": "📌",
+        "name": "Mockup",
+        "criteria": "A non-technical mockup of the outcome exists"
+      },
+      {
+        "key": "function",
+        "symbol": "⚙️",
+        "name": "Functional prototype",
+        "criteria": "A technical demonstration of function exists"
+      },
+      {
+        "key": "performance",
+        "symbol": "⚡",
+        "name": "Performance prototype",
+        "criteria": "Target performance shown in the deliverable's technology"
+      },
+      {
+        "key": "reliability",
+        "symbol": "⚓",
+        "name": "Reliability prototype",
+        "criteria": "Target reliability shown in the fundamental technology"
+      },
+      {
+        "key": "design",
+        "symbol": "📐",
+        "name": "Design",
+        "criteria": "A model and sufficient tests exist"
+      },
+      {
+        "key": "implementation",
+        "symbol": "🛠️",
+        "name": "Implementation",
+        "criteria": "Artifacts suffice for unit, integration and validation tests"
+      },
+      {
+        "key": "unit",
+        "symbol": "🧩",
+        "name": "Unit test",
+        "criteria": "All prescribed tests pass"
+      },
+      {
+        "key": "integrate",
+        "symbol": "🖼️",
+        "name": "Integration",
+        "criteria": "Assembled with neighbouring components"
+      },
+      {
+        "key": "validate",
+        "symbol": "🌍",
+        "name": "Validation",
+        "criteria": "Passes user and field tests"
+      },
+      {
+        "key": "release",
+        "symbol": "🚀",
+        "name": "Release",
+        "criteria": "All variants documented and approved"
+      }
+    ],
+    "states": [
+      {
+        "key": "undefined",
+        "symbol": "⚪",
+        "severity": 0,
+        "synopsis": "The work has not yet been defined"
+      },
+      {
+        "key": "nominal",
+        "symbol": "🟢",
+        "severity": 1,
+        "synopsis": "The work is proceeding as expected"
+      },
+      {
+        "key": "at_risk",
+        "symbol": "🟡",
+        "severity": 2,
+        "synopsis": "The work is at risk of stalling"
+      },
+      {
+        "key": "stalled",
+        "symbol": "🔴",
+        "severity": 3,
+        "synopsis": "Practically all progress has stalled"
+      },
+      {
+        "key": "complete",
+        "symbol": "✅",
+        "severity": 0,
+        "synopsis": "All deliverables satisfy their requirements"
+      }
+    ],
+    "reasons": [
+      {
+        "key": "overloaded",
+        "symbol": "🪫",
+        "synopsis": "The assigned resource is overloaded",
+        "reserved": false
+      },
+      {
+        "key": "blocked",
+        "symbol": "⛔",
+        "synopsis": "An external resource is unavailable",
+        "reserved": false
+      }
+    ],
+    "marks": [
+      {
+        "key": "person",
+        "symbol": "🧑",
+        "meaning": "A person contributes",
+        "junction": "plain"
+      },
+      {
+        "key": "agent",
+        "symbol": "🤖",
+        "meaning": "An agent contributes",
+        "junction": "plain"
+      },
+      {
+        "key": "reviewer",
+        "symbol": "👀",
+        "meaning": "A reviewer accepts",
+        "junction": "plain"
+      },
+      {
+        "key": "subproject",
+        "symbol": "🪆",
+        "meaning": "A subproject does the work",
+        "junction": "recursive"
+      },
+      {
+        "key": "exempt",
+        "symbol": "—",
+        "meaning": "The gate does not apply",
+        "junction": "not_applicable"
+      }
+    ]
+  },
+  "task": {
+    "id": "c07d",
+    "title": "Node firmware"
+  },
+  "assignee": "ben@example.org",
+  "parent": {
+    "id": "4e2b",
+    "title": "Sensor node",
+    "order": 2
+  },
+  "status": {
+    "kind": "snapshot",
+    "gate": "design",
+    "state": "nominal",
+    "reason": "",
+    "note": "Sleep scheduler in progress",
+    "date": "2026-09-17",
+    "recorder": "ben@example.org",
+    "derived": false,
+    "why": "",
+    "uncommitted": false,
+    "from": {
+      "kind": "snapshot",
+      "task": {
+        "id": "f1a0",
+        "title": "Weather node image"
+      },
+      "url": "firmware",
+      "pin": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+      "gate": "design"
+    }
+  },
+  "authorised": true,
+  "description": "Reads the sensors, sleeps between readings and publishes to the gateway.",
+  "references": [],
+  "path": [
+    {
+      "id": "a1c0",
+      "title": "Weather station"
+    },
+    {
+      "id": "4e2b",
+      "title": "Sensor node"
+    },
+    {
+      "id": "c07d",
+      "title": "Node firmware"
+    }
+  ],
+  "siblings": 2,
+  "children": [],
+  "authorities": [
+    {
+      "email": "ben@example.org",
+      "by": "4e2b"
+    },
+    {
+      "email": "ada@example.org",
+      "by": "a1c0"
+    }
+  ],
+  "requires": [
+    {
+      "task": {
+        "id": "9f31",
+        "title": "Sensor board"
+      },
+      "from": "design",
+      "to": "implementation",
+      "text": "Pin map and sensor bus",
+      "met": false,
+      "due": true,
+      "condition": "unmet",
+      "why": "",
+      "status": {
+        "kind": "recorded",
+        "gate": "function",
+        "state": "stalled",
+        "reason": "blocked",
+        "note": "Barometer ICs on 14-week backorder",
+        "date": "2026-09-28",
+        "recorder": "ada@example.org",
+        "derived": false,
+        "why": "",
+        "uncommitted": false,
+        "from": null
+      },
+      "subproject": "",
+      "commit": "",
+      "at_trunk": "unknown"
+    }
+  ],
+  "dependents": [],
+  "junctions": [
+    {
+      "gate": "defined",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "passed",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "mockup",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "ben@example.org",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "passed",
+      "reviewed": true,
+      "from": [
+        "4e2b"
+      ]
+    },
+    {
+      "gate": "function",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "passed",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "performance",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "passed",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "reliability",
+      "kind": "not_applicable",
+      "marks": [
+        "exempt"
+      ],
+      "acts": false,
+      "contributor": "",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "exempt",
+      "reviewed": false,
+      "from": [
+        "c07d"
+      ]
+    },
+    {
+      "gate": "design",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "here",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "implementation",
+      "kind": "recursive",
+      "marks": [
+        "subproject"
+      ],
+      "acts": false,
+      "contributor": "",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": {
+        "url": "firmware",
+        "id": "f1a0",
+        "task": {
+          "id": "f1a0",
+          "title": "Weather node image"
+        },
+        "form": "submodule",
+        "commit": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+        "why": ""
+      },
+      "references": [],
+      "stands": "next",
+      "reviewed": false,
+      "from": [
+        "c07d"
+      ]
+    },
+    {
+      "gate": "unit",
+      "kind": "plain",
+      "marks": [
+        "agent",
+        "reviewer"
+      ],
+      "acts": true,
+      "contributor": "opus@example.org",
+      "model": "claude-opus-5-5",
+      "reviewer": "ben@example.org",
+      "reviewer_by_default": true,
+      "subproject": null,
+      "references": [],
+      "stands": "later",
+      "reviewed": false,
+      "from": [
+        "c07d"
+      ]
+    },
+    {
+      "gate": "integrate",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "later",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "validate",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "later",
+      "reviewed": false,
+      "from": []
+    },
+    {
+      "gate": "release",
+      "kind": "plain",
+      "marks": [
+        "person"
+      ],
+      "acts": true,
+      "contributor": "ben@example.org",
+      "model": "",
+      "reviewer": "",
+      "reviewer_by_default": false,
+      "subproject": null,
+      "references": [],
+      "stands": "later",
+      "reviewed": false,
+      "from": []
+    }
+  ],
+  "snapshot": {
+    "url": "firmware",
+    "id": "f1a0",
+    "task": {
+      "id": "f1a0",
+      "title": "Weather node image"
+    },
+    "form": "submodule",
+    "commit": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+    "why": "",
+    "assignee": "ben@example.org",
+    "status": {
+      "kind": "recorded",
+      "gate": "design",
+      "state": "nominal",
+      "reason": "",
+      "note": "Sleep scheduler in progress",
+      "date": "2026-09-17",
+      "recorder": "ben@example.org",
+      "derived": false,
+      "why": "",
+      "uncommitted": false,
+      "from": null
+    },
+    "children": []
+  },
+  "status_commit": {
+    "hash": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+    "subject": "Record the node image design",
+    "date": "2026-09-17",
+    "author_time": "2026-09-17T12:00:00Z",
+    "author": {
+      "name": "Ben Okafor",
+      "email": "ben@example.org"
+    },
+    "committer": {
+      "name": "Ben Okafor",
+      "email": "ben@example.org"
+    },
+    "parents": [
+      "79e0237eea866c2951968e2e401552dde5b6f9b8"
+    ],
+    "trailers": [],
+    "files": [
+      {
+        "path": ".tableaux/status/f1a0.yaml",
+        "change": "changed"
+      }
+    ]
+  },
+  "own_commit": {
+    "hash": "97e423122790a250e4e067d7d33bbf88622b00d5",
+    "subject": "Pin the firmware at its design",
+    "date": "2026-09-26",
+    "author_time": "2026-09-26T12:00:00Z",
+    "author": {
+      "name": "Ben Okafor",
+      "email": "ben@example.org"
+    },
+    "committer": {
+      "name": "Ben Okafor",
+      "email": "ben@example.org"
+    },
+    "parents": [
+      "a2393fb3090844dd83d44a39739ad486e1fcecd2"
+    ],
+    "trailers": [
+      "Reviewed: c07d mockup"
+    ],
+    "files": [
+      {
+        "path": ".tableaux/status/c07d.yaml",
+        "change": "added"
+      },
+      {
+        "path": "firmware",
+        "change": "pin"
+      }
+    ]
+  },
+  "authorisation": {
+    "commit": {
+      "hash": "22a758bec2a079fd908bba970db5eb51ecccd0c6",
+      "subject": "Define the node firmware task",
+      "date": "2026-09-16",
+      "author_time": "2026-09-16T12:00:00Z",
+      "author": {
+        "name": "Ben Okafor",
+        "email": "ben@example.org"
+      },
+      "committer": {
+        "name": "Ben Okafor",
+        "email": "ben@example.org"
+      },
+      "parents": [
+        "68d9021206ec627755e2ead99b6be3f2c06ae815"
+      ],
+      "trailers": [],
+      "files": [
+        {
+          "path": ".tableaux/tasks/c07d.yaml",
+          "change": "added"
+        }
+      ]
+    },
+    "way": "change",
+    "by": "both",
+    "email": "ben@example.org",
+    "judges": [
+      "ben@example.org",
+      "ada@example.org"
+    ],
+    "why": "",
+    "differs_from_trunk": false,
+    "uncommitted": false
+  },
+  "considered": [],
+  "chain": [
+    {
+      "task": {
+        "id": "c07d",
+        "title": "Node firmware"
+      },
+      "url": "",
+      "status": {
+        "kind": "snapshot",
+        "gate": "design",
+        "state": "nominal",
+        "reason": "",
+        "note": "Sleep scheduler in progress",
+        "date": "2026-09-17",
+        "recorder": "ben@example.org",
+        "derived": false,
+        "why": "",
+        "uncommitted": false,
+        "from": {
+          "kind": "snapshot",
+          "task": {
+            "id": "f1a0",
+            "title": "Weather node image"
+          },
+          "url": "firmware",
+          "pin": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+          "gate": "design"
+        }
+      }
+    },
+    {
+      "task": {
+        "id": "f1a0",
+        "title": "Weather node image"
+      },
+      "url": "firmware",
+      "status": {
+        "kind": "recorded",
+        "gate": "design",
+        "state": "nominal",
+        "reason": "",
+        "note": "Sleep scheduler in progress",
+        "date": "2026-09-17",
+        "recorder": "ben@example.org",
+        "derived": false,
+        "why": "",
+        "uncommitted": false,
+        "from": null
+      }
+    }
+  ],
+  "linkages": [
+    {
+      "gates": [
+        "implementation"
+      ],
+      "url": "firmware",
+      "id": "f1a0",
+      "task": {
+        "id": "f1a0",
+        "title": "Weather node image"
+      },
+      "form": "submodule",
+      "commit": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+      "why": "",
+      "by": "c07d",
+      "key": "junctions.implementation.subproject.url",
+      "file": ".tableaux/tasks/c07d.yaml",
+      "line": 9,
+      "col": 40,
+      "stated_commit": "",
+      "recorded": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+      "moved": false,
+      "trunk": "main",
+      "tip": "fa834b3a6ebb21647295b9a293297aa8eaa9db39",
+      "on_trunk": "yes",
+      "behind": "yes",
+      "pinned": {
+        "hash": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+        "subject": "Record the node image design",
+        "date": "2026-09-17",
+        "author_time": "2026-09-17T12:00:00Z",
+        "author": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "committer": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "parents": [
+          "79e0237eea866c2951968e2e401552dde5b6f9b8"
+        ],
+        "trailers": [],
+        "files": [
+          {
+            "path": ".tableaux/status/f1a0.yaml",
+            "change": "changed"
+          }
+        ]
+      },
+      "set_by": {
+        "hash": "97e423122790a250e4e067d7d33bbf88622b00d5",
+        "subject": "Pin the firmware at its design",
+        "date": "2026-09-26",
+        "author_time": "2026-09-26T12:00:00Z",
+        "author": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "committer": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "parents": [
+          "a2393fb3090844dd83d44a39739ad486e1fcecd2"
+        ],
+        "trailers": [
+          "Reviewed: c07d mockup"
+        ],
+        "files": [
+          {
+            "path": ".tableaux/status/c07d.yaml",
+            "change": "added"
+          },
+          {
+            "path": "firmware",
+            "change": "pin"
+          }
+        ]
+      }
+    }
+  ],
+  "sources": [
+    {
+      "gate": "mockup",
+      "field": "reviewer",
+      "value": "ben@example.org",
+      "by": "4e2b",
+      "key": "junctions.mockup.reviewer",
+      "file": ".tableaux/tasks/4e2b.yaml",
+      "line": 10,
+      "col": 23
+    },
+    {
+      "gate": "reliability",
+      "field": "applies",
+      "value": "false",
+      "by": "c07d",
+      "key": "junctions.reliability.applies",
+      "file": ".tableaux/tasks/c07d.yaml",
+      "line": 8,
+      "col": 3
+    },
+    {
+      "gate": "implementation",
+      "field": "subproject",
+      "value": "firmware",
+      "by": "c07d",
+      "key": "junctions.implementation.subproject",
+      "file": ".tableaux/tasks/c07d.yaml",
+      "line": 9,
+      "col": 3
+    },
+    {
+      "gate": "unit",
+      "field": "contributor",
+      "value": "opus@example.org",
+      "by": "c07d",
+      "key": "junctions.unit.contributor",
+      "file": ".tableaux/tasks/c07d.yaml",
+      "line": 10,
+      "col": 34
+    },
+    {
+      "gate": "unit",
+      "field": "model",
+      "value": "claude-opus-5-5",
+      "by": "c07d",
+      "key": "junctions.unit.model",
+      "file": ".tableaux/tasks/c07d.yaml",
+      "line": 10,
+      "col": 59
+    },
+    {
+      "gate": "unit",
+      "field": "reviewer",
+      "value": "ben@example.org",
+      "by": "assignee",
+      "key": "assignee",
+      "file": "",
+      "line": 0,
+      "col": 0
+    }
+  ],
+  "reviews": [
+    {
+      "gate": "mockup",
+      "reviewer": "ben@example.org",
+      "effect": "accepts",
+      "by": "ben@example.org",
+      "commit": {
+        "hash": "97e423122790a250e4e067d7d33bbf88622b00d5",
+        "subject": "Pin the firmware at its design",
+        "date": "2026-09-26",
+        "author_time": "2026-09-26T12:00:00Z",
+        "author": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "committer": {
+          "name": "Ben Okafor",
+          "email": "ben@example.org"
+        },
+        "parents": [
+          "a2393fb3090844dd83d44a39739ad486e1fcecd2"
+        ],
+        "trailers": [
+          "Reviewed: c07d mockup"
+        ],
+        "files": [
+          {
+            "path": ".tableaux/status/c07d.yaml",
+            "change": "added"
+          },
+          {
+            "path": "firmware",
+            "change": "pin"
+          }
+        ]
+      }
+    }
+  ],
+  "models": [],
+  "events": [
+    {
+      "date": "2026-09-26",
+      "commit": "97e423122790a250e4e067d7d33bbf88622b00d5",
+      "by": "ben@example.org",
+      "kind": "pin",
+      "recorded": null,
+      "gate": "",
+      "pin": {
+        "url": "firmware",
+        "old": "",
+        "new": "cf5b16964dba7f8f1c8842a8202878fd572ad835"
+      },
+      "subproject": null
+    },
+    {
+      "date": "2026-09-26",
+      "commit": "97e423122790a250e4e067d7d33bbf88622b00d5",
+      "by": "ben@example.org",
+      "kind": "reviewed",
+      "recorded": null,
+      "gate": "mockup",
+      "pin": null,
+      "subproject": null
+    },
+    {
+      "date": "2026-09-26",
+      "commit": "97e423122790a250e4e067d7d33bbf88622b00d5",
+      "by": "ben@example.org",
+      "kind": "status",
+      "recorded": {
+        "gate": "design",
+        "state": "",
+        "reason": "",
+        "note": ""
+      },
+      "gate": "",
+      "pin": null,
+      "subproject": null
+    },
+    {
+      "date": "2026-09-17",
+      "commit": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
+      "by": "ben@example.org",
+      "kind": "status",
+      "recorded": {
+        "gate": "design",
+        "state": "nominal",
+        "reason": "",
+        "note": "Sleep scheduler in progress"
+      },
+      "gate": "",
+      "pin": null,
+      "subproject": {
+        "url": "firmware",
+        "task": "f1a0"
+      }
+    },
+    {
+      "date": "2026-09-16",
+      "commit": "22a758bec2a079fd908bba970db5eb51ecccd0c6",
+      "by": "ben@example.org",
+      "kind": "task",
+      "recorded": null,
+      "gate": "",
+      "pin": null,
+      "subproject": null
+    }
+  ],
+  "event_count": 7,
+  "commands": [
+    {
+      "text": "git log --format='%H %as %ae %s' edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a -- .tableaux/tasks/c07d.yaml .tableaux/status/c07d.yaml firmware",
+      "comment": ""
+    }
+  ]
+}
