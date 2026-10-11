@@ -735,3 +735,65 @@ $defs:
     properties:
       why: { $ref: "#/$defs/view_why" }
       tasks: { type: array, items: { type: string } }
+
+  # The data of the audit (design dada). The same conventions hold. The view
+  # (task 8ed1) adds the allOf entries that tie a level to its keys. A finding's
+  # key is a rule id or one of the three kinds no rule states.
+  view_severity:    { enum: [error, warning, information] }   # as the audit lists a finding
+  view_act:         { enum: [authorise, review, reaffirm, record_handoff, clear_handoff, revise, move_pin, checkout, await, none] }   # the kind of action that resolves a finding
+  view_finding_key: { oneOf: [{ type: string, pattern: "^[A-Z][0-9]+$" }, { enum: [proposed, stale, sole_review] }] }
+  view_audit:
+    type: object
+    required: [legend, errors, warnings, information, most, findings]
+    properties:
+      legend: { $ref: "#/$defs/view_legend" }
+      errors: { type: integer, minimum: 0 }
+      warnings: { type: integer, minimum: 0 }
+      information: { type: integer, minimum: 0 }
+      most: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_resolving" }] }
+      findings: { type: array, items: { $ref: "#/$defs/view_finding" } }
+      silent: { type: array, items: { $ref: "#/$defs/view_silence" } }
+  view_finding:
+    type: object
+    required: [key, rule, severity, demoted, kind, tasks, gate, act, resolver]
+    properties:
+      key: { $ref: "#/$defs/view_finding_key" }
+      rule: { type: string }
+      severity: { $ref: "#/$defs/view_severity" }
+      demoted: { type: boolean }
+      kind: { type: string }
+      tasks: { type: array, items: { $ref: "#/$defs/view_task_ref" } }
+      gate: { type: string }
+      act: { $ref: "#/$defs/view_act" }
+      resolver: { type: string }
+      files: { type: array, items: { type: string } }
+      message: { type: string }
+      sentence: { type: string }
+      source: { $ref: "#/$defs/view_reference" }
+      facts: { type: array, items: { $ref: "#/$defs/view_finding_facts" } }
+      commits: { type: array, items: { $ref: "#/$defs/view_commit" } }
+      commands: { type: array, items: { $ref: "#/$defs/view_command" } }
+  view_finding_facts:
+    type: object
+    required: [task, junction, status, requirement, authorisation, linkage, model]
+    properties:
+      task: { type: string }
+      junction: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_junction" }] }
+      status: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_status" }] }
+      requirement: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
+      authorisation: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_authorisation" }] }
+      linkage: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_linkage" }] }
+      model: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_model_check" }] }
+  view_resolving:
+    type: object
+    required: [email, count]
+    properties:
+      email: { type: string }
+      count: { type: integer, minimum: 0 }
+  view_silence:
+    type: object
+    required: [key, rule, kind]
+    properties:
+      key: { $ref: "#/$defs/view_finding_key" }
+      rule: { type: string }
+      kind: { type: string }
