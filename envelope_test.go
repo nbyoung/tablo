@@ -398,13 +398,22 @@ func decodeMap(t *testing.T, b []byte) map[string]any {
 }
 
 // TestSchemaHolds is T6: every envelope the tests build validates against
-// EnvelopeSchema, and seven broken ones fail.
+// EnvelopeSchema, and seven broken ones fail. The schema types the data of a
+// tableau and of a queue (design 886d), and the tableau of these tests is
+// abridged from the prototype and fixes the encoding alone: under those two
+// commands the envelope validates here around no data, and the tests of
+// internal/views validate the data of every view.
 func TestSchemaHolds(t *testing.T) {
 	s := schema(t)
+	untyped := func() *Envelope {
+		e := tableauEnvelope()
+		e.Data = nil
+		return e
+	}
 	audit := tableauEnvelope()
 	audit.Command = "audit"
 	audit.Params = Resolved{View: Audit, Params: Params{Stale: 7, Now: "2026-10-06", Level: LevelGlance}}
-	queue := tableauEnvelope()
+	queue := untyped()
 	queue.Command = "queue"
 	queue.Params = Resolved{View: Queue, Params: Params{Person: "ada@example.org", Brief: &Brief{Task: "9f31", Gate: "mockup"}, Level: LevelProvenance}}
 	history := tableauEnvelope()
@@ -423,7 +432,7 @@ func TestSchemaHolds(t *testing.T) {
 	noData.Data = nil
 	noData.Diagnostics = validateEnvelope().Diagnostics
 	good := map[string]*Envelope{
-		"tableau": tableauEnvelope(), "version": versionEnvelope(), "trailer": trailerEnvelope(),
+		"tableau": untyped(), "version": versionEnvelope(), "trailer": trailerEnvelope(),
 		"validate": validateEnvelope(), "audit": audit, "queue": queue, "history": history,
 		"tree": tree, "undetermined": undetermined, "no project": noProject, "no data": noData,
 	}
@@ -432,7 +441,7 @@ func TestSchemaHolds(t *testing.T) {
 			t.Errorf("%s: %v", name, err)
 		}
 	}
-	for _, f := range []string{"tableau.json", "version.json", "trailer.json", "validate.json"} {
+	for _, f := range []string{"version.json", "trailer.json", "validate.json"} {
 		if err := validates(t, s, decodeMap(t, golden(t, f))); err != nil {
 			t.Errorf("%s: %v", f, err)
 		}
@@ -443,11 +452,11 @@ func TestSchemaHolds(t *testing.T) {
 		base   func() *Envelope
 		break_ func(m map[string]any)
 	}{
-		{"another schema", tableauEnvelope, func(m map[string]any) { m["schema"] = "tablo/2" }},
-		{"a missing level", tableauEnvelope, func(m map[string]any) { delete(m["params"].(map[string]any), "level") }},
-		{"a missing window", tableauEnvelope, func(m map[string]any) { delete(m["params"].(map[string]any), "window") }},
-		{"a null viewer on a view", tableauEnvelope, func(m map[string]any) { m["viewer"] = nil }},
-		{"an abbreviated commit", tableauEnvelope, func(m map[string]any) { m["source"].(map[string]any)["commit"] = "edb30d2" }},
+		{"another schema", untyped, func(m map[string]any) { m["schema"] = "tablo/2" }},
+		{"a missing level", untyped, func(m map[string]any) { delete(m["params"].(map[string]any), "level") }},
+		{"a missing window", untyped, func(m map[string]any) { delete(m["params"].(map[string]any), "window") }},
+		{"a null viewer on a view", untyped, func(m map[string]any) { m["viewer"] = nil }},
+		{"an abbreviated commit", untyped, func(m map[string]any) { m["source"].(map[string]any)["commit"] = "edb30d2" }},
 		{"a column without a line", validateEnvelope, func(m map[string]any) {
 			delete(m["diagnostics"].([]any)[0].(map[string]any), "line")
 		}},

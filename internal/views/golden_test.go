@@ -17,8 +17,14 @@ type golden struct {
 	query   Query
 }
 
-// The five golden files of design 493e.
+// The five golden files of design 493e, and the six of design 886d.
 var goldens = []golden{
+	{"tableau.detail.json", "tableau", Query{Level: Detail, Window: 1}},
+	{"context-ben.detail.json", "context", Query{Person: "ben@example.org", Level: Detail, Window: 1}},
+	{"context-4e2b.glance.json", "context", Query{Task: "4e2b", Level: Glance, Window: 1}},
+	{"queue-ada.glance.json", "queue", Query{Task: "a1c0", Person: "ada@example.org", Level: Glance}},
+	{"queue-dan.glance.json", "queue", Query{Task: "a1c0", Person: "dan@example.org", Level: Glance}},
+	{"blockage.detail.json", "blockage", Query{Task: "a1c0", Level: Detail}},
 	{"gates-9f31.provenance.json", "gates", Query{Task: "9f31", Level: Provenance}},
 	{"task-c07d.provenance.json", "task", Query{Task: "c07d", Person: "ben@example.org", Level: Provenance}},
 	{"task-3c5d.detail.json", "task", Query{Task: "3c5d", Level: Detail}},
@@ -46,7 +52,9 @@ func TestGolden(t *testing.T) {
 }
 
 // T3: each level differs. A golden file validates at its own level and
-// fails under each other level.
+// fails under each other level. A tableau holds the same keys at glance and
+// at detail, where the rows alone differ, so the schema tells neither from
+// the other.
 func TestSchemaTellsTheLevels(t *testing.T) {
 	s := envelopeSchema(t)
 	for _, g := range goldens {
@@ -61,6 +69,10 @@ func TestSchemaTellsTheLevels(t *testing.T) {
 			switch {
 			case level == g.query.Level && err != nil:
 				t.Errorf("%s does not validate at its own level: %v", g.file, err)
+			case (g.command == "tableau" || g.command == "context") && level < Provenance:
+				if err != nil {
+					t.Errorf("%s does not validate at %s: %v", g.file, name, err)
+				}
 			case level != g.query.Level && err == nil:
 				t.Errorf("%s validates at %s", g.file, name)
 			}

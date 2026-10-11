@@ -152,10 +152,7 @@ func (b builder) delegation(id string) view.Chain {
 // 27a3, decision 12). It is never nil.
 func defaultMarks(j *derive.Junction) []string {
 	out := []string{}
-	for _, m := range j.Marks() {
-		if m == derive.MarkReviewer && j.Reviewer.By == derive.ByAssignee {
-			continue
-		}
+	for _, m := range j.DefaultMarks() {
 		out = append(out, string(m))
 	}
 	return out
