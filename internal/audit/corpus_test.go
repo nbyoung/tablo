@@ -12,6 +12,8 @@ import (
 
 	"github.com/nbyoung/tablo/internal/derive"
 	"github.com/nbyoung/tablo/internal/load"
+	"github.com/nbyoung/tablo/internal/model"
+	"github.com/nbyoung/tablo/internal/validate"
 )
 
 // str returns a scalar of expected.yaml as a string.
@@ -102,6 +104,47 @@ func entries(t testing.TB) []*entry {
 func (e *entry) at(t testing.TB, ref string) *derive.Facts {
 	t.Helper()
 	return derived(t, load.Options{Replace: e.replace}, e.dir, ref, e.trunk)
+}
+
+// diagnostics gives what the Validator reports of an entry. No adapter fills
+// validate.Facts from derive.Facts before the Plumbing command (4ed9), so
+// the test builds them in three parts: validate.Files for real;
+// validate.Derived with the determined requirements alone, for R9; and one
+// literal diagnostic per finding the entry's expected.yaml states under a
+// rule of the history, with the entry's own message, H4 and H5 placed in the
+// status file. want is nil at a ref the entry states no finding for.
+func diagnostics(f *derive.Facts, want map[string]any, labels map[string]string) []model.Diagnostic {
+	p := f.Project()
+	out := validate.Files(p)
+	facts := &validate.Facts{}
+	for _, id := range f.Order() {
+		for i, c := range f.Requires(id) {
+			if c.Why != derive.Determined {
+				continue
+			}
+			facts.Requirements = append(facts.Requirements, validate.Condition{Task: id, Index: i, Origin: c.Origin,
+				From: c.From, To: c.To, Stands: c.Stands, Met: c.Met, Due: c.Due, MetAtTip: c.AtTrunk == derive.Yes})
+		}
+	}
+	out = append(out, validate.Derived(p, facts)...)
+	list, _ := want["findings"].([]any)
+	for _, item := range list {
+		m := item.(map[string]any)
+		id := str(m["rule"])
+		known, _ := validate.RuleOf(id)
+		if known.Tier != validate.TierHistory {
+			continue
+		}
+		d := model.Diagnostic{Code: id, Severity: known.Severity, Task: str(m["task"]), Gate: str(m["gate"]),
+			Commit: labels[str(m["commit"])], Trailer: str(m["trailer"]), Message: str(m["message"])}
+		d.Pos.File = str(m["file"])
+		if id == "H4" || id == "H5" {
+			d.Pos.File = "status/" + d.Task + ".yaml"
+		}
+		out = append(out, d)
+	}
+	validate.Sort(out)
+	return out
 }
 
 // now returns the author date of the source commit, the date the corpus

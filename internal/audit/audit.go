@@ -155,6 +155,9 @@ func Run(in Input) (*Report, error) {
 	r.proposed()
 	r.stales()
 	r.soleReviews()
+	for i := range r.findings {
+		r.attach(&r.findings[i])
+	}
 	return &Report{
 		Now: in.Now, Stale: r.stale, Findings: r.findings,
 		history: r.f.Log() != nil, trunk: r.f.Trunk().Tip != "",
