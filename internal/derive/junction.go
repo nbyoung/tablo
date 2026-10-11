@@ -92,6 +92,20 @@ func (j *Junction) Marks() []Mark {
 	return marks
 }
 
+// DefaultMarks returns the marks of the junction as a default, as the
+// subtree of its task inherits it: the marks of Marks, without the reviewer
+// where no entry states one and the task's own assignee takes the review,
+// since a child takes its own assignee and inherits no review from its
+// parent's (decision 12). A parent's cell and a parent's defaults read
+// them; a leaf's marks are those of Marks.
+func (j *Junction) DefaultMarks() []Mark {
+	marks := j.Marks()
+	if j.Kind == model.Plain && j.Reviewer.By == ByAssignee && len(marks) > 1 {
+		return marks[:1]
+	}
+	return marks
+}
+
 // Junction returns the task's junction at a gate, resolved, or nil at
 // undefined, at a key gates.yaml lacks and for a task the tree lacks.
 func (f *Facts) Junction(id, gate string) *Junction {
