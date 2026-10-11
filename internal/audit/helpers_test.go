@@ -1,10 +1,14 @@
 package audit
 
 import (
+	"bytes"
 	"context"
+	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/nbyoung/tablo/internal/derive"
@@ -134,4 +138,163 @@ func of(rep *Report, key string) []*Finding {
 		}
 	}
 	return list
+}
+
+// copyTree copies a directory with its symbolic links and file modes.
+func copyTree(t testing.TB, from, to string) {
+	t.Helper()
+	err := filepath.WalkDir(from, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(from, p)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(to, rel)
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		switch {
+		case d.IsDir():
+			return os.MkdirAll(target, 0o755)
+		case info.Mode()&fs.ModeSymlink != 0:
+			link, err := os.Readlink(p)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(link, target)
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, data, info.Mode().Perm()|0o200)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// clone copies a built corpus repository into a temporary directory, for a
+// test that changes it, and returns the copy's path.
+func clone(t testing.TB, name string) string {
+	t.Helper()
+	to := filepath.Join(t.TempDir(), name)
+	copyTree(t, builtAt(t, name), to)
+	return to
+}
+
+// write puts files under dir, each path relative to it.
+func write(t testing.TB, dir string, files map[string]string) {
+	t.Helper()
+	for name, text := range files {
+		file := filepath.Join(dir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(file, []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+// gitAs runs the git executable in dir as one person on one day, with no
+// configuration of the host's, and returns what it prints, trimmed. The
+// identity and the date are fixed, as in the Derivation's tests, so the
+// hashes repeat. It skips the test when the host has no git.
+func gitAs(t testing.TB, dir, who, day string, args ...string) string {
+	t.Helper()
+	exe, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("the host has no git executable")
+	}
+	cmd := exec.Command(exe, append([]string{"-c", "protocol.file.allow=always", "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main"}, args...)...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME="+who, "GIT_AUTHOR_EMAIL="+who+"@example.org",
+		"GIT_COMMITTER_NAME="+who, "GIT_COMMITTER_EMAIL="+who+"@example.org",
+		"GIT_AUTHOR_DATE="+day+"T12:00:00+00:00", "GIT_COMMITTER_DATE="+day+"T12:00:00+00:00",
+		"GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_SYSTEM="+os.DevNull,
+	)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("git %s in %s: %v\n%s", strings.Join(args, " "), dir, err, stderr.String())
+	}
+	return strings.TrimSpace(string(out))
+}
+
+// The files of a repository a test builds: the version, the gating and a
+// root that olive owns. The leaf b2c9 is pat's.
+var planFiles = map[string]string{
+	".tableaux/version.yaml": "tableaux: 0.3.1\ntrunk: main\n",
+	".tableaux/gates.yaml": `gates:
+  - { key: undefined, symbol: ❔, name: Undefined, criteria: No one has started work on the definition }
+  - { key: defined,   symbol: 📝, name: Defined,   criteria: "Title, description, assignee and references exist" }
+  - { key: design,    symbol: 📐, name: Design,    criteria: A model and sufficient tests exist }
+  - { key: release,   symbol: 🚀, name: Release,   criteria: All variants documented and approved }
+states:
+  - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
+  - { key: nominal,   symbol: 🟢, severity: 1, synopsis: The work is proceeding as expected }
+  - { key: complete,  symbol: ✅, severity: 0, synopsis: All deliverables satisfy their requirements }
+reasons:
+  - { key: review, symbol: 👓, synopsis: The work waits for its reviewer }
+`,
+	".tableaux/tasks/e4a1.yaml": "title: Cases\ndescription: The cases of design dada.\nassignee: olive@example.org\n",
+}
+
+// leaf writes the task file of b2c9, pat's leaf, with its junctions as a
+// flow mapping, or "" for none.
+func leaf(junctions string) string {
+	text := "title: Leaf\ndescription: A leaf.\nassignee: pat@example.org\nparent: { id: \"e4a1\", order: 1 }\n"
+	if junctions != "" {
+		text += "junctions: " + junctions + "\n"
+	}
+	return text
+}
+
+// repository is a repository a test builds under t.TempDir().
+type repository struct {
+	t   testing.TB
+	dir string
+}
+
+// newRepository starts a repository on main with the plan files and b2c9,
+// which olive commits on 2026-09-01.
+func newRepository(t testing.TB, junctions string) *repository {
+	t.Helper()
+	r := &repository{t: t, dir: filepath.Join(t.TempDir(), "cases")}
+	if err := os.MkdirAll(r.dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	gitAs(t, r.dir, "olive", "2026-09-01", "init", "-q", "-b", "main")
+	files := map[string]string{".tableaux/tasks/b2c9.yaml": leaf(junctions)}
+	for name, text := range planFiles {
+		files[name] = text
+	}
+	r.commit("olive", "2026-09-01", "Plan the cases", files)
+	return r
+}
+
+// commit writes files and commits them as one person on one day, with the
+// trailers given, and returns the commit in full.
+func (r *repository) commit(who, day, subject string, files map[string]string, trailers ...string) string {
+	r.t.Helper()
+	write(r.t, r.dir, files)
+	gitAs(r.t, r.dir, who, day, "add", "-A")
+	args := []string{"commit", "-q", "--allow-empty", "-m", subject}
+	for _, trailer := range trailers {
+		args = append(args, "--trailer", trailer)
+	}
+	gitAs(r.t, r.dir, who, day, args...)
+	return gitAs(r.t, r.dir, who, day, "rev-parse", "HEAD")
+}
+
+// facts derives the facts of the repository at main.
+func (r *repository) facts() *derive.Facts {
+	r.t.Helper()
+	return derived(r.t, load.Options{}, r.dir, "main", "")
 }

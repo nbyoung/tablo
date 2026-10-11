@@ -7,6 +7,7 @@ package audit
 
 import (
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -151,6 +152,9 @@ func Run(in Input) (*Report, error) {
 	for i := range in.Diagnostics {
 		r.wrap(&in.Diagnostics[i])
 	}
+	r.proposed()
+	r.stales()
+	r.soleReviews()
 	return &Report{
 		Now: in.Now, Stale: r.stale, Findings: r.findings,
 		history: r.f.Log() != nil, trunk: r.f.Trunk().Tip != "",
@@ -188,6 +192,125 @@ func (r *run) wrap(d *model.Diagnostic) {
 	}
 	x.Resolver = r.resolve(who, d)
 	r.findings = append(r.findings, x)
+}
+
+// complete is the one state the audit names: a complete task waits for
+// nothing, and each of its junctions is historical.
+const complete = "complete"
+
+// raise makes a finding of one of the three kinds no rule states.
+func (r *run) raise(key string, severity model.Severity, id, gate, file, message, resolver string) {
+	kind := kinds[key]
+	r.findings = append(r.findings, Finding{
+		Key: key, Severity: severity, Kind: kind.kind, Task: id, Gate: gate, File: planDir + file + "/" + id + ".yaml",
+		Message: message, Act: kind.act, Resolver: resolver, Sentence: kind.sentence, Source: kind.source,
+	})
+}
+
+// proposed raises a warning for each proposed task, in display order. On
+// the trunk it is each task no authority accepts. Off the trunk it is each
+// task whose file differs from the one at the trunk's tip, so a branch
+// reports the tasks it adds or changes and not the plan it inherits. With
+// no history and with no trunk it raises none: rule P5 already says that
+// every task reads as proposed.
+func (r *run) proposed() {
+	if r.f.Log() == nil || r.f.Trunk().Tip == "" {
+		return
+	}
+	for _, id := range r.f.Order() {
+		a := r.f.Authorisation(id)
+		if a == nil || a.Authorised {
+			continue
+		}
+		message := "The task stands proposed: "
+		switch {
+		case a.Why == derive.Determined && a.Commit != nil:
+			message += a.Commit.Author.Email + ", the author of its deciding commit, is none of its authorities"
+		case a.Why == derive.NoCommit:
+			message += "no commit on the trunk holds its file"
+		case a.Why == derive.OffTrunk && a.Differs:
+			message += "the source changes its file and is off the trunk `" + r.f.Trunk().Name + "`"
+		default:
+			continue
+		}
+		// A new Authorised: commit reads the tree as it then stands; for the
+		// root the judge of the deciding commit is the outgoing owner.
+		resolver := r.f.Owner()
+		if list := r.f.Authorities(id); len(list) > 0 {
+			resolver = list[0].Email
+		} else if len(a.Judges) > 0 {
+			resolver = a.Judges[0]
+		}
+		r.raise(Proposed, model.Warning, id, "", "tasks", message, resolver)
+	}
+}
+
+// days returns the days from a date to Now. Both are calendar dates, so the
+// count takes no zone. ok is false for a text that is no date.
+func (r *run) days(date string) (days int, ok bool) {
+	then, err := time.Parse(dateForm, date)
+	if err != nil {
+		return 0, false
+	}
+	return int(r.now.Sub(then).Hours() / 24), true
+}
+
+// stales raises a warning for each stale status, in display order: a leaf's
+// recorded status that a commit records, that is not complete and whose
+// date is more than the age before Now. A leaf with no file has recorded
+// nothing to confirm, a snapshot's date is the subproject's, and an edit of
+// the working tree is no commit yet.
+func (r *run) stales() {
+	for _, id := range r.f.Order() {
+		s := r.f.Status(id)
+		if !r.f.Leaf(id) || s == nil || s.Kind != derive.Recorded || s.Commit == nil || s.Uncommitted || s.State == complete {
+			continue
+		}
+		if days, ok := r.days(s.Date); !ok || days <= r.stale {
+			continue
+		}
+		message := "The status dates from " + s.Date + ", more than " + strconv.Itoa(r.stale) + " days before " + r.now.Format(dateForm)
+		r.raise(Stale, model.Warning, id, s.Gate, "status", message, r.recorder(id))
+	}
+}
+
+// soleReviews raises, as information, each junction nobody but its
+// contributor reviews, by leaf in display order and then by gate: a plain
+// junction that is not historical, whose reviewer is its contributor or
+// which states none, and whose review the authorisation does not stand for.
+// A parent gives none, since its junctions are defaults.
+func (r *run) soleReviews() {
+	for _, id := range r.f.Order() {
+		if !r.f.Leaf(id) {
+			continue
+		}
+		for _, j := range r.f.Junctions(id) {
+			if j.Kind != model.Plain || (j.Reviewer.V != "" && j.Reviewer.V != j.Contributor.V) {
+				continue
+			}
+			if historical(r.f, id, j.Gate) || r.f.ByAuthorisation(id, j.Gate) {
+				continue
+			}
+			r.raise(SoleReview, model.Information, id, j.Gate, "tasks", "Nobody but the contributor reviews the work at the gate", r.authority(id))
+		}
+	}
+}
+
+// historical reports whether the junction at the gate is one of the task's
+// historical junctions, or the task is complete: the one predicate of the
+// demotion and of a sole review. A parent reads by its roll-up and a
+// snapshot by the task it reads. The junction at the gate the status names
+// is not historical.
+func historical(f *derive.Facts, task, gate string) bool {
+	s := f.Status(task)
+	if s == nil {
+		return false
+	}
+	if s.State == complete {
+		return true
+	}
+	at := f.Index(gate)
+	return at >= 0 && at < f.Index(s.Gate)
 }
 
 // task returns a task of the tree, or nil.
