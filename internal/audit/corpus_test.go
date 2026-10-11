@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -239,5 +240,156 @@ func TestProposedAgreesWithTheCorpus(t *testing.T) {
 	none := derived(t, load.Options{}, builtAt(t, "trunk-undetermined"), "main", "")
 	if none.Trunk().Tip != "" {
 		t.Errorf("trunk-undetermined has the trunk %+v", none.Trunk())
+	}
+}
+
+// samples names the entries the golden file shows though each of their
+// findings resolves by a revision.
+var samples = map[string]bool{"file-duplicate-key": true, "gates-bad-key": true, "task-bad-filename": true,
+	"siblings-same-order": true, "status-on-parent": true, "status-no-task": true, "subproject-path-missing": true}
+
+// factNames names the typed facts a finding holds, in the order of Facts.
+func factNames(f Facts) []string {
+	var has []string
+	for _, x := range []struct {
+		name string
+		set  bool
+	}{
+		{"junction", f.Junction != nil}, {"status", f.Status != nil}, {"requirement", f.Requirement != nil},
+		{"authorisation", f.Authorisation != nil}, {"linkage", f.Snapshot != nil}, {"model", f.Reading != nil},
+	} {
+		if x.set {
+			has = append(has, x.name)
+		}
+	}
+	return has
+}
+
+// corpusOut names the file TestCorpus writes its text to, in place of the
+// comparison: TestTwoClones runs the test binary again to read it.
+const corpusOut = "TABLO_AUDIT_CORPUS_OUT"
+
+// auditOfTheCorpus writes what the Audit reports on the corpus: one block per entry and
+// ref, at the minimum information so that every row shows, with Now the
+// author date of the source commit. An entry prints when one of its findings
+// has an act other than revise and is no sole review, or is P5, or when
+// samples names it; a second block prints the stale statuses at three days,
+// where there are any; an entry the Derivation refuses prints "refused". A
+// row prints its typed facts by name, per task, and a row of sole reviews
+// prints one line. A commit prints as the label the build gives it.
+func auditOfTheCorpus(t *testing.T) string {
+	t.Helper()
+	var b strings.Builder
+	for _, e := range entries(t) {
+		for i, ref := range e.refs {
+			f := e.at(t, ref)
+			var want map[string]any
+			if i == 0 {
+				want = e.want
+			}
+			for _, stale := range []int{0, 3} {
+				rep, err := Run(Input{Facts: f, Diagnostics: diagnostics(f, want, e.labels), Now: now(f), Stale: stale})
+				if err != nil {
+					t.Fatalf("%s %s: %v", e.name, ref, err)
+				}
+				if rep == nil {
+					if stale == 0 {
+						fmt.Fprintf(&b, "%s %s: refused\n", e.name, ref)
+					}
+					continue
+				}
+				if stale == 3 {
+					only := rep.Keep(func(x *Finding) bool { return x.Key == Stale })
+					if len(only.Findings) == 0 {
+						continue
+					}
+					rep = only
+				}
+				plain := true
+				for _, x := range rep.Findings {
+					plain = plain && (x.Act == Revise || x.Key == SoleReview) && x.Key != "P5"
+				}
+				if plain && !samples[e.name] {
+					continue
+				}
+				c := rep.Counts()
+				fmt.Fprintf(&b, "%s %s: now %s, stale %d: %d error(s), %d warning(s), %d information", e.name, ref, rep.Now, rep.Stale, c.Errors, c.Warnings, c.Information)
+				if m := rep.Most(); m != nil {
+					fmt.Fprintf(&b, "; most %s %d", m.Email, m.Count)
+				}
+				b.WriteString("\n")
+				for _, row := range rep.Rows(model.Information) {
+					x := row[0]
+					var ids, files, commits []string
+					seen := map[string]bool{}
+					for _, y := range row {
+						if y.Task != "" {
+							ids = append(ids, y.Task)
+						}
+						if y.File != "" && !seen[y.File] {
+							seen[y.File] = true
+							files = append(files, y.File)
+						}
+						for _, c := range y.Commits {
+							if !seen[c.ID] {
+								seen[c.ID] = true
+								commits = append(commits, e.names[c.ID])
+							}
+						}
+					}
+					fmt.Fprintf(&b, "  %s %s [%s] at %q in [%s]: %s -> %s\n", x.Key, x.Severity, strings.Join(ids, " "), x.Gate, strings.Join(files, " "), x.Act, x.Resolver)
+					if x.Sentence == "" || x.Source.URL == "" || x.Kind == "" {
+						t.Errorf("%s %s: no sentence, source or kind", e.name, x.Key)
+					}
+					if x.Key == SoleReview {
+						continue
+					}
+					fmt.Fprintf(&b, "    message: %s\n    commits: %s\n", x.Message, strings.Join(commits, " "))
+					for _, y := range row {
+						if has := factNames(y.Facts); len(has) > 0 {
+							fmt.Fprintf(&b, "    facts %s: %s\n", y.Task, strings.Join(has, " "))
+						}
+					}
+					for _, c := range x.Commands {
+						text := c.Text
+						for hash, name := range e.names {
+							text = strings.ReplaceAll(text, hash, "<"+name+">")
+						}
+						fmt.Fprintf(&b, "    $ %s  # %s\n", text, c.Comment)
+					}
+				}
+			}
+		}
+	}
+	return b.String()
+}
+
+// T2: the Audit on the corpus, against testdata/corpus.expected.txt.
+func TestCorpus(t *testing.T) {
+	got := auditOfTheCorpus(t)
+	if out := os.Getenv(corpusOut); out != "" {
+		if err := os.WriteFile(out, []byte(got), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(filepath.Join("testdata", "corpus.expected.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != string(want) {
+		t.Errorf("the audit of the corpus differs from testdata/corpus.expected.txt:\n%s", got)
+	}
+	blocks, refused := 0, 0
+	for _, line := range strings.Split(got, "\n") {
+		switch {
+		case strings.HasSuffix(line, ": refused"):
+			refused++
+		case line != "" && !strings.HasPrefix(line, " ") && strings.Contains(line, ", stale 7: "):
+			blocks++
+		}
+	}
+	if blocks != 24 || refused != 18 {
+		t.Errorf("the audit reports on %d entries and has no report for %d; the design states 24 and 18", blocks, refused)
 	}
 }

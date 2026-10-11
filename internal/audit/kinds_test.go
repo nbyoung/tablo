@@ -149,6 +149,18 @@ func TestCompleteRefusedAndNoPass(t *testing.T) {
 	if got := fmt.Sprint(gatesOf(rep, SoleReview)); got != "[mockup function release]" {
 		t.Errorf("with no pass the sole reviews stand at %s", got)
 	}
+	// With no pass the run examines no rule of the history and no proposed
+	// task; the stale statuses it examines, and finds none.
+	var silent []string
+	for _, quiet := range rep.Silent() {
+		silent = append(silent, quiet.Key)
+		if known, isRule := validate.RuleOf(quiet.Key); isRule && known.Tier == validate.TierHistory {
+			t.Errorf("with no pass %s is silent", quiet.Key)
+		}
+	}
+	if got := fmt.Sprint(silent); got != "[R9 R12 J8 J9 J14 J15 J16 J17 stale]" {
+		t.Errorf("with no pass the silent kinds are %s", got)
+	}
 
 	// A refusal: no report, and no error.
 	refused := derived(t, load.Options{}, builtAt(t, "gates-missing"), "main", "")
@@ -189,6 +201,15 @@ func TestSoleReview(t *testing.T) {
 	at := sole(rep)
 	if len(of(rep, SoleReview)) != 32 || len(at) != 32 {
 		t.Errorf("weather-station at main gives %d sole reviews, want 32", len(of(rep, SoleReview)))
+	}
+	rows := 0
+	for _, row := range rep.Rows(model.Information) {
+		if row[0].Key == SoleReview {
+			rows++
+		}
+	}
+	if rows != 19 {
+		t.Errorf("weather-station at main gives %d rows of sole reviews, want 19", rows)
 	}
 	people := map[string]bool{}
 	for key, x := range at {
@@ -263,6 +284,15 @@ func TestSoleReview(t *testing.T) {
 		if x == nil || x.Resolver != "olive@example.org" || x.Message != at["a300 design"].Message {
 			t.Errorf("the three do not read as one row: %+v", x)
 		}
+	}
+	joined := false
+	for _, row := range rep.Rows(model.Information) {
+		if len(row) == 3 && row[0] == at["a300 design"] && row[1] == at["a400 design"] && row[2] == at["a600 design"] {
+			joined = true
+		}
+	}
+	if !joined {
+		t.Error("a300, a400 and a600 at design make no one row")
 	}
 	// a110 at function has a reviewer who is not its contributor, and at
 	// design an agent the assignee reviews.
