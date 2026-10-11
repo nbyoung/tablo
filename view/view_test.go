@@ -164,7 +164,7 @@ func TestTags(t *testing.T) {
 			}
 		}
 	}
-	for _, v := range []any{Gates{}, Task{}, Delegation{}, Assignment{}, Column{}} {
+	for _, v := range []any{Gates{}, Task{}, Delegation{}, Assignment{}, Tableau{}, Queue{}, Blockage{}} {
 		walk(reflect.TypeOf(v))
 	}
 	if len(seen) < 40 {

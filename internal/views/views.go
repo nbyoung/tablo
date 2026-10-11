@@ -20,12 +20,18 @@ const (
 	Provenance
 )
 
+// BriefOf names the one queue item the queue writes as a brief.
+type BriefOf struct{ Task, Gate string }
+
 // Query is what a view takes: the parameters, checked and resolved. Task
-// 886d adds Window, Columns, Historical and Brief; task 8ed1 adds From,
-// Stale and Now.
+// 8ed1 adds From, Stale and Now.
 type Query struct {
-	Task     string // a task of the project; "" is the root and, on the gate definition, no task
-	Person   string // an email; "" is nobody
-	Level    Level
-	Proposed bool // authority: proposed tasks only
+	Task       string // a task of the project; "" is the root, no task on the gate definition, and the person form on context
+	Person     string // an email; "" is nobody
+	Level      Level
+	Proposed   bool     // authority: proposed tasks only
+	Window     int      // tableau, context: the columns either side of the next gates
+	Columns    []string // tableau, context: the gates to show, each a gate of the project, in place of the window; empty for none
+	Historical bool     // tableau, context: show the marks of historical junctions
+	Brief      *BriefOf // queue: write this one item as a brief; its task and gate are of the project
 }

@@ -191,11 +191,13 @@ type Requirement struct {
 }
 
 // Column is one column of a tableau's window: a gate, or the run of gates a
-// fold stands for. The two tableaux alone carry columns; task 886d computes
-// them. The counts hold on every column, folded or not.
+// fold stands for. The two tableaux alone carry columns. The window and the
+// fold say which gates show; a row holds one cell per gate whatever they
+// say. The counts hold on every column, folded or not, and are those of the
+// rows of the detail level at every level.
 type Column struct {
 	Gates  []string `json:"gates"` // one gate, or the run a folded column stands for
 	Folded bool     `json:"folded"`
-	Count  int      `json:"count"`   // the tasks in view whose current gate lies in the column's gates
+	Count  int      `json:"count"`   // the rows of the detail level whose status names a gate of the column
 	ByGate []int    `json:"by_gate"` // the same count per gate of the column
 }
