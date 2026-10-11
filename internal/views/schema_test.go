@@ -47,9 +47,11 @@ func envelopeSchema(t testing.TB) *jsonschema.Schema {
 	return s
 }
 
-// The forms the envelope's schema asks of a task id and of an email.
+// The forms the envelope's schema asks of a task id, of a key and of an
+// email.
 var (
 	idForm    = regexp.MustCompile(`^[0-9a-f]{4}$`)
+	keyForm   = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
 	emailForm = regexp.MustCompile(`^[^@\s]+@[^@\s]+$`)
 )
 
@@ -68,8 +70,23 @@ func envelope(t testing.TB, command string, q Query, data []byte) any {
 			params["person"] = q.Person
 		}
 	}
-	if command == "authority" {
+	switch command {
+	case "authority":
 		params["proposed"] = q.Proposed
+	case "tableau", "context":
+		params["window"], params["columns"], params["historical"] = q.Window, nil, q.Historical
+		formed := len(q.Columns) > 0
+		for _, gate := range q.Columns {
+			formed = formed && keyForm.MatchString(gate)
+		}
+		if formed {
+			params["columns"] = q.Columns
+		}
+	case "queue":
+		params["brief"] = nil
+		if q.Brief != nil && idForm.MatchString(q.Brief.Task) && keyForm.MatchString(q.Brief.Gate) {
+			params["brief"] = map[string]any{"task": q.Brief.Task, "gate": q.Brief.Gate}
+		}
 	}
 	doc := map[string]any{
 		"schema":  "tablo/1",
@@ -97,26 +114,47 @@ func envelope(t testing.TB, command string, q Query, data []byte) any {
 
 // queries returns the queries a test runs every view of a project with, at
 // one level: each view of the whole project, the gate and task definitions
-// of every task, and the tree views of every parent and of every person.
+// of every task, the tree views of every parent and of every person, the
+// contextual tableau of every task, and the brief of every leaf's next
+// plain junction.
 func queries(f *derive.Facts, level Level) map[string][]Query {
 	out := map[string][]Query{
 		"gates":      {{Level: level}},
 		"authority":  {{Task: f.Root(), Level: level}, {Task: f.Root(), Level: level, Proposed: true}},
 		"assignment": {{Task: f.Root(), Level: level}},
+		"tableau":    {{Level: level, Window: 1}, {Level: level, Historical: true}},
+		"context":    {{Level: level, Window: 1}},
+		"queue":      {{Task: f.Root(), Level: level}},
+		"blockage":   {{Task: f.Root(), Level: level}},
+	}
+	if gates := f.Gates(); len(gates) > 2 {
+		out["tableau"] = append(out["tableau"], Query{Level: level, Columns: gates[1:3]})
 	}
 	people := map[string]bool{}
 	for _, id := range f.Order() {
 		out["gates"] = append(out["gates"], Query{Task: id, Level: level})
 		out["task"] = append(out["task"], Query{Task: id, Level: level})
+		out["context"] = append(out["context"], Query{Task: id, Level: level, Window: 1})
+		if j := (builder{f: f}).nextJunction(id); j != nil && emailForm.MatchString(j.Contributor.V) {
+			out["queue"] = append(out["queue"], Query{Task: f.Root(), Person: j.Contributor.V, Level: level, Brief: &BriefOf{Task: id, Gate: j.Gate}})
+		}
 		if email := f.Project().Tasks[id].Assignee.V; email != "" && !people[email] {
 			people[email] = true
 			out["task"] = append(out["task"], Query{Task: id, Person: email, Level: level})
 			out["authority"] = append(out["authority"], Query{Task: f.Root(), Person: email, Level: level})
 			out["assignment"] = append(out["assignment"], Query{Task: f.Root(), Person: email, Level: level})
+			out["tableau"] = append(out["tableau"], Query{Person: email, Level: level, Window: 1})
+			out["context"] = append(out["context"], Query{Person: email, Level: level, Window: 1, Historical: true})
+			out["queue"] = append(out["queue"], Query{Task: f.Root(), Person: email, Level: level})
+			out["blockage"] = append(out["blockage"], Query{Task: f.Root(), Person: email, Level: level})
 		}
 		if !f.Leaf(id) && id != f.Root() {
 			out["authority"] = append(out["authority"], Query{Task: id, Level: level})
 			out["assignment"] = append(out["assignment"], Query{Task: id, Level: level})
+			out["queue"] = append(out["queue"], Query{Task: id, Level: level})
+		}
+		if id != f.Root() {
+			out["blockage"] = append(out["blockage"], Query{Task: id, Level: level})
 		}
 	}
 	return out
@@ -199,6 +237,14 @@ func viewOf(f *derive.Facts, command string, q Query) any {
 		return Task(f, q)
 	case "authority":
 		return Authority(f, q)
+	case "tableau":
+		return Tableau(f, q)
+	case "context":
+		return Context(f, q)
+	case "queue":
+		return Queue(f, q)
+	case "blockage":
+		return Blockage(f, q)
 	}
 	return Assignment(f, q)
 }
