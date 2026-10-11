@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: design/493e.md is on the trunk with the owner's decisions of 2026-10-07, and with the model the view tasks share in the public package view and in internal/views; implementation follows, with Facts.LastChange in the Derivation and the closed sets of words as enum in the schema
+note: view/ and internal/views give the gate definition, the task definition, the authority delegation and the task assignment as data, with Facts.LastChange in the Derivation, the schema of the four data objects in envelope.schema.yaml and the five golden files; the unit gate runs T1 to T21 of design/493e.md on the built corpus; the default marks of a parent wait on the fact of the Derivation that 886d adds, and the four commands of the plumbing command wait on snapshot.go of 4ed9
