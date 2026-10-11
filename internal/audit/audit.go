@@ -6,7 +6,9 @@
 package audit
 
 import (
+	"cmp"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -158,6 +160,10 @@ func Run(in Input) (*Report, error) {
 	for i := range r.findings {
 		r.attach(&r.findings[i])
 	}
+	for i := range r.findings {
+		r.demote(&r.findings[i])
+	}
+	arrange(r.f, r.findings)
 	return &Report{
 		Now: in.Now, Stale: r.stale, Findings: r.findings,
 		history: r.f.Log() != nil, trunk: r.f.Trunk().Tip != "",
@@ -314,6 +320,130 @@ func historical(f *derive.Facts, task, gate string) bool {
 	}
 	at := f.Index(gate)
 	return at >= 0 && at < f.Index(s.Gate)
+}
+
+// demote lists as information a finding nothing resolves once it is past:
+// the task has passed its junction; or it names a task and no gate of the
+// project, and the task is complete; or it names no task of the project, and
+// its commit is older than the age a stale status takes. Such a finding
+// with no commit in the pass has no date to age by and keeps the rule's
+// severity. The diagnostic keeps the rule's own severity, so the envelope's
+// diagnostics and the exit code do not change. The audit guesses no
+// junction.
+func (r *run) demote(x *Finding) {
+	if x.Act != None || x.Severity >= model.Information {
+		return
+	}
+	switch {
+	case r.task(x.Task) == nil:
+		if x.Diagnostic == nil {
+			return
+		}
+		c := r.commit(x.Diagnostic.Commit)
+		if c == nil {
+			return
+		}
+		if days, ok := r.days(c.Date()); !ok || days <= r.stale {
+			return
+		}
+	case r.f.Index(x.Gate) >= 0:
+		if !historical(r.f, x.Task, x.Gate) {
+			return
+		}
+		x.Facts.Status = r.f.Status(x.Task) // the status says so
+	default:
+		s := r.f.Status(x.Task)
+		if s == nil || s.State != complete {
+			return
+		}
+		x.Facts.Status = s
+	}
+	x.Severity, x.Demoted = model.Information, true
+}
+
+// rank places a key among the kinds: the rules in the order of
+// validate.Rules, then the three kinds no rule states.
+var rank = func() map[string]int {
+	at := map[string]int{}
+	for i, known := range validate.Rules {
+		at[known.ID] = i
+	}
+	for i, key := range []string{Proposed, Stale, SoleReview} {
+		at[key] = len(validate.Rules) + 1 + i
+	}
+	return at
+}()
+
+// arrange sorts findings into the order of the design: the listed severity,
+// errors first; the kind; the gate, none first, then the order of
+// gates.yaml, then any other key by bytes; the task, none first, then
+// display order, then any other id by bytes; the oldest commit, none first,
+// then the oldest first; the diagnostic's file, line and column; the
+// message; the trailer. The sort is stable over the order given. A code the
+// table lacks sorts after the rules, by bytes.
+func arrange(f *derive.Facts, findings []Finding) {
+	place := map[string]int{}
+	for i, id := range f.Order() {
+		place[id] = i
+	}
+	kind := func(x *Finding) int {
+		if at, ok := rank[x.Key]; ok {
+			return at
+		}
+		return len(validate.Rules)
+	}
+	// among places a key: none, then one of a list by its index, then any other.
+	among := func(key string, index int, listed bool) (class, at int) {
+		switch {
+		case key == "":
+			return 0, 0
+		case listed:
+			return 1, index
+		}
+		return 2, 0
+	}
+	gate := func(x *Finding) (int, int) {
+		at := f.Index(x.Gate)
+		return among(x.Gate, at, at >= 0)
+	}
+	task := func(x *Finding) (int, int) {
+		at, listed := place[x.Task]
+		return among(x.Task, at, listed)
+	}
+	// oldest places a finding by its oldest commit: none first, then the
+	// oldest first. A pass counts its commits from the newest.
+	oldest := func(x *Finding) (int, int) {
+		if len(x.Commits) == 0 {
+			return 0, 0
+		}
+		return 1, -x.Commits[0].Seq
+	}
+	diagnostic := func(x *Finding) model.Diagnostic {
+		if x.Diagnostic == nil {
+			return model.Diagnostic{}
+		}
+		return *x.Diagnostic
+	}
+	sort.SliceStable(findings, func(i, j int) bool {
+		a, b := &findings[i], &findings[j]
+		ga, gi := gate(a)
+		gb, gj := gate(b)
+		ta, ti := task(a)
+		tb, tj := task(b)
+		ca, ci := oldest(a)
+		cb, cj := oldest(b)
+		da, db := diagnostic(a), diagnostic(b)
+		return cmp.Or(
+			cmp.Compare(a.Severity, b.Severity),
+			cmp.Compare(kind(a), kind(b)), cmp.Compare(a.Key, b.Key),
+			cmp.Compare(ga, gb), cmp.Compare(gi, gj), cmp.Compare(a.Gate, b.Gate),
+			cmp.Compare(ta, tb), cmp.Compare(ti, tj), cmp.Compare(a.Task, b.Task),
+			cmp.Compare(ca, cb), cmp.Compare(ci, cj),
+			cmp.Compare(da.Pos.File, db.Pos.File), cmp.Compare(da.Pos.Line, db.Pos.Line), cmp.Compare(da.Pos.Col, db.Pos.Col),
+			cmp.Compare(a.Message, b.Message),
+			cmp.Compare(da.Trailer, db.Trailer),
+		) < 0
+	})
 }
 
 // task returns a task of the tree, or nil.

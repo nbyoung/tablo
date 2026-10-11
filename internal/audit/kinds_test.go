@@ -26,11 +26,11 @@ func TestStaleness(t *testing.T) {
 		{"2026-09-28", 5, "[3c5d]"}, // 3c5d dates from 2026-09-22: six days
 		{"2026-09-28", 6, "[]"},
 		{"2026-09-28", 0, "[]"},          // seven days
-		{"2026-10-06", 0, "[9f31 3c5d]"}, // 9f31 dates from its reaffirmation, 2026-09-28: eight days
+		{"2026-10-06", 0, "[3c5d 9f31]"}, // by gate: 3c5d at defined, and 9f31, which its reaffirmation dates 2026-09-28
 		{"2026-10-05", 0, "[3c5d]"},      // seven days is not more than seven
 		{"2026-09-26", 3, "[3c5d]"},      // the design's example: stale at three days on the 26th
 		{"2026-09-25", 3, "[]"},          // and not on the 25th
-		{"2027-09-28", 0, "[9f31 3c5d]"}, // c07d, a snapshot, and 7b2e, with no file, never are
+		{"2027-09-28", 0, "[3c5d 9f31]"}, // c07d, a snapshot, and 7b2e, with no file, never are
 		{"2026-09-01", 1, "[]"},          // a date before the status's
 	}
 	for _, c := range cases {
@@ -65,7 +65,7 @@ func TestWorkingTree(t *testing.T) {
 	repo := clone(t, "weather-station")
 	clean := derived(t, load.Options{}, repo, "", "")
 	rep := audited(t, Input{Facts: clean, Now: "2026-10-06"})
-	if got := fmt.Sprint(tasksOf(rep, Proposed), tasksOf(rep, Stale)); got != "[3c5d] [9f31 3c5d]" {
+	if got := fmt.Sprint(tasksOf(rep, Proposed), tasksOf(rep, Stale)); got != "[3c5d] [3c5d 9f31]" {
 		t.Fatalf("the clean working tree gives %s", got)
 	}
 	write(t, repo, map[string]string{
@@ -112,8 +112,8 @@ func TestCompleteRefusedAndNoPass(t *testing.T) {
 	year(r, "2025-09-02", "design", "nominal")
 	f := r.facts()
 	rep := audited(t, Input{Facts: f, Now: "2026-09-10"})
-	if got := fmt.Sprint(tasksOf(rep, Stale), len(of(rep, SoleReview))); got != "[b2c9] 2" {
-		t.Errorf("a year-old status at design gives %s; want it stale, with design and release for nobody else to review", got)
+	if got := fmt.Sprint(tasksOf(rep, Stale), len(of(rep, SoleReview))); got != "[b2c9] 3" {
+		t.Errorf("a year-old status at design gives %s; want it stale, with design, unit and release for nobody else to review", got)
 	}
 	year(r, "2025-09-03", "release", "complete")
 	f = r.facts()

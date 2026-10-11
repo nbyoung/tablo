@@ -235,6 +235,7 @@ var planFiles = map[string]string{
   - { key: undefined, symbol: ❔, name: Undefined, criteria: No one has started work on the definition }
   - { key: defined,   symbol: 📝, name: Defined,   criteria: "Title, description, assignee and references exist" }
   - { key: design,    symbol: 📐, name: Design,    criteria: A model and sufficient tests exist }
+  - { key: unit,      symbol: 📏, name: Unit,      criteria: All prescribed tests pass }
   - { key: release,   symbol: 🚀, name: Release,   criteria: All variants documented and approved }
 states:
   - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
