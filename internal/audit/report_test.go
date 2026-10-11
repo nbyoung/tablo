@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/nbyoung/tablo/internal/load"
 	"github.com/nbyoung/tablo/internal/model"
+	"github.com/nbyoung/tablo/view"
 )
 
 // shape writes rows as the tasks of each, one row per bracket.
@@ -209,6 +211,87 @@ func TestMinimum(t *testing.T) {
 		if s.Key == Proposed {
 			t.Error("with no trunk the proposed tasks are silent")
 		}
+	}
+}
+
+// T11 and T15: the golden data of the view agrees with the report it is
+// written from, in every field the Audit gives: the counts, the most, the
+// rows at the default minimum with their words and their commands, and the
+// silent kinds. The typed facts and the commits are the view's to write
+// (8ed1).
+func TestGoldenDataAgrees(t *testing.T) {
+	var e *entry
+	for _, each := range entries(t) {
+		if each.name == "weather-station" {
+			e = each
+		}
+	}
+	if e == nil {
+		t.Fatal("the corpus builds no weather-station")
+	}
+	data, err := os.ReadFile(filepath.Join("..", "..", "view", "testdata", "audit.provenance.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var want view.Audit
+	if err := json.Unmarshal(data, &want); err != nil {
+		t.Fatal(err)
+	}
+	f := derived(t, load.Options{Replace: e.replace}, e.dir, "main", "")
+	rep := audited(t, Input{Facts: f, Diagnostics: diagnostics(f, e.want, e.labels), Now: "2026-09-28"})
+	c, most := rep.Counts(), rep.Most()
+	if c.Errors != want.Errors || c.Warnings != want.Warnings || c.Information != want.Information ||
+		most == nil || want.Most == nil || most.Email != want.Most.Email || most.Count != want.Most.Count {
+		t.Errorf("the report counts %+v, most %+v; the golden data states %d, %d and %d, most %+v", c, most, want.Errors, want.Warnings, want.Information, want.Most)
+	}
+	rows := rep.Rows(model.Warning)
+	if len(rows) != len(want.Findings) {
+		t.Fatalf("the report lists %d rows, the golden data %d", len(rows), len(want.Findings))
+	}
+	for i, row := range rows {
+		x, w := row[0], want.Findings[i]
+		var tasks, files, commits, commands, wantTasks, wantCommits, wantCommands []string
+		for _, y := range row {
+			tasks, files = append(tasks, y.Task), append(files, y.File)
+		}
+		for _, c := range x.Commits {
+			commits = append(commits, c.ID)
+		}
+		for _, c := range x.Commands {
+			commands = append(commands, c.Text+" # "+c.Comment)
+		}
+		for _, task := range w.Tasks {
+			wantTasks = append(wantTasks, task.ID)
+		}
+		for _, c := range w.Commits {
+			wantCommits = append(wantCommits, c.Hash)
+		}
+		for _, c := range w.Commands {
+			wantCommands = append(wantCommands, c.Text+" # "+c.Comment)
+		}
+		got := fmt.Sprintln(x.Key, x.Rule, x.Severity.String(), x.Demoted, x.Kind, tasks, x.Gate, string(x.Act), x.Resolver, files, x.Message, x.Sentence, x.Source.Text, x.Source.URL, commits, commands)
+		golden := fmt.Sprintln(w.Key, w.Rule, w.Severity, w.Demoted, w.Kind, wantTasks, w.Gate, w.Act, w.Resolver, w.Files, w.Message, w.Sentence, w.Source.Text, w.Source.URL, wantCommits, wantCommands)
+		if got != golden {
+			t.Errorf("the row %d reads\n%s\nand the golden data\n%s", i, got, golden)
+		}
+		for j, y := range row {
+			facts := w.Facts[j]
+			has := fmt.Sprint(facts.Junction != nil, facts.Status != nil, facts.Requirement != nil, facts.Authorisation != nil, facts.Linkage != nil, facts.Model != nil)
+			carries := fmt.Sprint(y.Facts.Junction != nil, y.Facts.Status != nil, y.Facts.Requirement != nil, y.Facts.Authorisation != nil, y.Facts.Snapshot != nil, y.Facts.Reading != nil)
+			if facts.Task != y.Task || has != carries {
+				t.Errorf("the row %d carries the facts %s of %s, the golden data %s of %s", i, carries, y.Task, has, facts.Task)
+			}
+		}
+	}
+	var silent, wantSilent []string
+	for _, s := range rep.Silent() {
+		silent = append(silent, s.Key+"|"+s.Rule+"|"+s.Kind)
+	}
+	for _, s := range want.Silent {
+		wantSilent = append(wantSilent, s.Key+"|"+s.Rule+"|"+s.Kind)
+	}
+	if fmt.Sprint(silent) != fmt.Sprint(wantSilent) {
+		t.Errorf("the silent kinds are\n%v\nand the golden data states\n%v", silent, wantSilent)
 	}
 }
 
