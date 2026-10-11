@@ -67,6 +67,17 @@ func (f *Facts) newest(changed, trailer string) *history.Commit {
 	return found
 }
 
+// LastChange returns the newest commit the source reaches that changes the
+// file at a path below .tableaux, as "gates.yaml" or "tasks/9f31.yaml", or
+// nil when none does and without history.
+func (f *Facts) LastChange(below string) *history.Commit {
+	if !f.enter() {
+		return nil
+	}
+	defer f.leave()
+	return f.newest(path.Join(f.p.Where.Dir, ".tableaux", below), "")
+}
+
 // Way is how a deciding commit accepts.
 type Way int
 
