@@ -17,8 +17,9 @@ import (
 	"github.com/nbyoung/tablo/internal/load"
 )
 
-// commands names the four structural views as the plumbing command does.
-var commands = []string{"gates", "task", "authority", "assignment"}
+// commands names the four structural views and the four status views as the
+// plumbing command does.
+var commands = []string{"gates", "task", "authority", "assignment", "tableau", "context", "queue", "blockage"}
 
 // everyView returns the JSON of the four views of a project at the three
 // levels, with the gate and task definitions of every task and the tree
