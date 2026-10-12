@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -345,6 +346,81 @@ func TestSnapshotCauses(t *testing.T) {
 	// With no clone the link has no project: nothing is read, so no cause.
 	if got := causesOf(Blockage(entry(t, "subproject-url-without-commit"), Query{})); len(got) != 0 {
 		t.Errorf("subproject-url-without-commit: the causes are %q", got)
+	}
+}
+
+// T18: a pin off its trunk (decision 14 (c)). Trigger (a) asks Pin.Behind for
+// the task a leaf reads and AtTrunk alone for a requirement. A leaf whose
+// pin lies off its trunk gives no snapshot cause, since that pin is first the
+// Validator's to report. A due requirement that is unmet at its commit and
+// met at the trunk's tip gives one, whether the pin is behind or off.
+func TestSnapshotCauseOffTrunk(t *testing.T) {
+	const name = "subproject-pin-off-trunk"
+	// As built: the leaf reads the task at a commit off the trunk, and the
+	// trunk stays at defined. The pin is neither behind nor on its trunk.
+	built := entry(t, name)
+	link := built.Snapshots("b2c9")[0].Link
+	if pin := built.Pin(link); pin == nil || pin.OnTrunk.String() != "no" || pin.Behind.String() == "yes" {
+		t.Fatalf("%s: the pin reads %+v; want it off the trunk and not behind", name, pin)
+	}
+	// The gate advances (the task read has passed the leaf's next gate), and
+	// the pin does not.
+	asBuilt := Blockage(built, Query{Level: Provenance})
+	for _, c := range asBuilt.Causes {
+		if c.Kind == "snapshot" && c.Advance == "pin" {
+			t.Errorf("%s: the leaf's snapshot off the trunk gives the cause %q; want none that advances the pin", name, causesOf(asBuilt))
+		}
+	}
+	if got := causesOf(asBuilt); len(got) != 1 || !strings.Contains(got[0], " advances holds 1 gate of ") {
+		t.Errorf("%s: the causes are %q; want the one cause that advances the gate", name, got)
+	}
+
+	// Beside it: the trunk moves to release, and b2c9 requires the task at
+	// release. The task stands at design at the pin, off the trunk, so the
+	// requirement is due and unmet there, and met at the tip.
+	parent := t.TempDir()
+	umbrella, sub := filepath.Join(parent, name), filepath.Join(parent, name+".sub")
+	copyTree(t, builtAt(t, name), umbrella)
+	copyTree(t, builtAt(t, name+".sub"), sub)
+	gitRun(t, sub, "checkout", "-q", "main")
+	status := filepath.Join(sub, ".tableaux", "status", "5a00.yaml")
+	if err := os.WriteFile(status, []byte("gate: release\nstate: nominal\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, sub, "add", "-A")
+	gitRun(t, sub, "commit", "-q", "-m", "Record the release on the trunk")
+	gitRun(t, filepath.Join(umbrella, "sub"), "fetch", "-q", sub, "+main:refs/remotes/origin/main")
+	task := filepath.Join(umbrella, ".tableaux", "tasks", "b2c9.yaml")
+	data, err := os.ReadFile(task)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requires := "requires:\n  - { subproject: { url: sub, id: \"5a00\" }, from: release, to: design, text: The design }\njunctions:"
+	if err := os.WriteFile(task, []byte(strings.Replace(string(data), "junctions:", requires, 1)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, umbrella, "add", "-A")
+	gitRun(t, umbrella, "commit", "-q", "-m", "Require the design of the subproject")
+
+	f := derived(t, load.Options{}, umbrella, "main", "")
+	if c := f.Requires("b2c9"); len(c) != 1 || !c[0].Due || c[0].Met || c[0].AtTrunk.String() != "yes" {
+		t.Fatalf("%s with the trunk at release: the conditions are %d, the first %+v", name, len(c), c[0])
+	}
+	if pin := f.Pin(f.Snapshots("b2c9")[0].Link); pin == nil || pin.OnTrunk.String() != "no" {
+		t.Fatalf("%s with the trunk at release: the pin reads %+v; want it off the trunk", name, pin)
+	}
+	tree := Blockage(f, Query{Level: Provenance})
+	want := []string{
+		"snapshot b2c9 defined pat@example.org subproject advances holds 2 pin of sub",
+		"snapshot b2c9 defined pat@example.org subproject advances holds 1 gate of sub",
+	}
+	if got := causesOf(tree); !reflect.DeepEqual(got, want) {
+		t.Fatalf("%s with the trunk at release: the causes are %q; want %q", name, got, want)
+	}
+	// The pin advances for the requirement alone; the leaf's own snapshot
+	// off the trunk adds the cause of its gate, as in the built entry.
+	if held := heldOf(tree.Causes[0].Held); held != "b2c9@design requirement (e4a1@design parent of b2c9 also [2])" {
+		t.Errorf("%s with the trunk at release: the pin cause holds %q", name, held)
 	}
 }
 

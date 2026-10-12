@@ -228,6 +228,73 @@ func TestSchemaClosesTheWords(t *testing.T) {
 	t.Error("model-mismatch holds no reading that differs")
 }
 
+// T3: the schema types every closed set of words of the shared model as an
+// enum (decision 14 (b)): a word outside a set fails at each key that holds
+// the set, in the status views as in the structural ones.
+func TestSchemaClosesEverySet(t *testing.T) {
+	s := envelopeSchema(t)
+	f, _ := station(t, "main")
+	for _, c := range []struct {
+		command string
+		q       Query
+		changes [][2]string
+	}{
+		{"task", Query{Task: "c07d", Level: Provenance}, [][2]string{
+			{`"by": "both"`, `"by": "either"`},                 // which identity of a deciding commit is an authority
+			{`"on_trunk": "yes"`, `"on_trunk": "true"`},        // a fact that may be undetermined
+			{`"behind": "yes"`, `"behind": "maybe"`},           //
+			{`"at_trunk": "unknown"`, `"at_trunk": ""`},        //
+			{`"effect": "accepts"`, `"effect": "repeats"`},     // a review's effect
+			{`"kind": "reviewed"`, `"kind": "review"`},         // an event's kind
+			{`"key": "person"`, `"key": "human"`},              // a mark's key
+			{"[\n        \"person\"", "[\n        \"human\""},  // a mark of a junction
+			{`"change": "pin"`, `"change": "gitlink"`},         // what a commit does to a path
+			{`"change": "changed"`, `"change": "modified"`},    //
+			{`"stands": "here"`, `"stands": "current"`},        // where a junction stands
+			{`"form": "submodule"`, `"form": "gitlink"`},       // a link's form
+			{`"field": "applies"`, `"field": "exempt"`},        // the field a supplier states
+			{`"condition": "unmet"`, `"condition": "not met"`}, // a requirement's condition
+		}},
+		{"authority", Query{Task: "a1c0", Level: Provenance}, [][2]string{
+			{`"by": "both"`, `"by": "author and committer"`}, // of a deciding commit of the delegation
+			{`"stands": ""`, `"stands": "default"`},          // a parent's default
+		}},
+		{"assignment", Query{Task: "a1c0", Level: Provenance}, [][2]string{
+			{`"kind": "assignee"`, `"kind": "assigned"`},       // a position's kind
+			{`"kind": "contributes"`, `"kind": "contributor"`}, //
+			{`"form": "submodule"`, `"form": ""`},              // of a recursive row's subproject
+			{`"stands": "next"`, `"stands": "due"`},            // of a junction row
+		}},
+		{"tableau", Query{Level: Detail}, [][2]string{
+			{"[\n            \"person\"", "[\n            \"human\""}, // a mark of a cell
+		}},
+		{"queue", Query{Task: "a1c0", Person: "ada@example.org", Level: Provenance, Brief: &BriefOf{Task: "9f31", Gate: "performance"}}, [][2]string{
+			{`"condition": "unmet"`, `"condition": "due"`}, // of an edge of a brief
+			{`"kind": "reason"`, `"kind": "blocked"`},      // why a work item waits
+			{`"kind": "assignee"`, `"kind": "assigned"`},   // where a field of a brief resolves from
+			{`"follows": "plain"`, `"follows": "mixed"`},   // the kind of the junction after a brief's gate
+		}},
+		{"blockage", Query{Task: "a1c0", Level: Detail}, [][2]string{
+			{`"mark": "person"`, `"mark": "exempt"`},     // the mark of a cause's resolver
+			{`"at_trunk": "unknown"`, `"at_trunk": "-"`}, // of a requirement a cause holds
+		}},
+	} {
+		valid := encoded(t, viewOf(f, c.command, c.q))
+		if err := s.Validate(envelope(t, c.command, c.q, valid)); err != nil {
+			t.Fatalf("%s does not validate: %v", c.command, err)
+		}
+		for _, change := range c.changes {
+			if !bytes.Contains(valid, []byte(change[0])) {
+				t.Fatalf("%s holds no %s", c.command, change[0])
+			}
+			broken := bytes.Replace(valid, []byte(change[0]), []byte(change[1]), 1)
+			if err := s.Validate(envelope(t, c.command, c.q, broken)); err == nil {
+				t.Errorf("%s: the schema accepts %s", c.command, change[1])
+			}
+		}
+	}
+}
+
 // viewOf returns the data of the view a command names.
 func viewOf(f *derive.Facts, command string, q Query) any {
 	switch command {
