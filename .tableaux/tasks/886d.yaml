@@ -18,6 +18,7 @@ references:
   - { url: https://github.com/nbyoung/tablo/blob/main/design/27a3.md, text: "The derived facts the status views show, the roll-up and its chain among them (A5, decision 1)" }
 requires:
   - { id: "27a3", from: implementation, to: design, text: Roll-up and requirement conditions }
+  - { id: "493e", from: implementation, to: implementation, text: The shared model of package view }
 junctions:
   mockup:         { applies: false }
 parent: { id: "4091", order: 2 }
