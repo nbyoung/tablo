@@ -246,6 +246,17 @@ $defs:
   view_status_kind:   { enum: [recorded, absent, rollup, snapshot] }
   view_origin_kind:   { enum: [rollup, snapshot] }
   view_why:           { enum: ["", no_history, no_trunk, off_trunk, no_commit, no_link, no_task, no_gate, no_state, no_children, cycle] }   # why a fact is undetermined; "" when it is not
+  view_hand:          { enum: ["", author, committer, both] }               # which identity of a deciding commit is an authority; "" for a proposed task
+  view_known:         { enum: [unknown, "no", "yes"] }                      # a fact of a pin or of a trunk that may be undetermined
+  view_effect:        { enum: [accepts, authorisation, none] }              # what accepts a reviewed junction
+  view_event_kind:    { enum: [task, authorised, status, reaffirmed, reviewed, pin] }
+  view_mark_key:      { enum: [person, agent, reviewer, subproject, exempt] }
+  view_change:        { enum: [added, changed, removed, pin] }              # what a commit does to a path
+  view_stands:        { enum: ["", passed, here, next, later, exempt] }     # where a junction stands against its task's status; "" on a parent
+  view_form:          { enum: [submodule, directory, url, none] }           # the form of a link; none where the path leads nowhere
+  view_field:         { enum: [contributor, model, reviewer, references, subproject, applies] }   # the field of a junction a supplier states
+  view_condition:     { enum: ["", met, unmet, pending] }                   # a requirement's condition; "" when undetermined
+  view_position_kind: { enum: [assignee, authority, contributes, reviews, recursive] }
   view_assigned_row:
     type: object
     required: [id, title, under, status, next, next_gate]
@@ -270,7 +281,7 @@ $defs:
     properties:
       commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
       way: { $ref: "#/$defs/view_way_or_none" }
-      by: { type: string }
+      by: { $ref: "#/$defs/view_hand" }
       email: { type: string }
       judges: { type: array, items: { type: string } }
       why: { $ref: "#/$defs/view_why" }
@@ -335,7 +346,7 @@ $defs:
       commit: { $ref: "#/$defs/view_commit" }
       way: { $ref: "#/$defs/view_way" }
       merged: { type: string }
-      by: { type: string }
+      by: { $ref: "#/$defs/view_hand" }
       email: { type: string }
       tasks: { type: array, items: { type: string } }
   view_delegation:
@@ -368,7 +379,7 @@ $defs:
       date: { type: string }
       commit: { type: string }
       by: { type: string }
-      kind: { type: string }
+      kind: { $ref: "#/$defs/view_event_kind" }
       recorded: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_event_status" }] }
       gate: { type: string }
       pin: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_pin_move" }] }
@@ -386,7 +397,7 @@ $defs:
     required: [path, change]
     properties:
       path: { type: string }
-      change: { type: string }
+      change: { $ref: "#/$defs/view_change" }
   view_file_commit:
     type: object
     required: [path, commit]
@@ -434,7 +445,7 @@ $defs:
     properties:
       gate: { type: string }
       kind: { $ref: "#/$defs/view_junction_kind" }
-      marks: { type: array, items: { type: string } }
+      marks: { type: array, items: { $ref: "#/$defs/view_mark_key" } }
       acts: { type: boolean }
       contributor: { type: string }
       model: { type: string }
@@ -442,7 +453,7 @@ $defs:
       reviewer_by_default: { type: boolean }
       subproject: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_sub_ref" }] }
       references: { type: array, items: { $ref: "#/$defs/view_reference" } }
-      stands: { type: string }
+      stands: { $ref: "#/$defs/view_stands" }
       reviewed: { type: boolean }
       from: { type: array, items: { type: string } }
   view_junction_row:
@@ -452,7 +463,7 @@ $defs:
       task: { $ref: "#/$defs/view_task_ref" }
       gate: { type: string }
       kind: { $ref: "#/$defs/view_junction_kind" }
-      marks: { type: array, items: { type: string } }
+      marks: { type: array, items: { $ref: "#/$defs/view_mark_key" } }
       acts: { type: boolean }
       contributor: { type: string }
       model: { type: string }
@@ -460,7 +471,7 @@ $defs:
       reviewer_by_default: { type: boolean }
       subproject: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_sub_ref" }] }
       references: { type: array, items: { $ref: "#/$defs/view_reference" } }
-      stands: { type: string }
+      stands: { $ref: "#/$defs/view_stands" }
       reviewed: { type: boolean }
       from: { type: array, items: { type: string } }
   view_legend:
@@ -479,7 +490,7 @@ $defs:
       url: { type: string }
       id: { type: string }
       task: { $ref: "#/$defs/view_task_ref" }
-      form: { type: string }
+      form: { $ref: "#/$defs/view_form" }
       commit: { type: string }
       why: { $ref: "#/$defs/view_why" }
       by: { type: string }
@@ -492,15 +503,15 @@ $defs:
       moved: { type: boolean }
       trunk: { type: string }
       tip: { type: string }
-      on_trunk: { type: string }
-      behind: { type: string }
+      on_trunk: { $ref: "#/$defs/view_known" }
+      behind: { $ref: "#/$defs/view_known" }
       pinned: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
       set_by: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
   view_mark:
     type: object
     required: [key, symbol, meaning, junction]
     properties:
-      key: { type: string }
+      key: { $ref: "#/$defs/view_mark_key" }
       symbol: { type: string }
       meaning: { type: string }
       junction: { $ref: "#/$defs/view_junction_kind" }
@@ -578,7 +589,7 @@ $defs:
     type: object
     required: [kind, gate, tasks, reviewer, from, reviewer_from, url, pin]
     properties:
-      kind: { type: string }
+      kind: { $ref: "#/$defs/view_position_kind" }
       gate: { type: string }
       tasks: { type: array, items: { type: string } }
       reviewer: { type: string }
@@ -618,19 +629,19 @@ $defs:
       text: { type: string }
       met: { type: boolean }
       due: { type: boolean }
-      condition: { type: string }
+      condition: { $ref: "#/$defs/view_condition" }
       why: { $ref: "#/$defs/view_why" }
       status: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_status" }] }
       subproject: { type: string }
       commit: { type: string }
-      at_trunk: { type: string }
+      at_trunk: { $ref: "#/$defs/view_known" }
   view_review:
     type: object
     required: [gate, reviewer, effect, by, commit]
     properties:
       gate: { type: string }
       reviewer: { type: string }
-      effect: { type: string }
+      effect: { $ref: "#/$defs/view_effect" }
       by: { type: string }
       commit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_commit" }] }
   view_snapshot:
@@ -640,7 +651,7 @@ $defs:
       url: { type: string }
       id: { type: string }
       task: { $ref: "#/$defs/view_task_ref" }
-      form: { type: string }
+      form: { $ref: "#/$defs/view_form" }
       commit: { type: string }
       why: { $ref: "#/$defs/view_why" }
       assignee: { type: string }
@@ -698,7 +709,7 @@ $defs:
       url: { type: string }
       id: { type: string }
       task: { $ref: "#/$defs/view_task_ref" }
-      form: { type: string }
+      form: { $ref: "#/$defs/view_form" }
       commit: { type: string }
       why: { $ref: "#/$defs/view_why" }
   view_subtree:
@@ -712,7 +723,7 @@ $defs:
     required: [gate, field, value, by, key, file, line, col]
     properties:
       gate: { type: string }
-      field: { type: string }
+      field: { $ref: "#/$defs/view_field" }
       value: { type: string }
       by: { type: string }
       key: { type: string }
@@ -772,6 +783,7 @@ $defs:
   view_act:        { enum: [contributes, records, reviews, authorises, advances] }      # the act that resolves a cause
   view_via:        { enum: [self, parent, requirement] }                                # how a cause holds a task
   view_advance:    { enum: ["", pin, gate] }                                            # what a snapshot cause advances; "" for another cause
+  view_cause_mark: { enum: ["", person, agent, reviewer, subproject] }                  # the mark of a cause's resolver; "" for none
   view_blockage:
     type: object
     required: [legend, causes, kinds, not_due_count, not_due_unmet]
@@ -806,7 +818,7 @@ $defs:
       from: { type: string }
       to: { type: string }
       text: { type: string }
-      condition: { type: string }
+      condition: { $ref: "#/$defs/view_condition" }
       url: { type: string }
       commit: { type: string }
   view_brief_field:
@@ -896,7 +908,7 @@ $defs:
       pin: { type: string }
       tip: { type: string }
       resolver: { type: string }
-      mark: { type: string }
+      mark: { $ref: "#/$defs/view_cause_mark" }
       act: { $ref: "#/$defs/view_act" }
       advance: { $ref: "#/$defs/view_advance" }
       holds: { type: integer }
@@ -914,7 +926,7 @@ $defs:
       historical: { type: boolean }
       state: { type: string }
       reason: { type: string }
-      marks: { type: array, items: { type: string } }
+      marks: { type: array, items: { $ref: "#/$defs/view_mark_key" } }
       acts: { type: boolean }
   view_grid_row:
     type: object
