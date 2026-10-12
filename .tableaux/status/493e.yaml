@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: view/ and internal/views give the gate definition, the task definition, the authority delegation and the task assignment as data, with Facts.LastChange in the Derivation, the schema of the four data objects in envelope.schema.yaml and the five golden files; the unit gate runs T1 to T21 of design/493e.md on the built corpus; the default marks of a parent wait on the fact of the Derivation that 886d adds, and the four commands of the plumbing command wait on snapshot.go of 4ed9
+note: T1 to T21 of design/493e.md pass on the built corpus with no skip, and the 24 broken cases of TestSchemaClosesEverySet with the 5 of TestSchemaClosesTheWords hold the closed sets of decision 14 (b); T4, T13, T16 and T20 read their facts as decision 14 (a) states; nothing waits for a later gate except the four commands of the plumbing command, which wait on snapshot.go of 4ed9; integrate needs 4ed9 to emit the four views
