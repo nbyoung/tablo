@@ -784,6 +784,9 @@ $defs:
   view_via:        { enum: [self, parent, requirement] }                                # how a cause holds a task
   view_advance:    { enum: ["", pin, gate] }                                            # what a snapshot cause advances; "" for another cause
   view_cause_mark: { enum: ["", person, agent, reviewer, subproject] }                  # the mark of a cause's resolver; "" for none
+  view_wait_kind:  { enum: [requirement, reason, authorisation, review] }               # why a work item waits, in the order of its causes
+  view_source_kind: { enum: [task, assignee, default] }                                 # where a field of a brief resolves from
+  view_follows:    { enum: ["", plain, recursive] }                                     # the kind of the junction after a brief's gate; "" at the last
   view_blockage:
     type: object
     required: [legend, causes, kinds, not_due_count, not_due_unmet]
@@ -835,7 +838,7 @@ $defs:
       symbol: { type: string }
       name: { type: string }
       criteria: { type: string }
-      follows: { type: string }
+      follows: { $ref: "#/$defs/view_follows" }
   view_brief_junction:
     type: object
     required: [contributor, model, reviewer, references]
@@ -862,7 +865,7 @@ $defs:
     type: object
     required: [kind, id, title]
     properties:
-      kind: { type: string }
+      kind: { $ref: "#/$defs/view_source_kind" }
       id: { type: string }
       title: { type: string }
   view_brief_status:
@@ -1020,7 +1023,7 @@ $defs:
     type: object
     required: [kind, requires, reason, by]
     properties:
-      kind: { type: string }
+      kind: { $ref: "#/$defs/view_wait_kind" }
       requires: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
       reason: { type: string }
       by: { type: string }

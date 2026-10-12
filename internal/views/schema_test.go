@@ -270,6 +270,9 @@ func TestSchemaClosesEverySet(t *testing.T) {
 		}},
 		{"queue", Query{Task: "a1c0", Person: "ada@example.org", Level: Provenance, Brief: &BriefOf{Task: "9f31", Gate: "performance"}}, [][2]string{
 			{`"condition": "unmet"`, `"condition": "due"`}, // of an edge of a brief
+			{`"kind": "reason"`, `"kind": "blocked"`},      // why a work item waits
+			{`"kind": "assignee"`, `"kind": "assigned"`},   // where a field of a brief resolves from
+			{`"follows": "plain"`, `"follows": "mixed"`},   // the kind of the junction after a brief's gate
 		}},
 		{"blockage", Query{Task: "a1c0", Level: Detail}, [][2]string{
 			{`"mark": "person"`, `"mark": "exempt"`},     // the mark of a cause's resolver
