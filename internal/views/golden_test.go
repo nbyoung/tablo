@@ -17,7 +17,8 @@ type golden struct {
 	query   Query
 }
 
-// The five golden files of design 493e, and the six of design 886d.
+// The five golden files of design 493e, the six of design 886d and the three
+// of design 8ed1.
 var goldens = []golden{
 	{"tableau.detail.json", "tableau", Query{Level: Detail, Window: 1}},
 	{"context-ben.detail.json", "context", Query{Person: "ben@example.org", Level: Detail, Window: 1}},
@@ -30,6 +31,9 @@ var goldens = []golden{
 	{"task-3c5d.detail.json", "task", Query{Task: "3c5d", Level: Detail}},
 	{"authority.provenance.json", "authority", Query{Task: "a1c0", Level: Provenance}},
 	{"assignment.glance.json", "assignment", Query{Task: "a1c0", Level: Glance}},
+	{"history.glance.json", "history", Query{Level: Glance}},
+	{"history-4e2b.detail.json", "history", Query{Task: "4e2b", Level: Detail}},
+	{"history-c07d.provenance.json", "history", Query{Task: "c07d", Level: Provenance}},
 }
 
 // T2: the golden data, byte for byte, from weather-station at main.
