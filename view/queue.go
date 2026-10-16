@@ -21,6 +21,7 @@ type QueueItem struct {
 	Since  string  `json:"since"`  // the date of the status; "" when undetermined
 	Age    int     `json:"age"`    // reaffirmation: days from Since to the date of the source commit; else 0
 	Causes []Wait  `json:"causes"` // waiting: why, in the order requirement, reason, authorisation, review; else empty
+	Why    string  `json:"why"`    // authorisation: the task's Authorisation.Why, "" where a commit decides but not by an authority; else ""
 	*ItemDetail
 }
 
@@ -29,6 +30,7 @@ type Wait struct {
 	Kind     string       `json:"kind"`     // requirement, reason, authorisation or review
 	Requires *Requirement `json:"requires"` // requirement: the unmet entry; else null
 	Reason   string       `json:"reason"`   // reason: the status's reason, a key of Legend.Reasons other than review; else ""
+	Note     string       `json:"note"`     // reason: the status's note; else ""
 	By       string       `json:"by"`       // authorisation: the nearest authority; review: the reviewer; else ""
 }
 
@@ -54,7 +56,8 @@ type ParentEdge struct {
 }
 
 // Brief is one work item with every fact a brief states. Its keys are those
-// tabloio's internal/brief reads; the envelope states the person and the ref.
+// tabloio's public package brief reads; the envelope states the person and
+// the ref.
 type Brief struct {
 	Kind       string         `json:"kind"`   // ready or waiting
 	Causes     []Wait         `json:"causes"` // as the item's

@@ -1015,7 +1015,7 @@ $defs:
       brief: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_brief" }] }
   view_queue_item:
     type: object
-    required: [kind, task, gate, model, since, age, causes]
+    required: [kind, task, gate, model, since, age, causes, why]
     properties:
       kind: { $ref: "#/$defs/view_item_kind" }
       task: { $ref: "#/$defs/view_task_ref" }
@@ -1024,6 +1024,7 @@ $defs:
       since: { type: string }
       age: { type: integer }
       causes: { type: array, items: { $ref: "#/$defs/view_wait" } }
+      why: { $ref: "#/$defs/view_why" }
       junction: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_junction" }] }
       sources: { type: array, items: { $ref: "#/$defs/view_supplier" } }
       task_references: { type: array, items: { $ref: "#/$defs/view_reference" } }
@@ -1045,11 +1046,12 @@ $defs:
       commands: { type: array, items: { $ref: "#/$defs/view_command" } }
   view_wait:
     type: object
-    required: [kind, requires, reason, by]
+    required: [kind, requires, reason, note, by]
     properties:
       kind: { $ref: "#/$defs/view_wait_kind" }
       requires: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
       reason: { type: string }
+      note: { type: string }
       by: { type: string }
   view_waiting:
     type: object

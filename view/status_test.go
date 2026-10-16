@@ -20,7 +20,7 @@ const (
 	rowProvenance      = "status_commit own_commit chain junctions sources linkages"
 	queueGlance        = "legend items"
 	queueProvenance    = "brief"
-	itemGlance         = "kind task gate model since age causes"
+	itemGlance         = "kind task gate model since age causes why"
 	itemDetail         = "junction sources task_references requires unblocks also_required_by parent_unblocks status status_commit authorisation"
 	blockageGlance     = "legend causes kinds not_due_count not_due_unmet"
 	blockageDetail     = "not_due"
@@ -122,9 +122,9 @@ func TestStatusKeysByLevel(t *testing.T) {
 func TestStatusEmptyValues(t *testing.T) {
 	for want, v := range map[string]any{
 		`{"kind":"","historical":false,"state":"","reason":"","marks":[],"acts":false}`:                                                   Cell{Marks: []string{}},
-		`{"kind":"","requires":null,"reason":"","by":""}`:                                                                                 Wait{},
+		`{"kind":"","requires":null,"reason":"","note":"","by":""}`:                                                                       Wait{},
 		`{"task":{"id":"","title":""},"gate":"","parent":false,"via":"","child":"","requires":null,"contributor":"","also":[],"held":[]}`: Held{Also: []int{}, Held: []Held{}},
-		`{"kind":"","task":{"id":"","title":""},"gate":"","model":"","since":"","age":0,"causes":[]}`:                                     QueueItem{Causes: []Wait{}},
+		`{"kind":"","task":{"id":"","title":""},"gate":"","model":"","since":"","age":0,"causes":[],"why":""}`:                            QueueItem{Causes: []Wait{}},
 		`{"gates":[],"folded":false,"count":0,"by_gate":[]}`:                                                                              Column{Gates: []string{}, ByGate: []int{}},
 	} {
 		data, err := json.Marshal(v)
