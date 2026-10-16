@@ -13,8 +13,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/nbyoung/tablo/internal/audit"
 	"github.com/nbyoung/tablo/internal/derive"
 	"github.com/nbyoung/tablo/internal/load"
+	"github.com/nbyoung/tablo/internal/model"
 )
 
 // commands names the four structural views and the four status views as the
@@ -300,6 +302,45 @@ func TestImports(t *testing.T) {
 		}
 		if checked < 5 {
 			t.Errorf("%s holds %d files", dir, checked)
+		}
+	}
+}
+
+// T16: deterministic, pure and safe to share. Two calls give equal bytes,
+// and eight goroutines call both functions on one Facts and one Report,
+// derived afresh: the Facts have computed only what the audit's run reads.
+func TestTemporalViewsAreSafeToShare(t *testing.T) {
+	calls := func(f *derive.Facts, r *audit.Report) []byte {
+		var b bytes.Buffer
+		for _, level := range []Level{Glance, Detail, Provenance} {
+			for _, q := range []Query{{}, {Task: "4e2b"}, {Task: "c07d"}, {Person: "ada@example.org"}} {
+				q.Level = level
+				b.Write(encoded(t, History(f, q)))
+				q.Minimum = model.Information
+				b.Write(encoded(t, Audit(f, r, q)))
+			}
+		}
+		return b.Bytes()
+	}
+	f, r := report(t)
+	want := calls(f, r)
+	if again := calls(f, r); !bytes.Equal(want, again) {
+		t.Fatal("a second call gives other bytes")
+	}
+	shared, sharedReport := report(t)
+	got := make([][]byte, 8)
+	var wg sync.WaitGroup
+	for i := range got {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			got[i] = calls(shared, sharedReport)
+		}()
+	}
+	wg.Wait()
+	for i, g := range got {
+		if !bytes.Equal(g, want) {
+			t.Fatalf("goroutine %d reads other views than a lone reader", i)
 		}
 	}
 }
