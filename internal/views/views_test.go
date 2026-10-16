@@ -257,7 +257,8 @@ func TestImports(t *testing.T) {
 			switch imported {
 			case "path", "sort", "strconv", "strings", "time",
 				"github.com/nbyoung/tablo/view", "github.com/nbyoung/tablo/internal/derive",
-				"github.com/nbyoung/tablo/internal/history", "github.com/nbyoung/tablo/internal/model":
+				"github.com/nbyoung/tablo/internal/history", "github.com/nbyoung/tablo/internal/model",
+				"github.com/nbyoung/tablo/internal/audit":
 				return true
 			}
 			return false
