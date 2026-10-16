@@ -34,7 +34,10 @@ func Authority(f *derive.Facts, q Query) *view.Delegation {
 	if q.Level < Detail {
 		return out
 	}
-	out.DelegationDetail = &view.DelegationDetail{Parents: []view.Chain{}}
+	out.DelegationDetail = &view.DelegationDetail{Authorities: []view.Authority{}, Parents: []view.Chain{}}
+	for _, a := range f.Authorities(top) {
+		out.Authorities = append(out.Authorities, view.Authority{Email: a.Email, By: a.Task})
+	}
 	for _, row := range out.Rows {
 		if row.Parent {
 			out.Parents = append(out.Parents, b.delegation(row.ID))

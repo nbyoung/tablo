@@ -46,7 +46,7 @@ const (
 	taskDetail        = "description references path siblings children authorities requires dependents junctions snapshot"
 	taskProvenance    = "status_commit own_commit authorisation considered chain linkages sources reviews models events event_count commands"
 	delegGlance       = "legend rows"
-	delegDetail       = "parents"
+	delegDetail       = "authorities parents"
 	delegProvenance   = "deciding undecided commands"
 	assignGlance      = "legend people recursive"
 	assignDetail      = "sections"

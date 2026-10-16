@@ -103,11 +103,11 @@ allOf:
   - if:   { required: [command, data, params], properties: { command: { const: task }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
     then: { properties: { data: { required: [description, references, path, siblings, children, authorities, requires, dependents, junctions, snapshot, status_commit, own_commit, authorisation, considered, chain, linkages, sources, reviews, models, events, event_count, commands] } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
-    then: { properties: { data: { properties: { parents: false, deciding: false, undecided: false, commands: false } } } }
+    then: { properties: { data: { properties: { authorities: false, parents: false, deciding: false, undecided: false, commands: false } } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
-    then: { properties: { data: { required: [parents], properties: { deciding: false, undecided: false, commands: false } } } }
+    then: { properties: { data: { required: [authorities, parents], properties: { deciding: false, undecided: false, commands: false } } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
-    then: { properties: { data: { required: [parents, deciding, undecided, commands] } } }
+    then: { properties: { data: { required: [authorities, parents, deciding, undecided, commands] } } }
   - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
     then: { properties: { data: { properties: { sections: false } } } }
   - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { enum: [detail, provenance] } } } } }
@@ -374,6 +374,7 @@ $defs:
     properties:
       legend: { $ref: "#/$defs/view_legend" }
       rows: { type: array, items: { $ref: "#/$defs/view_delegation_row" } }
+      authorities: { type: array, items: { $ref: "#/$defs/view_authority" } }
       parents: { type: array, items: { $ref: "#/$defs/view_chain" } }
       deciding: { type: array, items: { $ref: "#/$defs/view_deciding" } }
       undecided: { type: array, items: { $ref: "#/$defs/view_undecided" } }
