@@ -1,3 +1,4 @@
 gate: function
 state: nominal
-note: prototype/8ed1 derives the history and a stand-in audit between two refs from one git log pass and one cat-file batch, on the weather station
+reason: review
+note: design/8ed1.md on branch wave/8ed1 awaits the owner's review at the design gate
