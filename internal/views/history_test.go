@@ -596,3 +596,65 @@ func TestToolingPlan(t *testing.T) {
 		t.Errorf("the root over 0704a09..3cdae52 counts %s", counted(root))
 	}
 }
+
+// A subproject event's title (decision 8): the subproject task's title as
+// the subproject's files at the pin state it, in the task view's events and
+// in the history's lines alike; "" where those files lack the task.
+func TestSubEventTitle(t *testing.T) {
+	f, _ := station(t, "main")
+	taken := 0
+	for _, l := range History(f, Query{Task: "c07d", Level: Detail}).Lines {
+		for _, e := range l.Events {
+			if e.Subproject == nil {
+				continue
+			}
+			taken++
+			if *e.Subproject != (view.SubEvent{URL: "firmware", Task: "f1a0", Title: "Weather node image"}) {
+				t.Errorf("a line taken at %.7s names %+v", e.Commit, e.Subproject)
+			}
+		}
+	}
+	for _, e := range Task(f, Query{Task: "c07d", Level: Provenance}).Events {
+		if e.Subproject != nil {
+			taken++
+			if e.Subproject.Title != "Weather node image" {
+				t.Errorf("the task view's event at %.7s names %+v", e.Commit, e.Subproject)
+			}
+		}
+	}
+	if taken < 4 {
+		t.Errorf("%d events are taken from the firmware; want two lines and two events at least", taken)
+	}
+	for _, l := range History(entry(t, "subproject-same-repository"), Query{Level: Detail}).Lines {
+		if s := l.Events[0].Subproject; s != nil && (s.Task != "5a00" || s.Title != "Subproject") {
+			t.Errorf("a line taken from the same repository names %+v", s)
+		}
+	}
+	// Over the corpus, each taken event's title is the subproject's own.
+	for _, name := range built(t) {
+		f := derived(t, load.Options{}, builtAt(t, name), "HEAD", "")
+		if f.Refused() != nil {
+			continue
+		}
+		for _, e := range f.History() {
+			if e.Sub == "" {
+				continue
+			}
+			if want := refIn(f.Sub(e.Link), e.Sub).Title; event(e).Subproject.Title != want {
+				t.Errorf("%s: the event of %s at %.7s names the title %q; the subproject states %q", name, e.Sub, e.Commit.ID, event(e).Subproject.Title, want)
+			}
+		}
+	}
+	// Where the subproject's files lack the task, the title is "".
+	for _, e := range f.Events("c07d") {
+		if e.Sub == "" {
+			continue
+		}
+		lacking := *e
+		lacking.Sub, lacking.SubTitle = "ffff", refIn(f.Sub(e.Link), "ffff").Title
+		if s := event(&lacking).Subproject; s.Task != "ffff" || s.Title != "" || s.URL != "firmware" {
+			t.Errorf("an event of a task the subproject lacks names %+v", s)
+		}
+		break
+	}
+}

@@ -721,10 +721,11 @@ $defs:
       status: { $ref: "#/$defs/view_status" }
   view_sub_event:
     type: object
-    required: [url, task]
+    required: [url, task, title]
     properties:
       url: { type: string }
       task: { type: string }
+      title: { type: string }
   view_sub_ref:
     type: object
     required: [url, id, task, form, commit, why]
