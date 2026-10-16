@@ -433,3 +433,60 @@ func lineOf(t testing.TB, f *derive.Facts, from view.Stated) string {
 	}
 	return lines[from.Line-1]
 }
+
+// The commands of the assignment's provenance (decision 15 (b)): over the
+// source commit, one git show per task file a position names, in the order
+// first named; the assignees of the tasks directory; one git ls-tree over
+// the submodule paths of the recursive rows. [] without a history, and no
+// key below provenance.
+func TestAssignmentCommands(t *testing.T) {
+	f, _ := station(t, "main")
+	source := f.Log().Source
+	a := Assignment(f, Query{Task: "a1c0", Level: Provenance})
+	recursive := 0
+	for _, s := range a.Sections {
+		recursive += len(s.Recursive)
+	}
+	if recursive == 0 {
+		t.Fatal("no section holds a recursive row")
+	}
+	var got []string
+	for _, c := range a.Commands {
+		got = append(got, c.Text)
+		if c.Comment != "" {
+			t.Errorf("%s carries the comment %q", c.Text, c.Comment)
+		}
+	}
+	want := []string{
+		"git show " + source + ":.tableaux/tasks/a1c0.yaml",
+		"git show " + source + ":.tableaux/tasks/4e2b.yaml",
+		"git show " + source + ":.tableaux/tasks/9f31.yaml",
+		"git show " + source + ":.tableaux/tasks/c07d.yaml",
+		"git grep -n '^assignee:' " + source + " -- .tableaux/tasks",
+		"git ls-tree " + source + " firmware",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("the commands are\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	// A person's assignment names the files of that person's positions alone,
+	// and no ls-tree where the person holds no recursive row.
+	got = nil
+	for _, c := range Assignment(f, Query{Task: "a1c0", Person: "opus@example.org", Level: Provenance}).Commands {
+		got = append(got, c.Text)
+	}
+	if want := []string{"git show " + source + ":.tableaux/tasks/c07d.yaml", "git grep -n '^assignee:' " + source + " -- .tableaux/tasks"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("opus's commands are %q; want %q", got, want)
+	}
+	for _, level := range []Level{Glance, Detail} {
+		below := Assignment(f, Query{Task: "a1c0", Level: level})
+		if below.AssignmentProvenance != nil || strings.Contains(string(encoded(t, below)), `"commands"`) {
+			t.Errorf("at %s the assignment holds the commands", levels[level])
+		}
+	}
+	station := builtAt(t, "weather-station")
+	tree := derived(t, load.Options{}, station, gitRun(t, station, "rev-parse", "main^{tree}"), "")
+	bare := Assignment(tree, Query{Task: "a1c0", Level: Provenance})
+	if bare.Commands == nil || len(bare.Commands) != 0 || len(bare.Sections) == 0 || !strings.Contains(string(encoded(t, bare)), `"commands": []`) {
+		t.Errorf("without a history the commands are %#v", bare.Commands)
+	}
+}

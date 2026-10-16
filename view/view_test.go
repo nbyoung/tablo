@@ -50,6 +50,7 @@ const (
 	delegProvenance   = "deciding undecided commands"
 	assignGlance      = "legend people recursive"
 	assignDetail      = "sections"
+	assignProvenance  = "commands"
 	sectionDetail     = "email assigned recursive contributes reviews models counts authority"
 	sectionProvenance = "positions"
 )
@@ -74,6 +75,7 @@ func TestKeysByLevel(t *testing.T) {
 		{"authority at provenance", Delegation{DelegationDetail: &DelegationDetail{}, DelegationProvenance: &DelegationProvenance{}}, sorted(delegGlance, delegDetail, delegProvenance)},
 		{"assignment at glance", Assignment{}, sorted(assignGlance)},
 		{"assignment at detail", Assignment{AssignmentDetail: &AssignmentDetail{}}, sorted(assignGlance, assignDetail)},
+		{"assignment at provenance", Assignment{AssignmentDetail: &AssignmentDetail{}, AssignmentProvenance: &AssignmentProvenance{}}, sorted(assignGlance, assignDetail, assignProvenance)},
 		{"a section at detail", PersonSection{}, sorted(sectionDetail)},
 		{"a section at provenance", PersonSection{SectionProvenance: &SectionProvenance{}}, sorted(sectionDetail, sectionProvenance)},
 	}
