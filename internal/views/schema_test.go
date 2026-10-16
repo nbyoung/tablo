@@ -11,8 +11,10 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"gopkg.in/yaml.v3"
 
+	"github.com/nbyoung/tablo/internal/audit"
 	"github.com/nbyoung/tablo/internal/derive"
 	"github.com/nbyoung/tablo/internal/load"
+	"github.com/nbyoung/tablo/internal/model"
 )
 
 // envelopeSchema compiles envelope.schema.yaml, the one schema of tablo/1,
@@ -82,6 +84,8 @@ func envelope(t testing.TB, command string, q Query, data []byte) any {
 		if formed {
 			params["columns"] = q.Columns
 		}
+	case "audit":
+		params["stale"], params["now"] = 7, "2026-09-28"
 	case "queue":
 		params["brief"] = nil
 		if q.Brief != nil && idForm.MatchString(q.Brief.Task) && keyForm.MatchString(q.Brief.Gate) {
@@ -312,6 +316,75 @@ func viewOf(f *derive.Facts, command string, q Query) any {
 		return Queue(f, q)
 	case "blockage":
 		return Blockage(f, q)
+	case "history":
+		return History(f, q)
 	}
 	return Assignment(f, q)
+}
+
+// T3: the schema of the temporal views. On eight entries both views at the
+// three levels validate in an envelope and fail under each other level, but
+// for an audit with no row, whose detail and provenance hold the same keys.
+// The schema closes the effect's words, and the names the history adds
+// collide with none that stood before it.
+func TestSchemaOfTheTemporalViews(t *testing.T) {
+	s := envelopeSchema(t)
+	validations, alike := 0, 0
+	for _, name := range []string{"weather-station", "junction-kinds", "submodule-subproject", "subproject-same-repository",
+		"unknown-trailer", "model-mismatch", "handoff-inferred", "roll-up-tie"} {
+		f := entry(t, name)
+		now := "2026-09-01"
+		if log := f.Log(); log != nil && log.Commit(log.Source) != nil {
+			now = log.Commit(log.Source).Date()
+		}
+		r, err := audit.Run(audit.Input{Facts: f, Diagnostics: validated(f), Now: now})
+		if err != nil || r == nil {
+			t.Fatalf("%s: Run: %v, %v", name, r, err)
+		}
+		for level := range levels {
+			q := Query{Level: level, Minimum: model.Information}
+			history := encoded(t, History(f, q))
+			a := Audit(f, r, q)
+			for command, data := range map[string][]byte{"history": history, "audit": encoded(t, a)} {
+				for other, word := range levels {
+					q.Level = other
+					validations++
+					err := s.Validate(envelope(t, command, q, data))
+					switch {
+					case other == level && err != nil:
+						t.Errorf("%s: the %s at %s does not validate: %v", name, command, word, err)
+					case other != level && command == "audit" && len(a.Findings) == 0 && level > Glance && other > Glance:
+						alike++
+						if err != nil {
+							t.Errorf("%s: an audit with no row at %s does not validate at %s: %v", name, levels[level], word, err)
+						}
+					case other != level && err == nil:
+						t.Errorf("%s: the %s at %s validates at %s", name, command, levels[level], word)
+					}
+				}
+			}
+		}
+	}
+	if validations != 144 {
+		t.Errorf("%d validations; the design counts 144", validations)
+	}
+	t.Logf("%d validations, %d of an audit with no row whose detail and provenance hold the same keys", validations, alike)
+	f, _ := station(t, "main")
+	q := Query{Level: Detail}
+	valid := encoded(t, History(f, q))
+	if !bytes.Contains(valid, []byte(`"effect": "accepts"`)) {
+		t.Fatal("the history holds no line that accepts")
+	}
+	if err := s.Validate(envelope(t, "history", q, bytes.Replace(valid, []byte(`"effect": "accepts"`), []byte(`"effect": "approved"`), 1))); err == nil {
+		t.Error("the schema accepts the effect approved")
+	}
+	data, err := os.ReadFile(filepath.Join("..", "..", "envelope.schema.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, def := range []string{"view_history", "view_line", "view_day", "view_event_count", "view_line_effect"} {
+		if n := len(regexp.MustCompile(`(?m)^  `+def+`:`).FindAll(data, -1)); n != 1 {
+			t.Errorf("the schema defines %s %d times", def, n)
+		}
+	}
 }

@@ -399,10 +399,11 @@ func decodeMap(t *testing.T, b []byte) map[string]any {
 
 // TestSchemaHolds is T6: every envelope the tests build validates against
 // EnvelopeSchema, and seven broken ones fail. The schema types the data of a
-// tableau and of a queue (design 886d), and the tableau of these tests is
-// abridged from the prototype and fixes the encoding alone: under those two
-// commands the envelope validates here around no data, and the tests of
-// internal/views validate the data of every view.
+// tableau and of a queue (design 886d), and of a history and an audit (design
+// 8ed1), and the tableau of these tests is abridged from the prototype and
+// fixes the encoding alone: under those four commands the envelope validates
+// here around no data, and the tests of internal/views validate the data of
+// every view.
 func TestSchemaHolds(t *testing.T) {
 	s := schema(t)
 	untyped := func() *Envelope {
@@ -410,13 +411,13 @@ func TestSchemaHolds(t *testing.T) {
 		e.Data = nil
 		return e
 	}
-	audit := tableauEnvelope()
+	audit := untyped()
 	audit.Command = "audit"
 	audit.Params = Resolved{View: Audit, Params: Params{Stale: 7, Now: "2026-10-06", Level: LevelGlance}}
 	queue := untyped()
 	queue.Command = "queue"
 	queue.Params = Resolved{View: Queue, Params: Params{Person: "ada@example.org", Brief: &Brief{Task: "9f31", Gate: "mockup"}, Level: LevelProvenance}}
-	history := tableauEnvelope()
+	history := untyped()
 	history.Command = "history"
 	history.Source.From = &SourceFrom{Ref: "0704a09", Commit: strings.Repeat("a", 40)}
 	history.Params = Resolved{View: History, Params: Params{Task: "9f31", Level: LevelDetail}}

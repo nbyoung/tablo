@@ -115,3 +115,27 @@ func TestHistoryTags(t *testing.T) {
 		}
 	}
 }
+
+// T3: the schema names the keys of the history's types: what the lowest
+// level writes is what the schema requires, and what provenance writes is
+// every key it names.
+func TestHistorySchemaKeys(t *testing.T) {
+	defs := defs(t)
+	for _, c := range []struct {
+		def           string
+		lowest, whole any
+	}{
+		{"view_history", History{}, History{HistoryProvenance: &HistoryProvenance{}}},
+		{"view_line", Line{}, Line{LineDetail: &LineDetail{}, LineProvenance: &LineProvenance{}}},
+		{"view_day", Day{}, Day{}},
+		{"view_event_count", EventCount{}, EventCount{}},
+	} {
+		required, all := named(t, defs, c.def)
+		if got := keysOf(t, c.lowest); !reflect.DeepEqual(got, required) {
+			t.Errorf("%s: the lowest level writes %v; the schema requires %v", c.def, got, required)
+		}
+		if got := keysOf(t, c.whole); !reflect.DeepEqual(got, all) {
+			t.Errorf("%s: provenance writes %v; the schema names %v", c.def, got, all)
+		}
+	}
+}
