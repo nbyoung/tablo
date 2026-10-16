@@ -1,0 +1,70 @@
+# Design 8ed1: the data of the history and the audit, as it joins
+# envelope.schema.yaml. The two allOf blocks join the envelope's allOf after
+# 886d's; the $defs join $defs after dada's. Every name is new: none of them
+# stands in envelope.schema.yaml at main (a test of 8ed1 says so).
+
+allOf:
+  # The data of the two temporal views, and the keys of each level, also
+  # inside a line and a finding, which nest a level as a view does.
+  - if:   { required: [command], properties: { command: { const: history } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_history" }] } } }
+  - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
+    then: { properties: { data: { properties: { commands: false, lines: { items: { properties: { after: false, effect: false, commit: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
+    then: { properties: { data: { properties: { commands: false, lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer], properties: { commit: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [commands], properties: { lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer, commit] } } } } } }
+  - if:   { required: [command], properties: { command: { const: audit } } }
+    then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_audit" }] } } }
+  - if:   { required: [command, data, params], properties: { command: { const: audit }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
+    then: { properties: { data: { properties: { silent: false, findings: { items: { properties: { files: false, message: false, sentence: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: audit }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
+    then: { properties: { data: { required: [silent], properties: { findings: { items: { required: [files, message], properties: { sentence: false } } } } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: audit }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [silent], properties: { findings: { items: { required: [files, message, sentence, source, facts, commits, commands] } } } } } }
+
+$defs:
+  # The data of the history (design 8ed1). A line's events are the task
+  # definition's events, view_event, unchanged.
+  view_line_effect: { enum: ["", authorised_commit, authorised_merge, authorised_trailer, proposed, handoff, accepts, stands, none] }   # what a line does to its task's acceptance or review; "" for nothing
+  view_history:
+    type: object
+    required: [legend, subject, events, commits, kinds, days, lines]
+    properties:
+      legend: { $ref: "#/$defs/view_legend" }
+      subject: { $ref: "#/$defs/view_task_ref" }
+      events: { type: integer, minimum: 0 }
+      commits: { type: integer, minimum: 0 }
+      kinds: { type: array, minItems: 6, maxItems: 6, items: { $ref: "#/$defs/view_event_count" } }
+      days: { type: array, items: { $ref: "#/$defs/view_day" } }
+      lines: { type: array, items: { $ref: "#/$defs/view_line" } }
+      commands: { type: array, items: { $ref: "#/$defs/view_command" } }
+  view_event_count:
+    type: object
+    required: [kind, count]
+    properties:
+      kind: { $ref: "#/$defs/view_event_kind" }
+      count: { type: integer, minimum: 0 }
+  view_day:
+    type: object
+    required: [date, events, commits, kinds]
+    properties:
+      date: { $ref: "#/$defs/date" }
+      events: { type: integer, minimum: 1 }
+      commits: { type: integer, minimum: 1 }
+      kinds: { type: array, items: { $ref: "#/$defs/view_event_count" } }
+  view_line:
+    type: object
+    required: [task, proposal, events]
+    properties:
+      task: { $ref: "#/$defs/view_task_ref" }
+      proposal: { type: boolean }
+      events: { type: array, minItems: 1, items: { $ref: "#/$defs/view_event" } }
+      after: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_status" }] }
+      unchanged: { type: boolean }
+      subject_after: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_status" }] }
+      effect: { $ref: "#/$defs/view_line_effect" }
+      model: { type: string }
+      check: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_model_check" }] }
+      committer: { type: string }
+      commit: { $ref: "#/$defs/view_commit" }
