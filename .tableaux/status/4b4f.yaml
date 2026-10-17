@@ -1,3 +1,3 @@
 gate: implementation
 state: nominal
-note: internal/corpustest holds the corpus copy at 97c18d7 and internal/conformance holds the black-box test, with T1 and T3 to T20 passing, with and without the corpus variable; the unit gate waits for the two known.yaml items to gain a finding, requires-from-not-applicable (8118 or 27a3) and tableaux-tooling (27a3 or fcec), and fcec's unit gate waits on this task
+note: internal/corpustest holds the corpus copy at 97c18d7 and internal/conformance holds the black-box test, with T1 and T3 to T20 passing, with and without the corpus variable; the unit gate waits for the one known.yaml item without a finding, requires-from-not-applicable, owed by 27a3; tableaux-tooling owes fcec under finding C1; fcec's unit gate waits on this task
