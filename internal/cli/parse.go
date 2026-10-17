@@ -33,14 +33,14 @@ var arity = map[string]int{
 	"--json": 0, "--yaml": 0, "--help": 0,
 	"--role": 1, "--level": 1, "--task": 1, "--person": 1, "--proposed": 0,
 	"--brief": 2, "--window": 1, "--columns": 1, "--historical": 0,
-	"--stale": 1, "--now": 1, "--no-check": 0,
+	"--stale": 1, "--now": 1, "--minimum": 1, "--no-check": 0,
 }
 
 // viewOptions are the options only a view takes, whichever views those are.
 var viewOptions = map[string]bool{
 	"--role": true, "--level": true, "--task": true, "--person": true,
 	"--proposed": true, "--brief": true, "--window": true, "--columns": true,
-	"--historical": true, "--stale": true, "--now": true,
+	"--historical": true, "--stale": true, "--now": true, "--minimum": true,
 }
 
 // viewCommands are the ten views, named as the mockups are.
@@ -301,6 +301,11 @@ func (inv *invocation) apply(o option) error {
 		p.Stale = n
 	case "--now":
 		p.Now = v[0]
+	case "--minimum":
+		if v[0] == "" {
+			return usageErr("--minimum needs error, warning or information")
+		}
+		p.Minimum = v[0]
 	}
 	return nil
 }

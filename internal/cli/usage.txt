@@ -13,6 +13,7 @@ Views, as JSON:
   context     [--task <id> | --person <email>] [--window <n> | --columns <gate>,...] [--historical]
   history     [--task <id>] [--person <email>]
   audit       [--task <id>] [--person <email>] [--stale <days>] [--now <date>]
+              [--minimum error|warning|information]
 
   Every view takes [--role <role>] [--level glance|detail|provenance].
   history takes a range, --ref <from>..<to>.

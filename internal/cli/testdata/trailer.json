@@ -3,6 +3,7 @@
   "command": "trailer",
   "source": {
     "ref": "main",
+    "dir": ".",
     "worktree": false,
     "commit": "edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a",
     "date": "2026-09-28",

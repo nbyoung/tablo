@@ -51,6 +51,7 @@ front end in the family copies.
 ├── envelope.schema.yaml       # the envelope's schema, embedded
 ├── yaml.go                    # the same envelope as YAML
 ├── trailer.go                 # the four commit trailers as Git writes them
+├── snapshot.go                # Open, Load and the snapshot: the one place that joins the internal packages
 ├── view/                      # package view: the data of each view, the types a front end names
 ├── cmd/tablo/main.go          # command tablo: the plumbing command
 ├── internal/model/            # the typed model of a project as its files state it, with positions

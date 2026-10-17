@@ -67,6 +67,7 @@ type Params struct {
 	Brief      *Brief   // queue: write this one item as a brief
 	Stale      int      // audit: days after which a status is stale; 0 is 7
 	Now        string   // audit: the date staleness counts from, YYYY-MM-DD; required
+	Minimum    string   // audit: the lowest severity listed, "error", "warning" or "information"; "" is "warning"
 	From       string   // history: the ref the range starts after; "" is the whole history
 }
 
@@ -86,6 +87,7 @@ const (
 	fBrief
 	fStale
 	fNow
+	fMinimum
 	fFrom
 )
 
@@ -104,6 +106,7 @@ var fields = []struct {
 	{fBrief, "--brief"},
 	{fStale, "--stale"},
 	{fNow, "--now"},
+	{fMinimum, "--minimum"},
 	{fFrom, "a range in --ref"},
 }
 
@@ -127,7 +130,7 @@ var viewTable = []viewSpec{
 	{Tableau, fPerson | fWindow | fColumns | fHistorical, false},
 	{Context, fTask | fPerson | fWindow | fColumns | fHistorical, false},
 	{History, fTask | fPerson | fFrom, false},
-	{Audit, fTask | fPerson | fStale | fNow, false},
+	{Audit, fTask | fPerson | fStale | fNow | fMinimum, false},
 }
 
 // specOf returns the row of v.
@@ -158,6 +161,7 @@ func (p Params) set() field {
 	flag(p.Brief != nil, fBrief)
 	flag(p.Stale != 0, fStale)
 	flag(p.Now != "", fNow)
+	flag(p.Minimum != "", fMinimum)
 	flag(p.From != "", fFrom)
 	return s
 }
@@ -233,6 +237,11 @@ func (p Params) Check(v View) error {
 			return usagef("--now %q is not a date of the form YYYY-MM-DD", p.Now)
 		}
 	}
+	switch p.Minimum {
+	case "", "error", "warning", "information":
+	default:
+		return usagef("--minimum %q is not error, warning or information", p.Minimum)
+	}
 	if strings.HasPrefix(p.From, "-") {
 		return usagef("the range start %q starts with a hyphen", p.From)
 	}
@@ -285,6 +294,7 @@ func (p Params) Narrow(v View) Params {
 	drop(fBrief, func() { q.Brief = nil })
 	drop(fStale, func() { q.Stale = 0 })
 	drop(fNow, func() { q.Now = "" })
+	drop(fMinimum, func() { q.Minimum = "" })
 	drop(fFrom, func() { q.From = "" })
 	return q
 }

@@ -27,10 +27,14 @@ type Envelope struct {
 	Diagnostics []Diagnostic `json:"diagnostics"`
 }
 
-// A Source states what a command read. Commit and Date are nil when the
+// A Source states what a command read. Dir is the directory that holds the
+// project's .tableaux, relative to the repository's root with / on every
+// host, and "." at the root: the nearest at or above the directory -C names,
+// or that directory itself when none is. Commit and Date are nil when the
 // source is a bare tree.
 type Source struct {
 	Ref      string      `json:"ref"`      // the name given; for the working tree, the branch HEAD names, or HEAD
+	Dir      string      `json:"dir"`      // the project's directory, relative to the repository's root; "." at the root
 	Worktree bool        `json:"worktree"` // the files come from disk and the history from HEAD
 	Commit   *string     `json:"commit"`   // the commit in full
 	Date     *string     `json:"date"`     // the commit's author date, YYYY-MM-DD
@@ -88,7 +92,8 @@ type Diagnostic struct {
 // Resolved holds a command's parameters with every default written in. It
 // marshals the keys its command takes, each present and null when unset, in
 // the order task, person, window, columns, historical, proposed, brief,
-// stale, now, role, level; for a command that is no view it marshals {}.
+// stale, now, minimum, role, level; for a command that is no view it marshals
+// {}.
 type Resolved struct {
 	View View
 	Params
@@ -167,6 +172,9 @@ func (r Resolved) MarshalJSON() ([]byte, error) {
 	}
 	if takes(fNow) {
 		put("now", str(r.Now))
+	}
+	if takes(fMinimum) {
+		put("minimum", str(r.Minimum))
 	}
 	put("role", str(string(r.Role)))
 	put("level", str(string(r.Level)))
