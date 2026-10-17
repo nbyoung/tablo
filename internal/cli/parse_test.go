@@ -38,6 +38,7 @@ func TestParse(t *testing.T) {
 		{"tableau columns", "tableau --columns mockup,design", invocation{command: "tableau", view: tablo.Tableau, dir: ".", params: tablo.Params{Columns: []string{"mockup", "design"}}}},
 		{"context by task", "context --task 2034", invocation{command: "context", view: tablo.Context, dir: ".", params: tablo.Params{Task: "2034"}}},
 		{"audit", "audit --stale 3 --now 2026-10-06 --role owner", invocation{command: "audit", view: tablo.Audit, dir: ".", params: tablo.Params{Stale: 3, Now: "2026-10-06", Role: "owner"}}},
+		{"audit minimum", "audit --minimum=information --now 2026-10-06", invocation{command: "audit", view: tablo.Audit, dir: ".", params: tablo.Params{Now: "2026-10-06", Minimum: "information"}}},
 		{"authority proposed", "authority --proposed", invocation{command: "authority", view: tablo.Authority, dir: ".", params: tablo.Params{Proposed: true}}},
 		{"a range", "history --ref a1b2c3d..e4f5a6b", invocation{command: "history", view: tablo.History, dir: ".", ref: "e4f5a6b", params: tablo.Params{From: "a1b2c3d"}}},
 		{"a range without its end", "history --ref a1b2c3d..", invocation{command: "history", view: tablo.History, dir: ".", ref: "HEAD", params: tablo.Params{From: "a1b2c3d"}}},
@@ -156,6 +157,11 @@ func TestParseUsageErrors(t *testing.T) {
 		{"6", "audit --stale 0", "--stale"},
 		{"6", "audit --stale -3", "--stale"},
 		{"6", "audit --stale x", "x"},
+		{"6", "audit --minimum fatal", "fatal"},
+		{"6", "audit --minimum=", "--minimum"},
+		{"6", "queue --minimum error", "--minimum"},
+		{"6", "history --minimum error", "--minimum"},
+		{"6", "validate --minimum error", "--minimum"},
 		{"6", "gates --role boss", "boss"},
 		{"6", "gates --level deep", "deep"},
 		{"6", "validate --ref -x", "-x"},
@@ -232,6 +238,29 @@ func TestMockupLines(t *testing.T) {
 			t.Errorf("no mockup line runs %s", v)
 		}
 	}
+	// The mockups predate --minimum (design 4ed9, decision 15): each audit
+	// line still parses and passes Check with the option and each of its
+	// words, and refuses any other word.
+	audits := 0
+	for _, line := range lines {
+		words := strings.Fields(line)
+		if words[1] != "audit" {
+			continue
+		}
+		audits++
+		for _, m := range []string{"error", "warning", "information"} {
+			inv, err := parse(append(words[1:], "--minimum", m))
+			if err != nil || inv.params.Minimum != m {
+				t.Errorf("%q --minimum %s: %v", line, m, err)
+			}
+		}
+		if _, err := parse(append(words[1:], "--minimum", "notice")); err == nil {
+			t.Errorf("%q --minimum notice passes", line)
+		}
+	}
+	if audits == 0 {
+		t.Errorf("no mockup line runs audit")
+	}
 }
 
 // TestUsageText checks that usage.txt names every command and exit code.
@@ -241,7 +270,7 @@ func TestUsageText(t *testing.T) {
 			t.Errorf("usage.txt lacks the view %s", v)
 		}
 	}
-	for _, want := range []string{"validate", "trailer authorised <id>", "trailer reviewed <id> <gate>", "trailer reaffirmed <id>", "trailer model <identifier>", "version", "--person", "--ref", "--trunk", "--replace", "--viewer", "--json | --yaml", "--help", "--no-check"} {
+	for _, want := range []string{"validate", "trailer authorised <id>", "trailer reviewed <id> <gate>", "trailer reaffirmed <id>", "trailer model <identifier>", "version", "--person", "--ref", "--trunk", "--replace", "--viewer", "--json | --yaml", "--help", "--no-check", "--minimum"} {
 		if !strings.Contains(usage, want) {
 			t.Errorf("usage.txt lacks %q", want)
 		}

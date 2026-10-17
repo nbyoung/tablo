@@ -236,6 +236,7 @@ $defs:
               gate: { $ref: "#/$defs/key" }
       stale:      { type: integer, minimum: 1 }
       now:        { $ref: "#/$defs/date" }
+      minimum:    { enum: [error, warning, information] }   # audit: the lowest severity listed
 
   # One finding of the loader or the validator.
   diagnostic:

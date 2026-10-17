@@ -304,7 +304,7 @@ func TestResolvedKeys(t *testing.T) {
 		Tableau:    "person window columns historical role level",
 		Context:    "task person window columns historical role level",
 		History:    "task person role level",
-		Audit:      "task person stale now role level",
+		Audit:      "task person stale now minimum role level",
 	}
 	for v, want := range keys {
 		raw, err := json.Marshal(Resolved{View: v})
@@ -337,9 +337,9 @@ func TestResolvedKeys(t *testing.T) {
 			t.Errorf("command %q marshals %s, want {}", v, raw)
 		}
 	}
-	full := Resolved{View: Audit, Params: Params{Task: "e9c6", Stale: 7, Now: "2026-10-06", Role: RoleOwner, Level: LevelGlance}}
+	full := Resolved{View: Audit, Params: Params{Task: "e9c6", Stale: 7, Now: "2026-10-06", Minimum: "warning", Role: RoleOwner, Level: LevelGlance}}
 	raw, _ := json.Marshal(full)
-	if want := `{"task":"e9c6","person":null,"stale":7,"now":"2026-10-06","role":"owner","level":"glance"}`; string(raw) != want {
+	if want := `{"task":"e9c6","person":null,"stale":7,"now":"2026-10-06","minimum":"warning","role":"owner","level":"glance"}`; string(raw) != want {
 		t.Errorf("audit marshals %s, want %s", raw, want)
 	}
 	q := Resolved{View: Queue, Params: Params{Brief: &Brief{Task: "e9c6", Gate: "mockup"}}}
@@ -398,7 +398,8 @@ func decodeMap(t *testing.T, b []byte) map[string]any {
 }
 
 // TestSchemaHolds is T6: every envelope the tests build validates against
-// EnvelopeSchema, and seven broken ones fail. The schema types the data of a
+// EnvelopeSchema, and eight broken ones fail: the seven of the design and a
+// minimum that is no severity (decision 15). The schema types the data of a
 // tableau and of a queue (design 886d), and of a history and an audit (design
 // 8ed1), and the tableau of these tests is abridged from the prototype and
 // fixes the encoding alone: under those four commands the envelope validates
@@ -413,7 +414,7 @@ func TestSchemaHolds(t *testing.T) {
 	}
 	audit := untyped()
 	audit.Command = "audit"
-	audit.Params = Resolved{View: Audit, Params: Params{Stale: 7, Now: "2026-10-06", Level: LevelGlance}}
+	audit.Params = Resolved{View: Audit, Params: Params{Stale: 7, Now: "2026-10-06", Minimum: "warning", Level: LevelGlance}}
 	queue := untyped()
 	queue.Command = "queue"
 	queue.Params = Resolved{View: Queue, Params: Params{Person: "ada@example.org", Brief: &Brief{Task: "9f31", Gate: "mockup"}, Level: LevelProvenance}}
@@ -463,6 +464,9 @@ func TestSchemaHolds(t *testing.T) {
 		}},
 		{"an absolute path", validateEnvelope, func(m map[string]any) {
 			m["diagnostics"].([]any)[0].(map[string]any)["path"] = "/home/ada/plan/.tableaux/tasks/b2c9.yaml"
+		}},
+		{"a minimum that is no severity", func() *Envelope { return audit }, func(m map[string]any) {
+			m["params"].(map[string]any)["minimum"] = "notice"
 		}},
 	}
 	for _, tc := range broken {

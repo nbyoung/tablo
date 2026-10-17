@@ -88,7 +88,8 @@ type Diagnostic struct {
 // Resolved holds a command's parameters with every default written in. It
 // marshals the keys its command takes, each present and null when unset, in
 // the order task, person, window, columns, historical, proposed, brief,
-// stale, now, role, level; for a command that is no view it marshals {}.
+// stale, now, minimum, role, level; for a command that is no view it marshals
+// {}.
 type Resolved struct {
 	View View
 	Params
@@ -167,6 +168,9 @@ func (r Resolved) MarshalJSON() ([]byte, error) {
 	}
 	if takes(fNow) {
 		put("now", str(r.Now))
+	}
+	if takes(fMinimum) {
+		put("minimum", str(r.Minimum))
 	}
 	put("role", str(string(r.Role)))
 	put("level", str(string(r.Level)))

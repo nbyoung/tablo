@@ -18,7 +18,7 @@ var taken = map[View][]string{
 	Tableau:    {"--person", "--window", "--columns", "--historical"},
 	Context:    {"--task", "--person", "--window", "--columns", "--historical"},
 	History:    {"--task", "--person", "a range in --ref"},
-	Audit:      {"--task", "--person", "--stale", "--now"},
+	Audit:      {"--task", "--person", "--stale", "--now", "--minimum"},
 }
 
 // option is one parameter the tests set, with a valid value for it.
@@ -37,6 +37,7 @@ var options = []option{
 	{"--brief", func(p *Params) { p.Brief = &Brief{Task: "e9c6", Gate: "mockup"} }},
 	{"--stale", func(p *Params) { p.Stale = 3 }},
 	{"--now", func(p *Params) { p.Now = "2026-10-06" }},
+	{"--minimum", func(p *Params) { p.Minimum = "information" }},
 	{"a range in --ref", func(p *Params) { p.From = "0704a09" }},
 	{"--level", func(p *Params) { p.Level = LevelDetail }},
 	{"--role", func(p *Params) { p.Role = RoleOwner }},
@@ -181,6 +182,8 @@ func TestCheckMalformedValues(t *testing.T) {
 		{"date with a slash", Audit, Params{Now: "2026/10/06"}, "2026/10/06"},
 		{"date out of range", Audit, Params{Now: "2026-02-30"}, "2026-02-30"},
 		{"date with one digit", Audit, Params{Now: "2026-1-5"}, "2026-1-5"},
+		{"unknown minimum", Audit, Params{Minimum: "fatal"}, "fatal"},
+		{"minimum in capitals", Audit, Params{Minimum: "Warning"}, "Warning"},
 		{"range start with hyphen", History, Params{From: "-x"}, "-x"},
 		{"unknown role", Gates, Params{Role: "boss"}, "boss"},
 		{"unknown level", Gates, Params{Level: "deep"}, "deep"},
@@ -196,6 +199,11 @@ func TestCheckMalformedValues(t *testing.T) {
 		}
 		if !strings.Contains(u.Msg, tc.want) {
 			t.Errorf("%s: message %q does not name %q", tc.name, u.Msg, tc.want)
+		}
+	}
+	for _, m := range []string{"error", "warning", "information"} {
+		if err := (Params{Minimum: m}).Check(Audit); err != nil {
+			t.Errorf("minimum %s: %v", m, err)
 		}
 	}
 	zeroOK := Params{Window: &zero}
