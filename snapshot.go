@@ -106,7 +106,10 @@ func (r *Repository) Load(ctx context.Context, ref string) (*Snapshot, error) {
 
 // source states what a load read.
 func (r *Repository) source(ctx context.Context, p *model.Project, f *derive.Facts, ref string) (Source, error) {
-	src := Source{Ref: ref, Worktree: p.Where.Worktree, OnTrunk: f.OnTrunk()}
+	src := Source{Ref: ref, Dir: p.Where.Dir, Worktree: p.Where.Worktree, OnTrunk: f.OnTrunk()}
+	if src.Dir == "" {
+		src.Dir = "."
+	}
 	if p.Where.Worktree {
 		out, err := r.run.Run(ctx, git.Repo{Dir: r.dir}, nil, "symbolic-ref", "--quiet", "--short", "HEAD")
 		var exit *git.ExitError

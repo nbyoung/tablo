@@ -24,7 +24,9 @@ var today = func() string { return time.Now().Format("2006-01-02") }
 // Run executes one tablo command line and returns its exit code. It writes
 // the result to stdout and, on exit 2 or 3, the message to stderr. It reads
 // the environment for the viewer and the clock for --now's default, through
-// two package variables a test replaces, and nothing else outside -C.
+// two package variables a test replaces, and nothing else outside -C but
+// one: without --replace, the Loader reads os.UserCacheDir()/tableaux for
+// the clone of a subproject linked by URL.
 func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	inv, err := parse(args)
 	if err != nil {

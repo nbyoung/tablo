@@ -96,7 +96,7 @@ func envelope(t testing.TB, command string, q Query, data []byte) any {
 		"schema":  "tablo/1",
 		"command": command,
 		"source": map[string]any{
-			"ref": "main", "worktree": false, "commit": nil, "date": nil, "from": nil,
+			"ref": "main", "dir": ".", "worktree": false, "commit": nil, "date": nil, "from": nil,
 			"trunk": map[string]any{"name": nil, "resolved": "undetermined"}, "on_trunk": false,
 		},
 		"project":     nil,

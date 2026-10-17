@@ -230,11 +230,11 @@ func TestSources(t *testing.T) {
 func TestSourceBelowTheRoot(t *testing.T) {
 	quiet(t)
 	r := run(t, "-C", filepath.Join(entry(t, "subproject-same-repository"), "lib"), "--ref", "main", "validate", "--json")
-	if r.code != 0 || !strings.Contains(r.stdout, `"root": "5a00"`) {
+	if r.code != 0 || !strings.Contains(r.stdout, `"root": "5a00"`) || !strings.Contains(r.stdout, `"dir": "lib",`) {
 		t.Errorf("-C lib: exit %d\n%s", r.code, r.stdout)
 	}
 	r = run(t, "-C", entry(t, "subproject-same-repository"), "--ref", "main", "validate", "--json")
-	if r.code != 0 || !strings.Contains(r.stdout, `"root": "e4a1"`) {
+	if r.code != 0 || !strings.Contains(r.stdout, `"root": "e4a1"`) || !strings.Contains(r.stdout, `"dir": ".",`) {
 		t.Errorf("-C the root: exit %d\n%s", r.code, r.stdout)
 	}
 }

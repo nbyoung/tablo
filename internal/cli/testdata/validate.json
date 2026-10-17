@@ -3,6 +3,7 @@
   "command": "validate",
   "source": {
     "ref": "main",
+    "dir": ".",
     "worktree": false,
     "commit": "dc2f478ae7f54f4a4652a4b81c4ff2da6a0437ee",
     "date": "2026-09-01",

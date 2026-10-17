@@ -512,3 +512,44 @@ func writeOut(t testing.TB, name string, data []byte) string {
 	}
 	return out
 }
+
+// TestSourceDir: the source names the project's directory relative to the
+// repository's root, "." at the root, whether -C names the project's
+// directory or one below it, and the directory -C names where no project
+// is (decision 11).
+func TestSourceDir(t *testing.T) {
+	b := small(t)
+	b.put(map[string]string{"../lib/.tableaux/version.yaml": baseVersion, "../lib/.tableaux/gates.yaml": baseGates,
+		"../lib/.tableaux/tasks/5a00.yaml": strings.Replace(baseRoot, "olive", "ben", 1)})
+	if err := os.MkdirAll(filepath.Join(b.dir, "lib", "src", "deep"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(b.dir, "docs"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	b.commit("ben", "2026-09-04", "Add the library")
+	for _, tc := range []struct{ dir, want, root string }{
+		{".", ".", "e4a1"},
+		{filepath.Join(".tableaux", "tasks"), ".", "e4a1"},
+		{"docs", ".", "e4a1"},
+		{"lib", "lib", "5a00"},
+		{filepath.Join("lib", "src", "deep"), "lib", "5a00"},
+	} {
+		for _, ref := range []string{"", "HEAD"} {
+			s := loadAt(t, filepath.Join(b.dir, tc.dir), ref, Options{})
+			if got := s.Source().Dir; got != tc.want || s.Project() == nil || s.Project().Root != tc.root {
+				t.Errorf("-C %s at %q: dir %q, project %+v; want %s and %s", tc.dir, ref, got, s.Project(), tc.want, tc.root)
+			}
+			if err := validates(t, schema(t), decodeMap(t, s.Validate().JSON())); err != nil {
+				t.Errorf("-C %s at %q: %v", tc.dir, ref, err)
+			}
+		}
+	}
+	none := build(t)
+	none.put(map[string]string{"../sub/README.md": "# Nothing\n"})
+	none.commit("olive", "2026-09-01", "Start")
+	s := loadAt(t, filepath.Join(none.dir, "sub"), "HEAD", Options{})
+	if got := s.Source().Dir; got != "sub" || s.Project() != nil {
+		t.Errorf("-C sub with no project: dir %q, project %+v", got, s.Project())
+	}
+}

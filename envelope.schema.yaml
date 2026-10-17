@@ -174,9 +174,13 @@ $defs:
   # What the command reads.
   source:
     type: object
-    required: [ref, worktree, commit, date, from, trunk, on_trunk]
+    required: [ref, dir, worktree, commit, date, from, trunk, on_trunk]
     properties:
       ref:      { type: string, minLength: 1 }       # the name given; for the working tree, the branch HEAD names, or HEAD
+      dir:                                           # the project's directory, relative to the repository's root, with /; "." at the root
+        type: string
+        pattern: "^(\\.|[^/]+(/[^/]+)*)$"
+        not: { pattern: "(^|/)\\.\\.(/|$)" }
       worktree: { type: boolean }                    # true when the files come from disk and the history from HEAD
       commit:   { oneOf: [{ type: "null" }, { $ref: "#/$defs/commit" }] }   # null for a bare tree, which validate alone reads
       date:     { oneOf: [{ type: "null" }, { $ref: "#/$defs/date" }] }     # the commit's author date

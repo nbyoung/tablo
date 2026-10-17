@@ -30,6 +30,7 @@ func ptr[T any](v T) *T { return &v }
 func weatherSource(commit, date string) *Source {
 	return &Source{
 		Ref:     "main",
+		Dir:     ".",
 		Commit:  &commit,
 		Date:    &date,
 		Trunk:   SourceTrunk{Name: ptr("main"), Resolved: "stated"},
@@ -416,6 +417,10 @@ func TestSchemaHolds(t *testing.T) {
 		{"a column without a line", validateEnvelope, func(m map[string]any) {
 			delete(m["diagnostics"].([]any)[0].(map[string]any), "line")
 		}},
+		{"an absolute source directory", validateEnvelope, func(m map[string]any) { m["source"].(map[string]any)["dir"] = "/home/ada/plan" }},
+		{"a source directory that climbs", validateEnvelope, func(m map[string]any) { m["source"].(map[string]any)["dir"] = "lib/../.." }},
+		{"an empty source directory", validateEnvelope, func(m map[string]any) { m["source"].(map[string]any)["dir"] = "" }},
+		{"no source directory", validateEnvelope, func(m map[string]any) { delete(m["source"].(map[string]any), "dir") }},
 		{"an absolute path", validateEnvelope, func(m map[string]any) {
 			m["diagnostics"].([]any)[0].(map[string]any)["path"] = "/home/ada/plan/.tableaux/tasks/b2c9.yaml"
 		}},
