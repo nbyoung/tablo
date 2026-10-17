@@ -223,57 +223,38 @@ func auditOfTheCorpus(t *testing.T) string {
 	return b.String()
 }
 
-// historyRules are the rules the Validator raises from the history, whose
-// diagnostics the Audit's own corpus test gives as literals with the
-// messages of the corpus's expected.yaml.
-var historyRules = map[string]bool{"P5": true, "S11": true, "J13": true, "R13": true,
-	"H1": true, "H2": true, "H3": true, "H4": true, "H5": true, "H6": true}
-
-// findingKey matches the first line of a row of auditOfTheCorpus and gives
-// its key.
-var findingKey = regexp.MustCompile(`^  (\S+) (error|warning|information) \[`)
-
-// normalised sets aside the message of each row of a history rule, which
-// the Validator words where dada's file holds expected.yaml's wording.
-func normalised(text string) string {
-	lines := strings.Split(text, "\n")
-	history := false
-	for i, line := range lines {
-		if m := findingKey.FindStringSubmatch(line); m != nil {
-			history = historyRules[m[1]]
-		}
-		if history && strings.HasPrefix(line, "    message: ") {
-			lines[i] = "    message: (the Validator's)"
-		}
-	}
-	return strings.Join(lines, "\n")
-}
+// writeAuditCorpus names the variable that makes TestAuditOfTheCorpus write
+// testdata/audit.corpus.txt in place of the comparison.
+const writeAuditCorpus = "TABLO_WRITE_AUDIT_CORPUS"
 
 // TestAuditOfTheCorpus is decision 16 (b): the audit of each corpus entry
 // through snapshot.go, with the diagnostics the Validator raises from the
-// history, equals dada's corpus.expected.txt, which testdata/audit.corpus.txt
-// copies as it stands. Two things differ, each of the literals that file
-// was made from: a row of a history rule carries the Validator's message,
-// not expected.yaml's; and the R13 of requires-commit-behind carries the
-// requirement fact, since the Validator's diagnostic stands at the entry's
-// position, where the literal named its file alone (dada words.md, "the
-// entry the diagnostic stands at").
+// history, byte for byte against testdata/audit.corpus.txt.
+//
+// This test generates that file from the corpus, with the variable
+// TABLO_WRITE_AUDIT_CORPUS set, and it stands against dada's
+// design/dada/corpus.expected.txt, which the Audit's own test made from
+// literal diagnostics of the history rules. The two differ in two things
+// alone: a row of a history rule (P5, S11, J13, R13, H1 to H6) carries the
+// Validator's message where dada's file holds expected.yaml's wording; and
+// the R13 of requires-commit-behind carries the requirement fact, since the
+// Validator's diagnostic stands at the entry's position, where the literal
+// named its file alone (dada words.md, "the entry the diagnostic stands at").
 func TestAuditOfTheCorpus(t *testing.T) {
 	got := auditOfTheCorpus(t)
-	data, err := os.ReadFile(filepath.Join("testdata", "audit.corpus.txt"))
+	file := filepath.Join("testdata", "audit.corpus.txt")
+	if os.Getenv(writeAuditCorpus) != "" {
+		if err := os.WriteFile(file, []byte(got), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(file)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r13 := "  R13 warning [b2c9] at \"\" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org\n" +
-		"    message: The requirement on 5a00 at https://example.org/lib.git is unmet at L1 and met at main in that repository, L2\n" +
-		"    commits: \n"
-	want := string(data)
-	if strings.Count(want, r13) != 1 {
-		t.Fatalf("testdata/audit.corpus.txt holds the R13 of requires-commit-behind %d times", strings.Count(want, r13))
-	}
-	want = strings.Replace(want, r13, r13+"    facts b2c9: requirement\n", 1)
-	if normalised(got) != normalised(want) {
-		t.Errorf("the audit of the corpus differs from testdata/audit.corpus.txt; it is in %s", writeOut(t, "audit.corpus.txt", []byte(got)))
+	if got != string(want) {
+		t.Errorf("the audit of the corpus differs from %s; it is in %s", file, writeOut(t, "audit.corpus.txt", []byte(got)))
 	}
 	blocks, refused := 0, 0
 	for _, line := range strings.Split(got, "\n") {

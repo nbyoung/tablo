@@ -24,14 +24,14 @@ gates-no-undefined-state main: refused
 gates-only-undefined main: refused
 handoff-inferred main: now 2026-09-02, stale 7: 0 error(s), 0 warning(s), 2 information; most pat@example.org 1
   H4 information [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: record_handoff -> pat@example.org
-    message: The newest event is the contributor's and the status states no review; olive may have a design to review
+    message: the newest event is the contributor's and the status states no review; olive@example.org may have design to review
     commits: I2
     facts b2c9: junction status
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <I2>  # shows the finding
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 handoff-stale main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 1 information; most pat@example.org 1
   H5 warning [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: clear_handoff -> pat@example.org
-    message: The status still states review after olive accepted design in S3
+    message: the status still states review after olive@example.org accepted design
     commits: S2 S3
     facts b2c9: junction status
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <S3>  # shows the finding
@@ -84,12 +84,12 @@ model-mismatch main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 1 inform
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 model-trailer-missing main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 2 information; most bot@example.org 1
   H6 warning [b2c9] at "design" in []: none -> bot@example.org
-    message: The contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable
+    message: the contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable
     commits: M4
     facts b2c9: junction model
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
   H4 information [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: record_handoff -> bot@example.org
-    message: The newest event is the contributor's and the status states no review; pat may have a design to review
+    message: the newest event is the contributor's and the status states no review; pat@example.org may have design to review
     commits: M4
     facts b2c9: junction status
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
@@ -102,8 +102,9 @@ requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 
     facts b2c9: requirement
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   R13 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org
-    message: The requirement on 5a00 at https://example.org/lib.git is unmet at L1 and met at main in that repository, L2
+    message: the requirement on 5a00 is unmet at its commit and met at the tip of the originating project's trunk
     commits: 
+    facts b2c9: requirement
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
@@ -122,7 +123,7 @@ requires-from-not-applicable main: now 2026-09-01, stale 7: 1 error(s), 1 warnin
   sole_review information [b2c9 c3d7] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
 review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 1 information; most olive@example.org 1
   H2 warning [b2c9] at "design" in []: review -> olive@example.org
-    message: pat is not the reviewer of the design junction; olive is
+    message: pat@example.org is not the reviewer of the design junction; olive@example.org is
     commits: R2
     facts b2c9: junction
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R2>  # shows the finding
@@ -151,7 +152,7 @@ status-on-parent main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 info
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 status-unreviewed-gate main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
   S11 error [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: review -> olive@example.org
-    message: 
+    message: the status passes design, whose reviewer is olive@example.org, and no commit by the reviewer carries Reviewed: b2c9 design
     commits: only
     facts b2c9: junction status
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <only>  # shows the finding
@@ -173,7 +174,7 @@ subproject-path-missing main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s),
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 subproject-pin-off-trunk main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 1 information; most pat@example.org 1
   J13 warning [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: move_pin -> pat@example.org
-    message: The pin sub is at S2, which main in the subproject does not contain
+    message: the commit c279ad604b8ad18a57a651da290bdb3b9b320ee5 of sub is not on its trunk, main
     commits: 
     facts b2c9: junction linkage
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
@@ -208,7 +209,7 @@ trunk-stated main: now 2026-09-03, stale 7: 0 error(s), 1 warning(s), 2 informat
   sole_review information [c3d7] at "release" in [.tableaux/tasks/c3d7.yaml]: none -> olive@example.org
 trunk-undetermined main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 2 information; most olive@example.org 1
   P5 warning [] at "" in [.tableaux/version.yaml]: revise -> olive@example.org
-    message: No trunk: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch
+    message: the trunk is undetermined: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch
     commits: 
     $ git log -1 --format='%as %H %ae' -- .tableaux/version.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
