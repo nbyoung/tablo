@@ -330,13 +330,22 @@ func TestReport(t *testing.T) {
 		t.Errorf("report:\n%s\nwant:\n%s", got, want)
 	}
 
-	// TABLO_REPORT writes the same bytes: TestCorpus writes the report string as is.
+	// TABLO_REPORT writes the same bytes, through the call TestCorpus makes;
+	// without the variable nothing is written.
 	path := filepath.Join(t.TempDir(), "report.md")
-	if err := os.WriteFile(path, []byte(got), 0o644); err != nil {
+	t.Setenv("TABLO_REPORT", "")
+	if err := writeReport(got); err != nil {
 		t.Fatal(err)
 	}
-	if data, _ := os.ReadFile(path); string(data) != got {
-		t.Error("the file differs from the report")
+	if _, err := os.Stat(path); err == nil {
+		t.Error("without TABLO_REPORT the report reaches a file")
+	}
+	t.Setenv("TABLO_REPORT", path)
+	if err := writeReport(got); err != nil {
+		t.Fatal(err)
+	}
+	if data, err := os.ReadFile(path); err != nil || string(data) != golden(t, "report.golden") {
+		t.Errorf("the file TABLO_REPORT names differs from report.golden: %v", err)
 	}
 	if s := summary(got); !strings.Contains(s, "3 entries: 1 pass, 1 fail, 0 known, 1 skipped.") || !strings.Contains(s, "| total ") {
 		t.Errorf("summary:\n%s", s)
