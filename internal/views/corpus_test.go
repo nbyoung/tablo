@@ -76,8 +76,9 @@ func readExpectations(build string) ([]*expectation, error) {
 			e.ref = ref
 		}
 		if _, inPlace := e.want["source"]; inPlace {
-			// tableaux-tooling names the umbrella at a tag the owner moves, and
-			// its facts drift from the tag: T25 reads that plan by the rule.
+			// tableaux-tooling reads the umbrella in place at a tag the owner
+			// moves: the conformance run compares its facts, and T25 reads that
+			// plan by the rule.
 			continue
 		}
 		if trunk, ok := e.want["trunk"].(map[string]any); ok {
