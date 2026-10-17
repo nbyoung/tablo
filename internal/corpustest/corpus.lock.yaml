@@ -1,0 +1,6 @@
+# corpus.lock.yaml: the tableaux commit that testdata/corpus copies.
+# corpus.sh refresh writes this file; do not edit it by hand.
+repository: https://github.com/nbyoung/tableaux
+commit: 97c18d7fc3bc9d4427a60d9dda3bb4b9da5979a2
+tooling: d95294b16539ba66a1ff2859be6ff1b2aade581f
+digest: 43f233aa0958b5eda703d411afbe1ab985182d3596e756175624dea3182611de
