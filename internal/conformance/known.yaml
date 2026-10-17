@@ -14,9 +14,6 @@
 # failures", as 8118 decision 11 amends it: the owes comes from the path of the
 # first mismatch, and a finding with a rule P, G, T, R, J, S or H owes 8118.
 known:
-  - entry: requires-from-not-applicable
-    reason: "findings: want (no such finding), got R9 warning task=b2c9 file=tasks/b2c9.yaml"
-    owes: 27a3           # the owner rules that a requirement whose from gate does not apply to the originating task derives an undetermined condition, so R9 does not fire; 27a3 owes that rule (4ed9 decision 17 (f))
   - entry: tableaux-tooling
     reason: "valid: want true, got false; the plan at corpus/tooling differs from the facts the entry states (68 mismatches)"
     owes: fcec

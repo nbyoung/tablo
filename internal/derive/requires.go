@@ -65,7 +65,10 @@ func (f *Facts) Dependents(id string) []*Condition {
 // first applicable gate after undefined. A task stands at its status's gate:
 // a leaf's file, a parent's roll-up. The requirement is met when the
 // originating task stands at or past from, and due when no applicable gate
-// of this task lies between the gate it stands at and to.
+// of this task lies between the gate it stands at and to. A from gate that
+// does not apply to the originating task leaves the condition undetermined,
+// NoGate, so that no view marks it unmet and R9 does not fire: R6 reports
+// the entry (decision 15).
 func (f *Facts) requires(id string) []*Condition {
 	if list, ok := f.conditions[id]; ok {
 		return list
@@ -100,6 +103,10 @@ func (f *Facts) requires(id string) []*Condition {
 		from, fromNamed := origin.index[c.From]
 		to, toNamed := f.index[c.To]
 		if !fromNamed || !toNamed {
+			c.Why = NoGate
+			continue
+		}
+		if j := origin.junction(c.Origin, c.From); j != nil && j.Kind == model.NotApplicable {
 			c.Why = NoGate
 			continue
 		}
