@@ -89,7 +89,18 @@ func (r *Repository) Load(ctx context.Context, ref string) (*Snapshot, error) {
 			return nil, &ReadError{Op: "read the history", Err: err}
 		}
 	}
-	s := &Snapshot{repo: r, project: p, facts: derive.New(p, set), ranges: map[string]*derive.Facts{}}
+	s := newSnapshot(r, p, derive.New(p, set), set)
+	if s.source, err = r.source(ctx, p, s.facts, ref); err != nil {
+		return nil, err
+	}
+	s.info = projectOf(p, s.facts)
+	return s, nil
+}
+
+// newSnapshot validates a project of a load beside its facts.
+func newSnapshot(r *Repository, p *model.Project, f *derive.Facts, set *history.Set) *Snapshot {
+	s := &Snapshot{repo: r, project: p, facts: f, logs: set,
+		ranges: map[string]*derive.Facts{}, linked: map[*model.Link]*Snapshot{}}
 	s.diagnostics = validate.Files(p)
 	s.diagnostics = append(s.diagnostics, validate.Derived(p, validateFacts(s.facts))...)
 	validate.Sort(s.diagnostics)
@@ -97,11 +108,7 @@ func (r *Repository) Load(ctx context.Context, ref string) (*Snapshot, error) {
 	for i, d := range s.diagnostics {
 		s.public[i] = diagnosticOf(d)
 	}
-	if s.source, err = r.source(ctx, p, s.facts, ref); err != nil {
-		return nil, err
-	}
-	s.info = projectOf(p, s.facts)
-	return s, nil
+	return s
 }
 
 // source states what a load read.
@@ -122,6 +129,12 @@ func (r *Repository) source(ctx context.Context, p *model.Project, f *derive.Fac
 			return Source{}, &ReadError{Op: "read HEAD", Err: err}
 		}
 	}
+	fill(&src, p, f)
+	return src, nil
+}
+
+// fill states the commit a load read, its date and the trunk.
+func fill(src *Source, p *model.Project, f *derive.Facts) {
 	if commit := p.Where.Commit; commit != "" {
 		src.Commit = &commit
 		if log := f.Log(); log != nil && log.Commit(commit) != nil {
@@ -135,7 +148,6 @@ func (r *Repository) source(ctx context.Context, p *model.Project, f *derive.Fac
 		name := trunk.Name
 		src.Trunk.Name = &name
 	}
-	return src, nil
 }
 
 // projectOf names the project, or returns nil when the files give no root
@@ -181,15 +193,18 @@ func diagnosticOf(d model.Diagnostic) Diagnostic {
 // concurrent use, and it computes each derived fact once.
 type Snapshot struct {
 	repo        *Repository
+	home        *Snapshot // the snapshot Load returns, for one Linked returns; else nil
 	project     *model.Project
 	facts       *derive.Facts
+	logs        *history.Set       // the passes of the load; nil without history
 	diagnostics []model.Diagnostic // sorted
 	public      []Diagnostic       // the same, as the envelope spells them
 	source      Source
 	info        *ProjectInfo
 
 	mu     sync.Mutex
-	ranges map[string]*derive.Facts // by the commit a range starts after, for one the pass lacks
+	ranges map[string]*derive.Facts  // by the commit a range starts after, for one the pass lacks
+	linked map[*model.Link]*Snapshot // the snapshots Linked returns, by link
 }
 
 // Source returns what Load read.
@@ -375,7 +390,7 @@ func (s *Snapshot) View(ctx context.Context, v View, p Params) (*Envelope, error
 	e.Viewer = &viewer
 	e.Params = Resolved{View: v, Params: r}
 	if r.From != "" {
-		commit, err := s.repo.Resolve(ctx, r.From)
+		commit, err := s.resolveRef(ctx, r.From)
 		if err != nil {
 			return nil, err
 		}
@@ -613,7 +628,13 @@ func (s *Snapshot) ranged(ctx context.Context, from string) (*derive.Facts, erro
 	if f, ok := s.ranges[from]; ok {
 		return f, nil
 	}
-	set, err := s.repo.reader.Read(ctx, s.project, s.repo.opt.Trunk, from)
+	var set *history.Set
+	var err error
+	if s.home == nil {
+		set, err = s.repo.reader.Read(ctx, s.project, s.repo.opt.Trunk, from)
+	} else {
+		set, err = s.repo.reader.ReadLinked(ctx, s.home.project, s.project, from)
+	}
 	if err != nil {
 		return nil, &ReadError{Op: "read the history from " + from, Err: err}
 	}

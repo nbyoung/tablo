@@ -7,8 +7,10 @@
 // reads the files and the history once, and the snapshot then derives every
 // view from memory. View returns one view's Envelope, Validate the
 // diagnostics and CheckTrailer the check of a commit trailer; the command
-// encodes the same envelope as JSON or YAML, so the two cannot disagree. The
-// data of each view has its types in package view.
+// encodes the same envelope as JSON or YAML, so the two cannot disagree.
+// Linked returns the snapshot of a subproject that the load already read,
+// with its own source and views. The data of each view has its types in
+// package view.
 //
 // The library reads neither the environment nor the clock: the caller
 // passes the viewer and the date staleness counts from in Params. Where the
