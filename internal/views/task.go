@@ -208,7 +208,7 @@ func event(e *derive.Event) view.Event {
 		out.Pin = &view.PinMove{URL: e.URL, Old: e.Old, New: e.New}
 	}
 	if e.Sub != "" {
-		sub := &view.SubEvent{Task: e.Sub}
+		sub := &view.SubEvent{Task: e.Sub, Title: e.SubTitle}
 		if e.Link != nil {
 			sub.URL = e.Link.URL
 		}

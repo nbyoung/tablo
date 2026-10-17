@@ -11,7 +11,8 @@ type Delegation struct {
 
 // DelegationDetail is what the authority delegation adds at detail.
 type DelegationDetail struct {
-	Parents []Chain `json:"parents"` // every row that has children, in display order
+	Authorities []Authority `json:"authorities"` // of the task the view starts at, nearest first; [] at the root
+	Parents     []Chain     `json:"parents"`     // every row that has children, in display order
 }
 
 // DelegationProvenance is what the authority delegation adds at provenance.

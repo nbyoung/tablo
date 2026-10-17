@@ -146,6 +146,7 @@ type PinMove struct {
 
 // SubEvent names the subproject task an event comes from.
 type SubEvent struct {
-	URL  string `json:"url"`
-	Task string `json:"task"`
+	URL   string `json:"url"`
+	Task  string `json:"task"`
+	Title string `json:"title"` // as the subproject's files at the pin state it; "" where they lack the task
 }

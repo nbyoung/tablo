@@ -269,3 +269,39 @@ func TestAuthorityChains(t *testing.T) {
 
 // levels names the three levels as an envelope's params.level does.
 var levels = map[Level]string{Glance: "glance", Detail: "detail", Provenance: "provenance"}
+
+// The chain above the top row (decision 15 (a)): the authorities of the task
+// the view starts at, nearest first, from detail on; [] at the root.
+func TestAuthorityAboveTheTop(t *testing.T) {
+	f, _ := station(t, "main")
+	if root := Authority(f, Query{Task: "a1c0", Level: Detail}); root.Authorities == nil || len(root.Authorities) != 0 {
+		t.Errorf("at the root the authorities are %#v; want []", root.Authorities)
+	}
+	if data := string(encoded(t, Authority(f, Query{Level: Provenance}))); !strings.Contains(data, `"authorities": [],`) {
+		t.Error("the root's authorities are not written as []")
+	}
+	if glance := Authority(f, Query{Task: "4e2b"}); glance.DelegationDetail != nil {
+		t.Error("the glance holds the authorities")
+	}
+	for _, c := range []struct {
+		task string
+		want []view.Authority
+	}{
+		{"4e2b", []view.Authority{{Email: "ada@example.org", By: "a1c0"}}},
+		{"c07d", []view.Authority{{Email: "ben@example.org", By: "4e2b"}, {Email: "ada@example.org", By: "a1c0"}}},
+	} {
+		for _, level := range []Level{Detail, Provenance} {
+			d := Authority(f, Query{Task: c.task, Level: level})
+			if d.Rows[0].ID != c.task || d.Rows[0].Depth != 0 || !reflect.DeepEqual(d.Authorities, c.want) {
+				t.Errorf("from %s at %s the top row is %s and the authorities are %+v; want %+v", c.task, levels[level], d.Rows[0].ID, d.Authorities, c.want)
+			}
+			if want := (Task(f, Query{Task: c.task, Level: Detail})).Authorities; !reflect.DeepEqual(d.Authorities, want) {
+				t.Errorf("from %s the authorities %+v differ from the task definition's %+v", c.task, d.Authorities, want)
+			}
+		}
+	}
+	// A person filter keeps the top row's authorities.
+	if ben := Authority(f, Query{Task: "4e2b", Person: "ben@example.org", Level: Detail}); !reflect.DeepEqual(ben.Authorities, []view.Authority{{Email: "ada@example.org", By: "a1c0"}}) {
+		t.Errorf("ben's view from 4e2b has the authorities %+v", ben.Authorities)
+	}
+}

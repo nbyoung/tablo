@@ -84,6 +84,7 @@ type Event struct {
 	URL, Old, New             string      // pin
 	Link                      *model.Link // pin, and an event taken from a subproject
 	Sub                       string      // an event taken from a subproject: the task there; else ""
+	SubTitle                  string      // an event taken from a subproject: the title of Sub as the files at the pin state it; else ""
 	Reading                   *Reading    // status and reaffirmed
 	Effect                    Effect      // reviewed
 }
@@ -173,7 +174,8 @@ func (f *Facts) eventsOf(id string) []*Event {
 
 // taken returns the events a task takes from its subprojects: for each
 // snapshot, those of the task read there and of its descendants, each with
-// Sub set. The subproject's facts end at the pin, so its events do too.
+// Sub and its title set. The subproject's facts end at the pin, so its
+// events do too.
 func (f *Facts) taken(id string) []*Event {
 	if f.task(id) == nil {
 		return nil
@@ -189,7 +191,10 @@ func (f *Facts) taken(id string) []*Event {
 		for i := from; i < len(sub.order) && (i == from || sub.under(sub.order[i], s.Target)); i++ {
 			for _, e := range sub.eventsOf(sub.order[i]) {
 				copied := *e
-				copied.Task, copied.Sub, copied.Link = id, e.Task, s.Link
+				copied.Task, copied.Sub, copied.Link, copied.SubTitle = id, e.Task, s.Link, ""
+				if task := sub.task(e.Task); task != nil {
+					copied.SubTitle = task.Title.V
+				}
 				list = append(list, &copied)
 			}
 		}

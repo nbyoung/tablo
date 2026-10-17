@@ -6,12 +6,18 @@ type Assignment struct {
 	People    []PersonRow `json:"people"`    // one per email in view, in order of first appearance
 	Recursive []string    `json:"recursive"` // the leaves in view whose next junction is recursive
 	*AssignmentDetail
+	*AssignmentProvenance
 }
 
 // AssignmentDetail is what the task assignment adds at detail. At provenance
 // each section also carries its positions.
 type AssignmentDetail struct {
 	Sections []PersonSection `json:"sections"` // one per row of People, in its order
+}
+
+// AssignmentProvenance is what the task assignment adds at provenance.
+type AssignmentProvenance struct {
+	Commands []Command `json:"commands"`
 }
 
 // PersonRow is the glance of one email.

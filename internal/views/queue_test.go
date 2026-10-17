@@ -413,3 +413,73 @@ func TestBrief(t *testing.T) {
 		t.Errorf("the brief at the last gate is %+v", b)
 	}
 }
+
+// The queue's causes at glance (decision 15): a reason carries the status's
+// note, and an authorisation item the task's Authorisation.Why, "" where a
+// commit decides but not by an authority; every other wait and item carries
+// "".
+func TestQueueCausesAtGlance(t *testing.T) {
+	f, _ := station(t, "main")
+	ada := Queue(f, Query{Task: "a1c0", Person: "ada@example.org"})
+	reasons := 0
+	for _, item := range ada.Items {
+		for _, w := range item.Causes {
+			if w.Kind == "reason" {
+				reasons++
+				if w.Note != "Barometer ICs on 14-week backorder" || w.Note != f.Status(item.Task.ID).Note {
+					t.Errorf("the reason of %s carries the note %q", item.Task.ID, w.Note)
+				}
+			} else if w.Note != "" {
+				t.Errorf("the %s wait of %s carries the note %q", w.Kind, item.Task.ID, w.Note)
+			}
+		}
+	}
+	if reasons != 1 {
+		t.Errorf("ada's queue holds %d reasons; want 1", reasons)
+	}
+	brief := Queue(f, Query{Task: "a1c0", Person: "ada@example.org", Level: Provenance, Brief: &BriefOf{Task: "9f31", Gate: "performance"}}).Brief
+	if brief == nil || len(brief.Causes) != 1 || brief.Causes[0].Note != "Barometer ICs on 14-week backorder" {
+		t.Errorf("the brief of 9f31 waits for %+v", brief)
+	}
+	for _, w := range Queue(f, Query{Task: "a1c0", Person: "dan@example.org"}).Items[1].Causes {
+		if w.Kind != "authorisation" || w.Note != "" {
+			t.Errorf("dan's work waits for %+v", w)
+		}
+	}
+
+	// whys returns each item of a queue as its kind, its task and its why.
+	whys := func(q *view.Queue) []string {
+		out := []string{}
+		for _, item := range q.Items {
+			out = append(out, item.Kind+" "+item.Task.ID+" "+item.Why)
+		}
+		return out
+	}
+	if a := f.Authorisation("3c5d"); a.Authorised || a.Commit == nil || a.Why != derive.Determined {
+		t.Fatalf("on main 3c5d reads %+v", a)
+	}
+	if got, want := whys(ada), []string{"authorisation 3c5d ", "ready 7b2e ", "reaffirmation 9f31 ", "waiting 9f31 "}; !reflect.DeepEqual(got, want) {
+		t.Errorf("on main ada's items are %q; want %q", got, want)
+	}
+	repo := clone(t, "weather-station")
+	gitRun(t, repo, "checkout", "-q", "-b", "revision", "main")
+	file := filepath.Join(repo, ".tableaux", "tasks", "7b2e.yaml")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(file, []byte(strings.Replace(string(data), "title: Gateway", "title: Gateway, revised", 1)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, repo, "commit", "-q", "-am", "Revise the gateway")
+	branch := derived(t, load.Options{}, repo, "revision", "")
+	for _, level := range []Level{Glance, Detail} {
+		q := Queue(branch, Query{Task: "a1c0", Person: "ada@example.org", Level: level})
+		if got, want := whys(q), []string{"authorisation 7b2e off_trunk", "reaffirmation 9f31 ", "waiting 9f31 ", "waiting 7b2e "}; !reflect.DeepEqual(got, want) {
+			t.Errorf("on the branch at %s ada's items are %q; want %q", levels[level], got, want)
+		}
+		if level == Detail && (q.Items[0].Authorisation == nil || q.Items[0].Authorisation.Why != q.Items[0].Why) {
+			t.Errorf("the detail's authorisation %+v disagrees with the glance's why %q", q.Items[0].Authorisation, q.Items[0].Why)
+		}
+	}
+}

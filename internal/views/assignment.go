@@ -1,6 +1,9 @@
 package views
 
 import (
+	"path"
+	"strings"
+
 	"github.com/nbyoung/tablo/internal/derive"
 	"github.com/nbyoung/tablo/internal/model"
 	"github.com/nbyoung/tablo/view"
@@ -58,6 +61,53 @@ func Assignment(f *derive.Facts, q Query) *view.Assignment {
 	}
 	for _, p := range people {
 		out.Sections = append(out.Sections, b.section(p, inView))
+	}
+	if q.Level < Provenance {
+		return out
+	}
+	out.AssignmentProvenance = &view.AssignmentProvenance{Commands: b.assignmentCommands(out.Sections)}
+	return out
+}
+
+// assignmentCommands returns the commands of the assignment's provenance,
+// over the source commit: one git show per task file a position's source
+// names, once, in the order first named; one git grep of the assignees of
+// the tasks directory; and, where a section holds a recursive row, one git
+// ls-tree over each submodule path once. It is [] without a history.
+func (b builder) assignmentCommands(sections []view.PersonSection) []view.Command {
+	out := []view.Command{}
+	log := b.f.Log()
+	if log == nil {
+		return out
+	}
+	shown := map[string]bool{}
+	for _, s := range sections {
+		if s.SectionProvenance == nil {
+			continue
+		}
+		for _, p := range s.Positions {
+			for _, from := range []view.Stated{p.From, p.ReviewerFrom} {
+				if from.File == "" || shown[from.By] {
+					continue
+				}
+				shown[from.By] = true
+				out = append(out, view.Command{Text: "git show " + log.Source + ":" + b.fromRoot(path.Join("tasks", from.By+".yaml"))})
+			}
+		}
+	}
+	out = append(out, view.Command{Text: "git grep -n '^assignee:' " + log.Source + " -- " + b.fromRoot("tasks")})
+	var paths []string
+	named := map[string]bool{}
+	for _, s := range sections {
+		for _, r := range s.Recursive {
+			if url := r.Subproject.URL; r.Subproject.Form == model.Submodule.String() && !named[url] {
+				named[url] = true
+				paths = append(paths, url)
+			}
+		}
+	}
+	if len(paths) > 0 {
+		out = append(out, view.Command{Text: "git ls-tree " + log.Source + " " + strings.Join(paths, " ")})
 	}
 	return out
 }

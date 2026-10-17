@@ -164,7 +164,8 @@
       "model": "",
       "since": "2026-09-22",
       "age": 0,
-      "causes": []
+      "causes": [],
+      "why": ""
     },
     {
       "kind": "ready",
@@ -176,7 +177,8 @@
       "model": "",
       "since": "2026-09-15",
       "age": 0,
-      "causes": []
+      "causes": [],
+      "why": ""
     },
     {
       "kind": "reaffirmation",
@@ -188,7 +190,8 @@
       "model": "",
       "since": "2026-09-28",
       "age": 0,
-      "causes": []
+      "causes": [],
+      "why": ""
     },
     {
       "kind": "waiting",
@@ -205,9 +208,11 @@
           "kind": "reason",
           "requires": null,
           "reason": "blocked",
+          "note": "Barometer ICs on 14-week backorder",
           "by": ""
         }
-      ]
+      ],
+      "why": ""
     }
   ]
 }

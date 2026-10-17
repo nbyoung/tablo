@@ -105,7 +105,7 @@ func (b builder) judges(id, person string) bool {
 // not met; a reason on the status other than the reserved one (decision
 // 12); a task that is proposed, which waits for its nearest authority; and
 // a hand-off the status states, which waits for the reviewer (decision 7).
-// It is never nil.
+// A reason carries the status's note. It is never nil.
 func (b builder) waits(id string) []view.Wait {
 	f := b.f
 	out := []view.Wait{}
@@ -116,7 +116,7 @@ func (b builder) waits(id string) []view.Wait {
 		}
 	}
 	if s := f.Status(id); s != nil && s.Reason != "" && s.Reason != reserved {
-		out = append(out, view.Wait{Kind: waitReason, Reason: s.Reason})
+		out = append(out, view.Wait{Kind: waitReason, Reason: s.Reason, Note: s.Note})
 	}
 	if b.proposed(id) {
 		out = append(out, view.Wait{Kind: waitAuthorisation, By: b.authority(id)})
@@ -175,6 +175,9 @@ func (b builder) items() []view.QueueItem {
 			}
 			if kind == itemReaffirmation {
 				item.Age = b.age(s.Date)
+			}
+			if a := f.Authorisation(id); kind == itemAuthorisation && a != nil {
+				item.Why = why(a.Why)
 			}
 			if b.q.Level >= Detail && b.q.Brief == nil {
 				item.ItemDetail = b.itemDetail(id, item)

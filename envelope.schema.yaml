@@ -103,15 +103,17 @@ allOf:
   - if:   { required: [command, data, params], properties: { command: { const: task }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
     then: { properties: { data: { required: [description, references, path, siblings, children, authorities, requires, dependents, junctions, snapshot, status_commit, own_commit, authorisation, considered, chain, linkages, sources, reviews, models, events, event_count, commands] } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
-    then: { properties: { data: { properties: { parents: false, deciding: false, undecided: false, commands: false } } } }
+    then: { properties: { data: { properties: { authorities: false, parents: false, deciding: false, undecided: false, commands: false } } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
-    then: { properties: { data: { required: [parents], properties: { deciding: false, undecided: false, commands: false } } } }
+    then: { properties: { data: { required: [authorities, parents], properties: { deciding: false, undecided: false, commands: false } } } }
   - if:   { required: [command, data, params], properties: { command: { const: authority }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
-    then: { properties: { data: { required: [parents, deciding, undecided, commands] } } }
+    then: { properties: { data: { required: [authorities, parents, deciding, undecided, commands] } } }
   - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
-    then: { properties: { data: { properties: { sections: false } } } }
-  - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { enum: [detail, provenance] } } } } }
-    then: { properties: { data: { required: [sections] } } }
+    then: { properties: { data: { properties: { sections: false, commands: false } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
+    then: { properties: { data: { required: [sections], properties: { commands: false } } } }
+  - if:   { required: [command, data, params], properties: { command: { const: assignment }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
+    then: { properties: { data: { required: [sections, commands] } } }
   # The data of each status view, and the keys of each level, also inside a
   # row, a queue item and a cause, which nest a level as a view does. tableau
   # and context share one object, which holds the same keys at glance and at
@@ -294,6 +296,7 @@ $defs:
       people: { type: array, items: { $ref: "#/$defs/view_person_row" } }
       recursive: { type: array, items: { type: string } }
       sections: { type: array, items: { $ref: "#/$defs/view_person_section" } }
+      commands: { type: array, items: { $ref: "#/$defs/view_command" } }
   view_authorisation:
     type: object
     required: [commit, way, by, email, judges, why, differs_from_trunk, uncommitted]
@@ -374,6 +377,7 @@ $defs:
     properties:
       legend: { $ref: "#/$defs/view_legend" }
       rows: { type: array, items: { $ref: "#/$defs/view_delegation_row" } }
+      authorities: { type: array, items: { $ref: "#/$defs/view_authority" } }
       parents: { type: array, items: { $ref: "#/$defs/view_chain" } }
       deciding: { type: array, items: { $ref: "#/$defs/view_deciding" } }
       undecided: { type: array, items: { $ref: "#/$defs/view_undecided" } }
@@ -717,10 +721,11 @@ $defs:
       status: { $ref: "#/$defs/view_status" }
   view_sub_event:
     type: object
-    required: [url, task]
+    required: [url, task, title]
     properties:
       url: { type: string }
       task: { type: string }
+      title: { type: string }
   view_sub_ref:
     type: object
     required: [url, id, task, form, commit, why]
@@ -1010,7 +1015,7 @@ $defs:
       brief: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_brief" }] }
   view_queue_item:
     type: object
-    required: [kind, task, gate, model, since, age, causes]
+    required: [kind, task, gate, model, since, age, causes, why]
     properties:
       kind: { $ref: "#/$defs/view_item_kind" }
       task: { $ref: "#/$defs/view_task_ref" }
@@ -1019,6 +1024,7 @@ $defs:
       since: { type: string }
       age: { type: integer }
       causes: { type: array, items: { $ref: "#/$defs/view_wait" } }
+      why: { $ref: "#/$defs/view_why" }
       junction: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_junction" }] }
       sources: { type: array, items: { $ref: "#/$defs/view_supplier" } }
       task_references: { type: array, items: { $ref: "#/$defs/view_reference" } }
@@ -1040,11 +1046,12 @@ $defs:
       commands: { type: array, items: { $ref: "#/$defs/view_command" } }
   view_wait:
     type: object
-    required: [kind, requires, reason, by]
+    required: [kind, requires, reason, note, by]
     properties:
       kind: { $ref: "#/$defs/view_wait_kind" }
       requires: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_requirement" }] }
       reason: { type: string }
+      note: { type: string }
       by: { type: string }
   view_waiting:
     type: object

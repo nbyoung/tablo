@@ -312,7 +312,8 @@
           "pin": null,
           "subproject": {
             "url": "firmware",
-            "task": "f1a0"
+            "task": "f1a0",
+            "title": "Weather node image"
           }
         },
         {
@@ -330,7 +331,8 @@
           "pin": null,
           "subproject": {
             "url": "firmware",
-            "task": "f1a0"
+            "task": "f1a0",
+            "title": "Weather node image"
           }
         }
       ],
@@ -473,7 +475,8 @@
           "pin": null,
           "subproject": {
             "url": "firmware",
-            "task": "f1a0"
+            "task": "f1a0",
+            "title": "Weather node image"
           }
         }
       ],

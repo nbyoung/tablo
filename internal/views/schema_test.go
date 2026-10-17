@@ -278,6 +278,9 @@ func TestSchemaClosesEverySet(t *testing.T) {
 			{`"kind": "assignee"`, `"kind": "assigned"`},   // where a field of a brief resolves from
 			{`"follows": "plain"`, `"follows": "mixed"`},   // the kind of the junction after a brief's gate
 		}},
+		{"queue", Query{Task: "a1c0", Person: "ada@example.org", Level: Glance}, [][2]string{
+			{`"why": ""`, `"why": "no history"`}, // why an authorisation item's task is proposed
+		}},
 		{"blockage", Query{Task: "a1c0", Level: Detail}, [][2]string{
 			{`"mark": "person"`, `"mark": "exempt"`},     // the mark of a cause's resolver
 			{`"at_trunk": "unknown"`, `"at_trunk": "-"`}, // of a requirement a cause holds
