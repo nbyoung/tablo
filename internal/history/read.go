@@ -64,8 +64,23 @@ func (s *Set) Of(p *model.Project) *Log {
 // alone. extra names further commits of p's repository to walk, as a range's
 // start. It fails only when git fails.
 func (r *Reader) Read(ctx context.Context, p *model.Project, trunk string, extra ...string) (*Set, error) {
+	return r.readAll(ctx, p, p, trunk, extra)
+}
+
+// ReadLinked makes the passes for p, a project that the load of home links
+// to, and for every project p's links reach, as Read makes them for home:
+// a repository other than home's takes its trunk from the remote-tracking
+// branch first, and no caller names p's trunk. extra names further commits
+// of p's repository to walk.
+func (r *Reader) ReadLinked(ctx context.Context, home, p *model.Project, extra ...string) (*Set, error) {
+	return r.readAll(ctx, home, p, "", extra)
+}
+
+// readAll makes the passes for p and the projects its links reach. home is
+// the project a Load returns, whose Git directory is the home repository's.
+func (r *Reader) readAll(ctx context.Context, home, p *model.Project, trunk string, extra []string) (*Set, error) {
 	set := &Set{logs: map[*model.Project]*Log{}}
-	if p == nil {
+	if p == nil || home == nil {
 		return set, nil
 	}
 	seen := map[*model.Project]bool{p: true}
@@ -84,12 +99,13 @@ func (r *Reader) Read(ctx context.Context, p *model.Project, trunk string, extra
 		}
 		var log *Log
 		var err error
+		// A linked repository is another one: a submodule's store or a
+		// clone. A directory of the home repository shares its refs.
+		linked := q.Where.GitDir != home.Where.GitDir
 		if q == p {
-			log, err = r.read(ctx, q, false, trunk, extra)
+			log, err = r.read(ctx, q, linked, trunk, extra)
 		} else {
-			// A linked repository is another one: a submodule's store or a
-			// clone. A directory of the home repository shares its refs.
-			log, err = r.read(ctx, q, q.Where.GitDir != p.Where.GitDir, "", nil)
+			log, err = r.read(ctx, q, linked, "", nil)
 		}
 		if err != nil {
 			return nil, err

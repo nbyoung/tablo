@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/nbyoung/tablo"
-	"github.com/nbyoung/tablo/internal/git"
 )
 
 // getenv reads the environment, for the viewer's default; a test replaces it.
@@ -129,21 +128,12 @@ func (inv *invocation) replaceMap() map[string]string {
 	return m
 }
 
-// defaultViewer returns the viewer when --viewer names none: GIT_AUTHOR_EMAIL
-// when it is set and not empty, else git config user.email in dir, else
-// nobody. A value that is no email address stands for nobody.
+// defaultViewer returns the viewer when --viewer names none, by the
+// library's rule: GIT_AUTHOR_EMAIL when it is set and not empty, else git
+// config user.email in dir, else nobody. The command reads the environment;
+// the library reads the configuration.
 func defaultViewer(ctx context.Context, dir string) string {
-	email := getenv("GIT_AUTHOR_EMAIL")
-	if email == "" {
-		values, err := git.Runner{}.Config(ctx, git.Repo{Dir: dir}, nil, `^user\.email$`)
-		if err == nil {
-			email = values["user.email"]
-		}
-	}
-	if (tablo.Params{Viewer: email}).Check(tablo.Gates) != nil {
-		return ""
-	}
-	return email
+	return tablo.DefaultViewer(ctx, dir, getenv("GIT_AUTHOR_EMAIL"))
 }
 
 // versionData is the data of the version command.

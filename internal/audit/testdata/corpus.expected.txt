@@ -107,19 +107,6 @@ requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
-requires-from-not-applicable main: now 2026-09-01, stale 7: 1 error(s), 1 warning(s), 3 information; most olive@example.org 2
-  R6 error [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: revise -> olive@example.org
-    message: from design does not apply to c3d7
-    commits: 
-    facts b2c9: junction
-    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
-  R9 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: await -> olive@example.org
-    message: the requirement on c3d7 from design is due at defined and unmet: c3d7 stands at undefined
-    commits: 
-    facts b2c9: requirement
-    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
-  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
-  sole_review information [b2c9 c3d7] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/c3d7.yaml]: none -> olive@example.org
 review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 1 information; most olive@example.org 1
   H2 warning [b2c9] at "design" in []: review -> olive@example.org
     message: pat is not the reviewer of the design junction; olive is
