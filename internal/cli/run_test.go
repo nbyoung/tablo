@@ -186,25 +186,50 @@ func TestSources(t *testing.T) {
 	b.git("olive", "2026-09-04", "checkout", "-q", ".")
 
 	// A tree from git write-tree, as a pre-commit hook gives it: the index
-	// and not the working tree, and the rules that need no history.
-	tree := func() result {
-		return run(t, "-C", b.dir, "--ref", b.git("olive", "2026-09-04", "write-tree"), "validate", "--json")
+	// and not the working tree, and the rules that need no history. As
+	// tabloio 1422's T11 has it, good and bad staged, each with the opposite
+	// in the working tree: the four pairs of the index and the disk.
+	good := baseSecond
+	bad := strings.Replace(baseSecond, "ben@example.org", "ben", 1)
+	const second = ".tableaux/tasks/c3d7.yaml"
+	for _, tc := range []struct {
+		name         string
+		staged, disk string
+		code         int // of the staged tree
+	}{
+		{"good staged, good on disk", good, good, 0},
+		{"good staged, bad on disk", good, bad, 0},
+		{"bad staged, good on disk again", bad, good, 1},
+		{"bad staged, bad on disk", bad, bad, 1},
+	} {
+		b.put(map[string]string{second: tc.staged})
+		b.git("olive", "2026-09-04", "add", "-A")
+		b.put(map[string]string{second: tc.disk})
+		tree := b.git("olive", "2026-09-04", "write-tree")
+		r := run(t, "-C", b.dir, "--ref", tree, "validate", "--json")
+		streams(t, tc.name, r)
+		if r.code != tc.code || !strings.Contains(r.stdout, `"commit": null`) || strings.Contains(r.stdout, `"code": "T4"`) != (tc.code == 1) {
+			t.Errorf("%s: the staged tree exits %d\n%s", tc.name, r.code, r.stdout)
+		}
+		diskCode := 0
+		if tc.disk == bad {
+			diskCode = 1
+		}
+		if r := run(t, "-C", b.dir, "validate"); r.code != diskCode {
+			t.Errorf("%s: the working tree exits %d, want %d", tc.name, r.code, diskCode)
+		}
+		b.git("olive", "2026-09-04", "reset", "-q", "--hard")
 	}
-	if r := tree(); r.code != 0 || !strings.Contains(r.stdout, `"commit": null`) {
-		t.Errorf("a clean index: exit %d\n%s", r.code, r.stdout)
+	// version.yaml removed from the index alone, the file still on disk.
+	b.git("olive", "2026-09-04", "rm", "-q", "--cached", ".tableaux/version.yaml")
+	if _, err := os.Stat(filepath.Join(b.dir, ".tableaux", "version.yaml")); err != nil {
+		t.Fatal(err)
 	}
-	b.put(map[string]string{".tableaux/tasks/c3d7.yaml": strings.Replace(baseSecond, "ben@example.org", "ben", 1)})
-	if r := tree(); r.code != 0 {
-		t.Errorf("an invalid file the index lacks: exit %d\n%s", r.code, r.stdout)
-	}
-	b.git("olive", "2026-09-04", "add", "-A")
-	if r := tree(); r.code != 1 || !strings.Contains(r.stdout, `"code": "T4"`) {
-		t.Errorf("an invalid file staged: exit %d\n%s", r.code, r.stdout)
-	}
-	b.git("olive", "2026-09-04", "reset", "-q", "--hard")
-	b.git("olive", "2026-09-04", "rm", "-q", ".tableaux/version.yaml")
-	if r := tree(); r.code != 1 || !strings.Contains(r.stdout, `"code": "P2"`) {
+	if r := run(t, "-C", b.dir, "--ref", b.git("olive", "2026-09-04", "write-tree"), "validate", "--json"); r.code != 1 || !strings.Contains(r.stdout, `"code": "P2"`) {
 		t.Errorf("a version file removed from the index: exit %d\n%s", r.code, r.stdout)
+	}
+	if r := run(t, "-C", b.dir, "validate"); r.code != 0 {
+		t.Errorf("the working tree with its version file: exit %d %s", r.code, r.stdout)
 	}
 	b.git("olive", "2026-09-04", "reset", "-q", "--hard")
 
