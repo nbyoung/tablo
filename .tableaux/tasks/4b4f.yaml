@@ -11,7 +11,7 @@ references:
   - { url: README.md#build-and-test, text: "How the tests run" }
 requires:
   - { id: "4ed9", from: implementation, to: implementation, text: The command the corpus drives }
-  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "fcec", commit: 97c18d7fc3bc9d4427a60d9dda3bb4b9da5979a2 }, from: implementation, to: implementation, text: The corpus the conformance test locks }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "fcec", commit: 50a373b2857a36e4ef1a754605433943d6bfe324 }, from: implementation, to: implementation, text: The corpus the conformance test locks }
 junctions:
   implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
   mockup:         { applies: false }

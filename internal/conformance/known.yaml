@@ -13,8 +13,4 @@
 # The first full run filled the list by the rule of design 4b4f, "Known
 # failures", as 8118 decision 11 amends it: the owes comes from the path of the
 # first mismatch, and a finding with a rule P, G, T, R, J, S or H owes 8118.
-known:
-  - entry: tableaux-tooling
-    reason: "valid: want true, got false; the plan at corpus/tooling differs from the facts the entry states (68 mismatches)"
-    owes: fcec
-    finding: C1          # C1 holds at d95294b: the tag corpus/tooling lies off main's first-parent line, so the plan reads as proposed there, and the entry's facts predate it. The entry runs only with TABLO_CORPUS
+known: []

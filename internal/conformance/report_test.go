@@ -2,6 +2,7 @@ package conformance
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -289,6 +290,16 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// writeReport writes the whole report to the file TABLO_REPORT names, and
+// nothing when the variable names none.
+func writeReport(report string) error {
+	path := os.Getenv("TABLO_REPORT")
+	if path == "" {
+		return nil
+	}
+	return os.WriteFile(path, []byte(report), 0o644)
 }
 
 // summary is the report's summary lines, which the test log shows on every run.

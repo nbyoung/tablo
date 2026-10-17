@@ -136,10 +136,8 @@ func TestCorpus(t *testing.T) {
 		}
 		rep := report(col.results, rules, tabloVersion(r), language, origin)
 		t.Logf("conformance report\n%s", summary(rep))
-		if path := os.Getenv("TABLO_REPORT"); path != "" {
-			if err := os.WriteFile(path, []byte(rep), 0o644); err != nil {
-				t.Errorf("TABLO_REPORT: %v", err)
-			}
+		if err := writeReport(rep); err != nil {
+			t.Errorf("TABLO_REPORT: %v", err)
 		}
 	})
 

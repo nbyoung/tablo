@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: snapshot.go over the Loader, Validator, Derivation, Audit and views, cli.Run with its plain forms, and the one-line command stand with T1 to T14 and the tests of decisions 14 to 16 passing, with and without the corpus; the unit gate runs go test ./... with TABLEAUX_CORPUS set; the Conformance run waits on 4b4f and the integrate gates of 8118, 27a3, 493e, 886d, 8ed1 and dada wait on this task
+note: T1 to T14, the tests of decisions 14 to 16 and the three calls of decision 19 pass in the root package and internal/cli under go test ./... with TABLEAUX_CORPUS set; integrate needs the Load benchmark on tableaux-tooling, the measure of each front end and the adoption of DefaultViewer, Snapshot.Linked and Snapshot.AuthorTime by the three front ends
