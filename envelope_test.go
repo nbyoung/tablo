@@ -458,7 +458,8 @@ func TestDiagnosticNamesWhatIsMalformed(t *testing.T) {
 
 // TestVersionIsOneFact is T13 as far as it reads no command: SchemaVersion, the
 // const in the schema, version.json and the version in code agree. The plain
-// line joins them when the command lands.
+// line and the command's version.json join them in TestPlainForms of
+// internal/cli.
 func TestVersionIsOneFact(t *testing.T) {
 	var doc struct {
 		Properties struct {
