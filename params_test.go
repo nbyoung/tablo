@@ -43,15 +43,6 @@ var options = []option{
 	{"--role", func(p *Params) { p.Role = RoleOwner }},
 }
 
-func contains(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
-
 // subsets calls f with every subset of the options, as a set of names and the
 // Params those options make.
 func subsets(f func(names map[string]bool, p Params)) {

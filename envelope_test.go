@@ -41,61 +41,27 @@ func weatherProject() *ProjectInfo {
 	return &ProjectInfo{Tableaux: "0.3.1", Root: "a1c0", Title: "Weather station", Owner: "ada@example.org"}
 }
 
-// tableauEnvelope builds the envelope of tableau.json: a view whose data is
-// abridged from prototype 886d and fixes the encoding only.
-func tableauEnvelope() *Envelope {
-	type column struct {
-		Gate   string `json:"gate"`
-		Symbol string `json:"symbol"`
+// tableauEnvelope builds the envelope of tableau.json: the global tableau of
+// the weather station at main, at detail for its owner, around the views'
+// golden data of that view (design 4ed9, decision 16).
+func tableauEnvelope(t testing.TB) *Envelope {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("internal", "views", "testdata", "weather-station", "tableau.detail.json"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	type folded struct {
-		Side  string `json:"side"`
-		From  string `json:"from"`
-		To    string `json:"to"`
-		Count int    `json:"count"`
-	}
-	type status struct {
-		Gate     string `json:"gate"`
-		State    string `json:"state"`
-		Reason   string `json:"reason"`
-		Note     string `json:"note"`
-		Date     string `json:"date"`
-		Recorder string `json:"recorder"`
-		Commit   string `json:"commit"`
-	}
-	type cell struct {
-		Gate    string `json:"gate"`
-		Kind    string `json:"kind"`
-		Symbols string `json:"symbols"`
-	}
-	type row struct {
-		ID     string `json:"id"`
-		Title  string `json:"title"`
-		Depth  int    `json:"depth"`
-		Status status `json:"status"`
-		Cells  []cell `json:"cells"`
-	}
-	commit := "edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a"
 	return &Envelope{
 		Schema:  SchemaVersion,
 		Command: "tableau",
-		Source:  weatherSource(commit, "2026-09-28"),
+		Source:  weatherSource("edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a", "2026-09-28"),
 		Project: weatherProject(),
 		Viewer:  &Viewer{Email: ptr("ada@example.org"), Roles: []Role{RoleOwner, RoleAuthority, RoleAssignee, RoleContributor}},
 		Params:  Resolved{View: Tableau, Params: Params{Window: ptr(1), Level: LevelDetail}},
-		Data: struct {
-			Columns []column `json:"columns"`
-			Folded  []folded `json:"folded"`
-			Rows    []row    `json:"rows"`
-		}{
-			Columns: []column{{"mockup", "📌"}, {"function", "⚙️"}},
-			Folded:  []folded{{"after", "integrate", "release", 0}},
-			Rows: []row{{
-				ID: "9f31", Title: "Sensor board", Depth: 2,
-				Status: status{"function", "stalled", "blocked", "Barometer ICs on 14-week backorder", "2026-09-28", "ada@example.org", commit},
-				Cells:  []cell{{"mockup", "blank", ""}, {"function", "status", "🔴⛔"}},
-			}},
-		},
+		Data:    json.RawMessage(data),
+		Diagnostics: []Diagnostic{{
+			Severity: "warning", Code: "R9", Path: ".tableaux/tasks/c07d.yaml", Line: 6, Col: 5, Task: "c07d",
+			Message: "the requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function",
+		}},
 	}
 }
 
@@ -155,7 +121,7 @@ func TestEncodingsAreExact(t *testing.T) {
 		json string
 		yaml string
 	}{
-		{"tableau", tableauEnvelope(), "tableau.json", "tableau.yaml"},
+		{"tableau", tableauEnvelope(t), "tableau.json", "tableau.yaml"},
 		{"version", versionEnvelope(), "version.json", ""},
 		{"trailer", trailerEnvelope(), "trailer.json", ""},
 		{"validate", validateEnvelope(), "validate.json", ""},
@@ -239,7 +205,7 @@ func TestYAMLReadsBack(t *testing.T) {
 			"negative":   -7,
 		},
 	}
-	docs := map[string]*Envelope{"hard": hard, "tableau": tableauEnvelope(), "validate": validateEnvelope(), "trailer": trailerEnvelope()}
+	docs := map[string]*Envelope{"hard": hard, "tableau": tableauEnvelope(t), "validate": validateEnvelope(), "trailer": trailerEnvelope()}
 	for name, env := range docs {
 		var fromJSON, fromYAML any
 		if err := json.Unmarshal(env.JSON(), &fromJSON); err != nil {
@@ -399,29 +365,12 @@ func decodeMap(t *testing.T, b []byte) map[string]any {
 
 // TestSchemaHolds is T6: every envelope the tests build validates against
 // EnvelopeSchema, and eight broken ones fail: the seven of the design and a
-// minimum that is no severity (decision 15). The schema types the data of a
-// tableau and of a queue (design 886d), and of a history and an audit (design
-// 8ed1), and the tableau of these tests is abridged from the prototype and
-// fixes the encoding alone: under those four commands the envelope validates
-// here around no data, and the tests of internal/views validate the data of
-// every view.
+// minimum that is no severity (decision 15). The envelopes around real data
+// are tableau.json and those snapshot.go builds of every view over the small
+// project and, with the corpus, of the weather station's tableau, queue,
+// history and audit (decision 16).
 func TestSchemaHolds(t *testing.T) {
 	s := schema(t)
-	untyped := func() *Envelope {
-		e := tableauEnvelope()
-		e.Data = nil
-		return e
-	}
-	audit := untyped()
-	audit.Command = "audit"
-	audit.Params = Resolved{View: Audit, Params: Params{Stale: 7, Now: "2026-10-06", Minimum: "warning", Level: LevelGlance}}
-	queue := untyped()
-	queue.Command = "queue"
-	queue.Params = Resolved{View: Queue, Params: Params{Person: "ada@example.org", Brief: &Brief{Task: "9f31", Gate: "mockup"}, Level: LevelProvenance}}
-	history := untyped()
-	history.Command = "history"
-	history.Source.From = &SourceFrom{Ref: "0704a09", Commit: strings.Repeat("a", 40)}
-	history.Params = Resolved{View: History, Params: Params{Task: "9f31", Level: LevelDetail}}
 	tree := validateEnvelope()
 	tree.Source.Commit, tree.Source.Date = nil, nil
 	undetermined := validateEnvelope()
@@ -430,13 +379,16 @@ func TestSchemaHolds(t *testing.T) {
 	noProject := validateEnvelope()
 	noProject.Project = nil
 	noProject.Diagnostics = []Diagnostic{{Severity: "error", Code: "P1", Message: "no .tableaux"}}
-	noData := tableauEnvelope()
+	noData := tableauEnvelope(t)
 	noData.Data = nil
 	noData.Diagnostics = validateEnvelope().Diagnostics
 	good := map[string]*Envelope{
-		"tableau": untyped(), "version": versionEnvelope(), "trailer": trailerEnvelope(),
-		"validate": validateEnvelope(), "audit": audit, "queue": queue, "history": history,
-		"tree": tree, "undetermined": undetermined, "no project": noProject, "no data": noData,
+		"tableau": tableauEnvelope(t), "version": versionEnvelope(), "trailer": trailerEnvelope(),
+		"validate": validateEnvelope(), "tree": tree, "undetermined": undetermined,
+		"no project": noProject, "no data": noData,
+	}
+	for name, e := range builtEnvelopes(t, small(t).load(""), "olive@example.org") {
+		good["small "+name] = e
 	}
 	for name, e := range good {
 		if err := validates(t, s, decodeMap(t, e.JSON())); err != nil {
@@ -449,23 +401,25 @@ func TestSchemaHolds(t *testing.T) {
 		}
 	}
 
+	tableau := func() *Envelope { return tableauEnvelope(t) }
+	audit := func() *Envelope { return good["small audit"] }
 	broken := []struct {
 		name   string
 		base   func() *Envelope
 		break_ func(m map[string]any)
 	}{
-		{"another schema", untyped, func(m map[string]any) { m["schema"] = "tablo/2" }},
-		{"a missing level", untyped, func(m map[string]any) { delete(m["params"].(map[string]any), "level") }},
-		{"a missing window", untyped, func(m map[string]any) { delete(m["params"].(map[string]any), "window") }},
-		{"a null viewer on a view", untyped, func(m map[string]any) { m["viewer"] = nil }},
-		{"an abbreviated commit", untyped, func(m map[string]any) { m["source"].(map[string]any)["commit"] = "edb30d2" }},
+		{"another schema", tableau, func(m map[string]any) { m["schema"] = "tablo/2" }},
+		{"a missing level", tableau, func(m map[string]any) { delete(m["params"].(map[string]any), "level") }},
+		{"a missing window", tableau, func(m map[string]any) { delete(m["params"].(map[string]any), "window") }},
+		{"a null viewer on a view", tableau, func(m map[string]any) { m["viewer"] = nil }},
+		{"an abbreviated commit", tableau, func(m map[string]any) { m["source"].(map[string]any)["commit"] = "edb30d2" }},
 		{"a column without a line", validateEnvelope, func(m map[string]any) {
 			delete(m["diagnostics"].([]any)[0].(map[string]any), "line")
 		}},
 		{"an absolute path", validateEnvelope, func(m map[string]any) {
 			m["diagnostics"].([]any)[0].(map[string]any)["path"] = "/home/ada/plan/.tableaux/tasks/b2c9.yaml"
 		}},
-		{"a minimum that is no severity", func() *Envelope { return audit }, func(m map[string]any) {
+		{"a minimum that is no severity", audit, func(m map[string]any) {
 			m["params"].(map[string]any)["minimum"] = "notice"
 		}},
 	}
