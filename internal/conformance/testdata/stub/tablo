@@ -1,0 +1,19 @@
+#!/bin/sh
+# A stand-in for the tablo command, which the self-tests name as TABLO_BIN.
+# It appends its arguments to the file STUB_LOG, one call a line, and answers
+# as STUB_MODE says: ok (the default), exit3, hang, text or schema2.
+# For version it answers STUB_LANG, 0.3 by default.
+printf '%s\n' "$*" >> "${STUB_LOG:-/dev/null}"
+case "${STUB_MODE:-ok}" in
+  exit3)   echo "tablo: cannot read the repository" >&2; exit 3 ;;
+  hang)    exec sleep 10 ;;
+  text)    echo "this is not JSON"; exit 0 ;;
+  schema2) echo '{"schema":"tablo/2","command":"x","data":{},"diagnostics":[]}'; exit 0 ;;
+esac
+for arg in "$@"; do
+  if [ "$arg" = version ]; then
+    printf '{"schema":"tablo/1","command":"version","data":{"version":"0.1.0","tableaux":"%s","schema":"tablo/1"},"diagnostics":[]}\n' "${STUB_LANG:-0.3}"
+    exit 0
+  fi
+done
+echo '{"schema":"tablo/1","command":"stub","source":{"commit":"0000000000000000000000000000000000000000"},"project":{"root":"e4a1"},"data":{},"diagnostics":[]}'

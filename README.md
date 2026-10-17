@@ -63,6 +63,8 @@ front end in the family copies.
 ├── internal/views/            # the views: one function per view over the derived facts, and the builders they share
 ├── internal/audit/            # the Audit: a finding per diagnostic, proposed task, stale status and sole review, with who resolves it
 ├── internal/cli/              # the command's argument parser, plain forms and usage text
+├── internal/corpustest/       # the copy of the conformance corpus at a locked tableaux commit, its build, its labels and its rules: a test helper
+├── internal/conformance/      # the conformance test: the command run over every corpus entry, and the entries that wait for a fix
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
 ├── .github/workflows/
@@ -95,6 +97,20 @@ golangci-lint run                    # the lint set in .golangci.yml
 CI runs those four checks on every push and pull request. Contributors work
 from the sibling checkout beside the `tableaux` repository; a personal
 `go.work` there builds the family together and stays uncommitted.
+
+`go test ./...` also runs the conformance test, which needs `git` and `sh` and no
+network. `internal/corpustest` carries a copy of the tableaux conformance corpus at
+the commit `internal/corpustest/corpus.lock.yaml` names, builds its entries in a
+temporary directory, and `internal/conformance` runs the built command over each
+of them. Four environment variables steer it. `TABLO_CORPUS` names another
+corpus directory in place of the copy, such as the `corpus/` of a tableaux
+checkout, and adds the `tableaux-tooling` entry that only a checkout can read.
+`TABLO_BIN` names a built command in place of the one the test builds, such as
+the binary of a release archive. `TABLO_KEEP` keeps the temporary directory and
+prints its path, and each mismatch then shows the full command line.
+`TABLO_REPORT` names a file that receives the coverage report. `sh
+internal/corpustest/corpus.sh refresh <tableaux checkout> [<commit>]` renews the
+copy and its lock.
 
 ## Release
 
