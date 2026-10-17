@@ -1,0 +1,23 @@
+# known.yaml: the corpus entries the conformance test expects to fail.
+#
+# A listed entry still runs. When it fails, its subtest logs the mismatches and
+# skips; when it passes, its subtest fails and says to remove the item, so the
+# list never outlives its reason.
+#
+#   entry    the entry's name
+#   reason   one line: the first mismatch, or what is wrong
+#   owes     the task that resolves it: a tablo task id, or fcec for the corpus
+#   finding  optional: the corpus finding the owner accepted; an item without
+#            one holds this task's unit gate
+#
+# The first full run filled the list by the rule of design 4b4f, "Known
+# failures", as 8118 decision 11 amends it: the owes comes from the path of the
+# first mismatch, and a finding with a rule P, G, T, R, J, S or H owes 8118.
+known:
+  - entry: requires-from-not-applicable
+    reason: "findings: want (no such finding), got R9 warning task=b2c9 file=tasks/b2c9.yaml"
+    owes: 27a3           # the owner rules that a requirement whose from gate does not apply to the originating task derives an undetermined condition, so R9 does not fire; 27a3 owes that rule (4ed9 decision 17 (f))
+  - entry: tableaux-tooling
+    reason: "valid: want true, got false; the plan at corpus/tooling differs from the facts the entry states (68 mismatches)"
+    owes: fcec
+    finding: C1          # C1 holds at d95294b: the tag corpus/tooling lies off main's first-parent line, so the plan reads as proposed there, and the entry's facts predate it. The entry runs only with TABLO_CORPUS

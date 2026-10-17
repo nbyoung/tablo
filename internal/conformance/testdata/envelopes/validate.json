@@ -1,0 +1,42 @@
+{
+  "schema": "tablo/1",
+  "command": "validate",
+  "source": {
+    "ref": "main",
+    "dir": ".",
+    "worktree": false,
+    "commit": "edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a",
+    "date": "2026-09-28",
+    "from": null,
+    "trunk": {
+      "name": "main",
+      "resolved": "stated"
+    },
+    "on_trunk": true
+  },
+  "project": {
+    "tableaux": "0.3.1",
+    "root": "a1c0",
+    "title": "Weather station",
+    "owner": "ada@example.org"
+  },
+  "viewer": null,
+  "params": {},
+  "data": {
+    "valid": true,
+    "errors": 0,
+    "warnings": 1,
+    "information": 0
+  },
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "code": "R9",
+      "path": ".tableaux/tasks/c07d.yaml",
+      "line": 6,
+      "col": 5,
+      "task": "c07d",
+      "message": "the requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function"
+    }
+  ]
+}
