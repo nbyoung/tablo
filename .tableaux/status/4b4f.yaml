@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: internal/corpustest holds the corpus copy at 97c18d7 and internal/conformance holds the black-box test, with T1 and T3 to T20 passing, with and without the corpus variable; the unit gate waits for the one known.yaml item without a finding, requires-from-not-applicable, owed by 27a3; tableaux-tooling owes fcec under finding C1; fcec's unit gate waits on this task
+note: internal/corpustest holds the corpus copy at tableaux 50a373b and known.yaml is empty; T1 and T3 to T20 pass under go test ./... with no network, and T2 (corpus.sh fetch from GitHub) and T21 (all 103 entries, tableaux-tooling among them, through TABLO_CORPUS) pass on this host; integrate reruns T20 with TABLO_BIN on the binary of a release archive; the unit gate of fcec may now run
