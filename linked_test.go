@@ -234,3 +234,16 @@ func TestLinkedRange(t *testing.T) {
 		t.Errorf("the linked snapshot reads %d further passes and the parent %d; want one and none", len(sub.ranges), len(s.ranges))
 	}
 }
+
+// TestLinkedDirectory reads subproject-same-repository's lib, a directory of
+// the same repository, at the parent's own source.
+func TestLinkedDirectory(t *testing.T) {
+	repo := filepath.Join(corpus(t), "subproject-same-repository")
+	s := loadAt(t, repo, "main", Options{})
+	sub := linked(t, s, "lib", "")
+	src, parent := sub.Source(), s.Source()
+	if src.Dir != "lib" || src.Ref != "main" || src.Commit == nil || parent.Commit == nil || *src.Commit != *parent.Commit {
+		t.Errorf("the linked source is %+v; want lib at main's commit", src)
+	}
+	sameTask(t, sub, filepath.Join(repo, "lib"), "main", Options{}, sub.Project().Root)
+}
