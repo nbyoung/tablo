@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/nbyoung/tablo/internal/audit"
 	"github.com/nbyoung/tablo/internal/derive"
@@ -211,6 +212,20 @@ type Snapshot struct {
 func (s *Snapshot) Source() Source {
 	src := s.source
 	return src
+}
+
+// AuthorTime returns the author time of the commit the load read, with the
+// zone Git records, as git log --format=%aI prints it:
+// 2026-09-01T21:30:00-07:00. Its day is Source.Date. It is "" where Date is
+// nil: a tree, an unborn branch, or a commit the pass lacks.
+func (s *Snapshot) AuthorTime() string {
+	commit := s.project.Where.Commit
+	log := s.facts.Log()
+	if commit == "" || log == nil || log.Commit(commit) == nil {
+		return ""
+	}
+	c := log.Commit(commit)
+	return time.Unix(c.Time, 0).In(time.FixedZone("", c.Zone*60)).Format("2006-01-02T15:04:05-07:00")
 }
 
 // Project returns the project's name and owner, or nil when the files give no
