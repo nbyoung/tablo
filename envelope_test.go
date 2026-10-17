@@ -365,8 +365,9 @@ func decodeMap(t *testing.T, b []byte) map[string]any {
 }
 
 // TestSchemaHolds is T6: every envelope the tests build validates against
-// EnvelopeSchema, and eight broken ones fail: the seven of the design and a
-// minimum that is no severity (decision 15). The envelopes around real data
+// EnvelopeSchema, and the broken ones fail: the seven of the design, an
+// audit without a minimum and a minimum that is no severity (decision 15),
+// and four source directories the schema refuses (decision 11). The envelopes around real data
 // are tableau.json and those snapshot.go builds of every view over the small
 // project and, with the corpus, of the weather station's tableau, queue,
 // history and audit (decision 16).
@@ -424,6 +425,7 @@ func TestSchemaHolds(t *testing.T) {
 		{"an absolute path", validateEnvelope, func(m map[string]any) {
 			m["diagnostics"].([]any)[0].(map[string]any)["path"] = "/home/ada/plan/.tableaux/tasks/b2c9.yaml"
 		}},
+		{"an audit without a minimum", audit, func(m map[string]any) { delete(m["params"].(map[string]any), "minimum") }},
 		{"a minimum that is no severity", audit, func(m map[string]any) {
 			m["params"].(map[string]any)["minimum"] = "notice"
 		}},

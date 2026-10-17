@@ -43,7 +43,7 @@ allOf:
   - if:   { properties: { command: { const: queue } } }
     then: { properties: { params: { required: [brief] } } }
   - if:   { properties: { command: { const: audit } } }
-    then: { properties: { params: { required: [stale, now] } } }
+    then: { properties: { params: { required: [stale, now, minimum] } } }
   - if:   { properties: { command: { const: validate } } }
     then:
       properties:

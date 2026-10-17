@@ -85,7 +85,7 @@ func envelope(t testing.TB, command string, q Query, data []byte) any {
 			params["columns"] = q.Columns
 		}
 	case "audit":
-		params["stale"], params["now"] = 7, "2026-09-28"
+		params["stale"], params["now"], params["minimum"] = 7, "2026-09-28", "warning"
 	case "queue":
 		params["brief"] = nil
 		if q.Brief != nil && idForm.MatchString(q.Brief.Task) && keyForm.MatchString(q.Brief.Gate) {
