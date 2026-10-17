@@ -247,3 +247,93 @@ func TestLinkedDirectory(t *testing.T) {
 	}
 	sameTask(t, sub, filepath.Join(repo, "lib"), "main", Options{}, sub.Project().Root)
 }
+
+// resolve returns the commit ref names in a snapshot's repository, and fails
+// the test on an error.
+func resolve(t testing.TB, s *Snapshot, ref string) string {
+	t.Helper()
+	commit, err := s.Resolve(context.Background(), ref)
+	if err != nil {
+		t.Fatalf("Resolve(%q): %v", ref, err)
+	}
+	return commit
+}
+
+// TestSnapshotResolve covers decision 20 of design/4ed9.md: a snapshot
+// resolves a ref in its own repository, the one Open opened for the root and
+// the one the parent's load read for each kind of link, and an unknown ref
+// gives a *NotFoundError of kind ref.
+func TestSnapshotResolve(t *testing.T) {
+	ctx := context.Background()
+	build := corpus(t)
+	station := loadAt(t, filepath.Join(build, "weather-station"), "main", Options{})
+
+	// The root resolves as its Repository does.
+	for _, ref := range []string{"main", "HEAD"} {
+		want, err := station.repo.Resolve(ctx, ref)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := resolve(t, station, ref); got != want {
+			t.Errorf("the root resolves %s to %s; Repository.Resolve gives %s", ref, got, want)
+		}
+	}
+
+	// A submodule resolves its trunk in its own store, to the commit that
+	// tableaud's workaround reads from a history view.
+	firmware := linked(t, station, "firmware", "")
+	name := firmware.Source().Trunk.Name
+	if name == nil {
+		t.Fatalf("the firmware's trunk is undetermined")
+	}
+	e, err := firmware.View(ctx, History, Params{From: *name})
+	if err != nil {
+		t.Fatalf("the firmware's history from %s: %v", *name, err)
+	}
+	got := resolve(t, firmware, *name)
+	if e.Source.From == nil || got != e.Source.From.Commit {
+		t.Errorf("the firmware resolves %s to %s; its history from %s starts after %+v", *name, got, *name, e.Source.From)
+	}
+	if parent := resolve(t, station, *name); got == parent {
+		t.Errorf("the firmware resolves %s in the parent's repository, to %s", *name, got)
+	}
+	if pin := *firmware.Source().Commit; resolve(t, firmware, pin[:12]) != pin {
+		t.Errorf("the firmware does not resolve its pin's short id to %s", pin)
+	}
+
+	// A directory resolves in the parent's repository.
+	same := loadAt(t, filepath.Join(build, "subproject-same-repository"), "main", Options{})
+	lib := linked(t, same, "lib", "")
+	if got, want := resolve(t, lib, "main"), resolve(t, same, "main"); got != want {
+		t.Errorf("the directory link resolves main to %s; the parent gives %s", got, want)
+	}
+
+	// An absolute URL resolves in the clone that Options.Replace names.
+	const url = "https://example.org/lib.git"
+	clone := filepath.Join(build, "subproject-by-url.lib")
+	byURL := loadAt(t, filepath.Join(build, "subproject-by-url"), "main", Options{Replace: map[string]string{url: clone}})
+	remote := linked(t, byURL, url, "")
+	want, err := loadAt(t, clone, "main", Options{}).repo.Resolve(ctx, "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := resolve(t, remote, "main"); got != want {
+		t.Errorf("the URL link resolves main to %s; its clone gives %s", got, want)
+	}
+	l2 := "438d39de8534b02f59ee7a195f5e3afbff5c7fa2"
+	if got := resolve(t, remote, l2[:10]); got != l2 {
+		t.Errorf("the URL link resolves L2's short id to %s; want %s", got, l2)
+	}
+	var nf *NotFoundError
+	if _, err := byURL.Resolve(ctx, l2); !errors.As(err, &nf) {
+		t.Errorf("the parent resolves the clone's L2 with %v; want a *NotFoundError", err)
+	}
+
+	// An unknown ref names no commit, on the root and on each link.
+	for _, s := range []*Snapshot{station, firmware, lib, remote} {
+		var nf *NotFoundError
+		if _, err := s.Resolve(ctx, "no-such-ref"); !errors.As(err, &nf) || nf.Kind != "ref" || nf.Name != "no-such-ref" {
+			t.Errorf("%s resolves an unknown ref with %v; want a *NotFoundError of kind ref", s.Source().Dir, err)
+		}
+	}
+}

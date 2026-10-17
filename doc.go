@@ -9,8 +9,9 @@
 // diagnostics and CheckTrailer the check of a commit trailer; the command
 // encodes the same envelope as JSON or YAML, so the two cannot disagree.
 // Linked returns the snapshot of a subproject that the load already read,
-// with its own source and views, and AuthorTime the time of the commit read,
-// with its zone. The data of each view has its types in package view.
+// with its own source and views; Resolve resolves a ref in a snapshot's own
+// repository, a linked one's included; and AuthorTime gives the time of the
+// commit read, with its zone. The data of each view has its types in package view.
 //
 // The library reads neither the environment nor the clock: the caller
 // passes the viewer and the date staleness counts from in Params. Where the
