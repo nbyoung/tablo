@@ -16,7 +16,8 @@
 known:
   - entry: requires-from-not-applicable
     reason: "findings: want (no such finding), got R9 warning task=b2c9 file=tasks/b2c9.yaml"
-    owes: 8118           # an R finding. 27a3 is the likelier owner: the Derivation leaves a condition whose from gate does not apply as determined, so R9 fires once more than the entry states (4ed9 decision 17 (f)); the owner may move the item there
+    owes: 27a3           # the owner rules that a requirement whose from gate does not apply to the originating task derives an undetermined condition, so R9 does not fire; 27a3 owes that rule (4ed9 decision 17 (f))
   - entry: tableaux-tooling
     reason: "valid: want true, got false; the plan at corpus/tooling differs from the facts the entry states (68 mismatches)"
-    owes: 27a3           # a fact. design/4b4f.md finding C1 holds the entry's facts stale (owes fcec); the owner moves the item and adds `finding: C1` on accepting that. The entry runs only with TABLO_CORPUS
+    owes: fcec
+    finding: C1          # C1 holds at d95294b: the tag corpus/tooling lies off main's first-parent line, so the plan reads as proposed there, and the entry's facts predate it. The entry runs only with TABLO_CORPUS
