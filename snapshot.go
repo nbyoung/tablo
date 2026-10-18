@@ -405,7 +405,7 @@ func (s *Snapshot) View(ctx context.Context, v View, p Params) (*Envelope, error
 	e.Viewer = &viewer
 	e.Params = Resolved{View: v, Params: r}
 	if r.From != "" {
-		commit, err := s.resolveRef(ctx, r.From)
+		commit, err := s.Resolve(ctx, r.From)
 		if err != nil {
 			return nil, err
 		}

@@ -1,3 +1,3 @@
-gate: unit
+gate: integrate
 state: nominal
-note: T1 to T25 pass under go test and go test -race with TABLEAUX_CORPUS set to the built corpus, with no skip; T25 asserts at least 37 tasks and every pin on its trunk and logs the proposed tasks since the plan moves; integrate needs the snapshot of 4ed9 to fill validate.Facts from these facts and the corpus run of 4b4f; a shallow clone, a SHA-256 repository, macOS and Windows stay unverified
+note: The Validator, the Audit and the views consume the facts through TestCorpus of 4b4f, all 103 entries and 1668 stated facts agreeing, and through TestAuditOfTheCorpus; on the umbrella at 3713cd2 BenchmarkTooling gives a first set of passes of 103 to 138 ms with facts of 12 to 16 ms beyond the Loader's, where the design estimates 90 ms, and a reload that moves no commit of 6 to 12 ms, where it estimates 12 ms, on a host two other agents load; the passes still run one after another, and the review decides whether they run together; validate needs the cost on a person's own plan in tablotui and tableaud

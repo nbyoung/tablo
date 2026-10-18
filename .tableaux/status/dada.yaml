@@ -1,3 +1,3 @@
-gate: unit
+gate: integrate
 state: nominal
-note: T1 to T16 of design/dada.md pass on the built corpus with no skip and under the race detector; a finding of H4 or H5 carries the Status fact as decision 10 (a) states; the audit view waits on 8ed1, and the audit command, its minimum and the test over the history rules' real diagnostics wait on snapshot.go of 4ed9
+note: The adapter of 4ed9 gives real history diagnostics and the golden file takes the Validator's messages, as TestAuditOfTheCorpus holds byte for byte against testdata/audit.corpus.txt and TestModelsAtTheCommit and TestJunctionsAtTheCommit hold for built histories; the suites of tabloio f9bcb02, tablotui cf22fbe and tableaud 450771b pass against this branch, tableaud's sourcetest audit.json regenerates unchanged and tabloio's copy of the golden equals tablo's, while tabloio's nine envelopes under internal/render/testdata/audit/in differ from tablo's output at the commits they state and wait on tabloio's 9167; validate needs the owner to read the audit of the tooling plan against the plan

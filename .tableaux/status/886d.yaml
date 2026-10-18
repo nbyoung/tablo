@@ -1,3 +1,3 @@
-gate: unit
+gate: integrate
 state: nominal
-note: T1 to T20 of design/886d.md pass on the built corpus with no skip, with TestDefaultMarks and TestAtTip of internal/derive and the added TestSnapshotCauseOffTrunk of decision 14 (c); T8 and T14 read as decision 14 (e) states; the four commands of the plumbing command wait on snapshot.go of 4ed9, and integrate needs 4ed9 to emit the four views
+note: The command emits the four views (TestLibraryAndCommandAgree), and the adapters of tabloio f9bcb02, tablotui cf22fbe and tableaud 450771b read them, each suite passing against this branch; tabloio's T17 skips 70 keys of the four views and none of the queue, tablotui's types hold no place for 195 keys of them, and tableaud's adapters read no field such as Blockage.NotDueCount, GridRow.Leaf, ItemDetail.AlsoRequiredBy, ItemDetail.ParentUnblocks or RowProvenance.Linkages; the four views' own broken cases, 8 of TestSchemaClosesEverySet and none of TestSchemaClosesTheWords, hold; validate needs the owner to read the queue and the tree of this plan

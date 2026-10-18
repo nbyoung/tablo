@@ -102,9 +102,15 @@ func (s *Snapshot) Linked(url, commit string) (*Snapshot, error) {
 	return sub, nil
 }
 
-// resolveRef returns the full id of the commit a ref names in the
-// snapshot's repository: the one Open names, or a linked project's own.
-func (s *Snapshot) resolveRef(ctx context.Context, ref string) (string, error) {
+// Resolve returns the full id of the commit ref names in the snapshot's own
+// repository (4ed9 decision 20), as Repository.Resolve does for the
+// repository Open opened. A snapshot that Load returns resolves there. One
+// that Linked returns resolves wherever the parent's load read the link: a
+// submodule's checkout or store, the same repository for a directory, or the
+// clone that Options.Replace or Git's configuration names for an absolute
+// URL. The error is a *NotFoundError of kind "ref" for a ref that names no
+// commit, or a *ReadError.
+func (s *Snapshot) Resolve(ctx context.Context, ref string) (string, error) {
 	if s.home == nil {
 		return s.repo.Resolve(ctx, ref)
 	}
