@@ -483,3 +483,44 @@ func TestQueueCausesAtGlance(t *testing.T) {
 		}
 	}
 }
+
+// Finished work has nothing to reaffirm (the owner's ruling of 2026-10-18):
+// a leaf whose status is complete gives its recorder no reaffirmation, and a
+// status in any other state still gives one. On the tooling plan at
+// 50a373b, the tag corpus/tooling, the agents' twenty mockup leaves stand
+// complete, and the agents' queue keeps eight reaffirmations of 28.
+func TestQueueLeavesFinishedWork(t *testing.T) {
+	repo := clone(t, "weather-station")
+	write := func(name, text string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(repo, ".tableaux", "status", name), []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("7b2e.yaml", "gate: defined\nstate: nominal\n")
+	gitRun(t, repo, "add", ".tableaux/status/7b2e.yaml")
+	gitRun(t, repo, "commit", "-q", "-m", "Define the gateway")
+	write("9f31.yaml", "gate: release\nstate: complete\n")
+	gitRun(t, repo, "commit", "-q", "-am", "Release the sensor board")
+	f := derived(t, load.Options{}, repo, "main", "")
+	if s := f.Status("9f31"); s.Kind != derive.Recorded || s.Recorder != "olive@example.org" || s.State != "complete" || !f.Leaf("9f31") {
+		t.Fatalf("9f31 reads %+v", s)
+	}
+	for _, level := range []Level{Glance, Detail, Provenance} {
+		if got, want := itemsOf(Queue(f, Query{Task: "a1c0", Person: "olive@example.org", Level: level})), []string{"reaffirmation 7b2e defined"}; !reflect.DeepEqual(got, want) {
+			t.Errorf("at %s olive's items are %q; want %q", levels[level], got, want)
+		}
+	}
+
+	plan := tooling(t, "50a373b")
+	kinds := map[string]int{}
+	for _, item := range Queue(plan, Query{Person: "noreply@anthropic.com"}).Items {
+		kinds[item.Kind]++
+		if s := plan.Status(item.Task.ID); item.Kind == "reaffirmation" && s.State == "complete" {
+			t.Errorf("the tooling plan gives a reaffirmation of %s, complete at %s", item.Task.ID, s.Gate)
+		}
+	}
+	if want := map[string]int{"reaffirmation": 8, "ready": 8}; !reflect.DeepEqual(kinds, want) {
+		t.Errorf("on the tooling plan the agents' queue holds %v; want %v", kinds, want)
+	}
+}
