@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -511,6 +512,9 @@ func TestObserve(t *testing.T) {
 // variables in its environment. The stub stands where TABLO_BIN names a binary.
 func stubRunner(t *testing.T, c *corpustest.Corpus, mode, lang string) (*runner, string) {
 	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("the stub is a shell script")
+	}
 	dir := t.TempDir()
 	data, err := os.ReadFile(filepath.Join("testdata", "stub", "tablo"))
 	if err != nil {

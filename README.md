@@ -68,7 +68,7 @@ front end in the family copies.
 ├── schemas/                   # the tableaux schema files, embedded into the binary
 ├── .tableaux/                 # this project's plan
 ├── .github/workflows/
-│   ├── ci.yml                 # format, vet, lint and test on every push and pull request
+│   ├── ci.yml                 # format, vet, lint and test on every push and pull request; the corpus; macOS and Windows
 │   └── release.yml            # build and publish on a tag
 ├── .goreleaser.yaml           # the six targets and the release archives
 └── .golangci.yml              # the lint set
@@ -94,8 +94,10 @@ gofmt -l . && go vet ./...           # what CI checks first
 golangci-lint run                    # the lint set in .golangci.yml
 ```
 
-CI runs those four checks on every push and pull request. Its job `platforms`
-runs `go vet`, the tests and the corpus in place on macOS and Windows.
+CI runs those four checks on every push and pull request. Its job `corpus` runs
+the conformance test on the tableaux repository at the locked commit, and its
+job `platforms` runs `go vet`, the tests and the corpus in place on macOS and
+Windows.
 Contributors work from the sibling checkout beside the `tableaux` repository; a
 personal `go.work` there builds the family together and stays uncommitted.
 
