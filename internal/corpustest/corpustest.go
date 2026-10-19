@@ -204,13 +204,20 @@ func (c *Corpus) Names() []string {
 	return names
 }
 
-// Env is the closed environment for git and for the command under test.
+// Env is the closed environment for git and for the command under test. It
+// turns off git's automatic maintenance, which detaches after a commit and
+// can still write into a repository that a rebuild removes.
 func (c *Corpus) Env() []string {
 	return []string{
 		"PATH=" + os.Getenv("PATH"),
 		"HOME=" + c.Work,
 		"GIT_CONFIG_GLOBAL=" + os.DevNull,
 		"GIT_CONFIG_NOSYSTEM=1",
+		"GIT_CONFIG_COUNT=2",
+		"GIT_CONFIG_KEY_0=maintenance.auto",
+		"GIT_CONFIG_VALUE_0=false",
+		"GIT_CONFIG_KEY_1=gc.auto",
+		"GIT_CONFIG_VALUE_1=0",
 		"TZ=UTC",
 		"LC_ALL=C",
 	}
