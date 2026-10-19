@@ -46,3 +46,46 @@ jobs:
         if: always()
         run: |
           if [ -f "$RUNNER_TEMP/conformance.md" ]; then cat "$RUNNER_TEMP/conformance.md" >> "$GITHUB_STEP_SUMMARY"; fi
+
+  platforms:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Line endings: the checkout keeps the repository's bytes. On Windows the
+      # runner's core.autocrlf converts the work tree to CRLF, and then the
+      # embedded corpus no longer matches its digest, sh reads build.sh and
+      # lib.sh with a carriage return on each line, and the golden files differ
+      # from what the command writes: bytes that no user of the module sees,
+      # since the module zip carries LF. So this job proves the code on each
+      # platform over LF files, and leaves unproved a plan that a user checks
+      # out with core.autocrlf on, which no test builds; the tests' own
+      # repositories ignore the global and system configuration.
+      - name: Keep the line endings of the repository
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: git version
+        run: git --version
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        run: go test -count=1 ./...
+      - name: Fetch the tableaux repository at the locked commit
+        run: sh internal/corpustest/corpus.sh fetch "$RUNNER_TEMP/tableaux"
+      - name: Run the corpus in place
+        env:
+          TABLO_CORPUS: ${{ runner.temp }}/tableaux/corpus
+          TABLO_REPORT: ${{ runner.temp }}/conformance.md
+        run: go test -count=1 ./internal/conformance
+      - name: Publish the report
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/conformance.md" ]; then cat "$RUNNER_TEMP/conformance.md" >> "$GITHUB_STEP_SUMMARY"; fi

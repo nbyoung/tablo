@@ -94,9 +94,10 @@ gofmt -l . && go vet ./...           # what CI checks first
 golangci-lint run                    # the lint set in .golangci.yml
 ```
 
-CI runs those four checks on every push and pull request. Contributors work
-from the sibling checkout beside the `tableaux` repository; a personal
-`go.work` there builds the family together and stays uncommitted.
+CI runs those four checks on every push and pull request. Its job `platforms`
+runs `go vet`, the tests and the corpus in place on macOS and Windows.
+Contributors work from the sibling checkout beside the `tableaux` repository; a
+personal `go.work` there builds the family together and stays uncommitted.
 
 `go test ./...` also runs the conformance test, which needs `git` and `sh` and no
 network. `internal/corpustest` carries a copy of the tableaux conformance corpus at
