@@ -1,0 +1,3 @@
+gate: defined
+state: nominal
+note: The design is next; its requirements on 7166, 9f3f and ac33 are met at the umbrella main 85e5085
