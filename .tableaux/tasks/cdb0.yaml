@@ -1,0 +1,22 @@
+title: Language 0.4
+description: >
+  Raises the language tablo reads from 0.3 to 0.4.0, which the method designs
+  7166, 9f3f and ac33 compose: the Loader accepts 0.4.0 and the agents file;
+  the Validator and the Audit raise H7, H8, J18, J19, R14, A1 and A2; and the
+  Derivation reads a task's subproject field, an unpinned requirement, an
+  agent identity, the nearest person as an agent's reviewer, the waiver and
+  the merge that authorises a task, each by the version at the commit, until
+  the conformance test passes the corpus at 0.4.0.
+assignee: noreply@anthropic.com
+references:
+  - { url: https://github.com/nbyoung/tableaux/blob/main/design/7166.md, text: "The language clarifications and what tablo changes (decision 4)" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/design/9f3f.md, text: "The subproject linkage and what tablo changes" }
+  - { url: https://github.com/nbyoung/tableaux/blob/main/design/ac33.md, text: "The agent identity and the tablo tasks that follow" }
+  - { url: https://github.com/nbyoung/tableaux/blob/1d1cb02b1e1bb7bbc68ede0a765edc78e6895722/corpus/RULES.md, text: "The rules at 0.4.0" }
+requires:
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "7166", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The language clarifications }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "9f3f", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The subproject linkage }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "ac33", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The agent identity }
+junctions:
+  mockup:         { applies: false }
+parent: { id: "b2c1", order: 9 }
