@@ -19,4 +19,5 @@ requires:
   - { subproject: { url: https://github.com/nbyoung/tableaux, id: "ac33", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The agent identity }
 junctions:
   mockup:         { applies: false }
+  function:       { applies: false }
 parent: { id: "b2c1", order: 9 }
