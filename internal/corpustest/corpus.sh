@@ -28,6 +28,8 @@ COPY="$HERE/testdata/corpus"
 field() { sed -n "s/^$1: *\([^ #]*\).*/\1/p" "$LOCK"; }
 
 # sum: SHA-256 of standard input or of the files named, in sha256sum's format.
+# digest prints each line itself, since Git for Windows' sha256sum marks a
+# file read in binary mode with "*" before its name.
 sum() {
   if command -v sha256sum > /dev/null 2>&1; then sha256sum "$@"; else shasum -a 256 "$@"; fi
 }
@@ -35,7 +37,8 @@ sum() {
 digest() {
   ( cd "${1:-$COPY}" &&
     find . -type f ! -path './build/*' -print | LC_ALL=C sort |
-    while IFS= read -r f; do sum "$f"; done | sum | cut -d' ' -f1 )
+    while IFS= read -r f; do printf '%s  %s\n' "$(sum < "$f" | cut -d' ' -f1)" "$f"; done |
+    sum | cut -d' ' -f1 )
 }
 
 refresh() {

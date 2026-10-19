@@ -50,7 +50,7 @@ func repository(t *testing.T) (dir, commit string) {
 	if err := os.MkdirAll(filepath.Join(dir, "a", "b"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	for name, text := range map[string]string{"one.txt": "one\n", "a/b/two *.txt": "two\n\n", "a/empty": ""} {
+	for name, text := range map[string]string{"one.txt": "one\n", "a/b/two [1].txt": "two\n\n", "a/empty": ""} {
 		if err := os.WriteFile(filepath.Join(dir, filepath.FromSlash(name)), []byte(text), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -142,7 +142,7 @@ func TestTreesAndBlobs(t *testing.T) {
 		paths = append(paths, e.Mode+" "+e.Path)
 		ids = append(ids, e.ID)
 	}
-	if want := []string{"100644 a/b/two *.txt", "100644 a/empty", "120000 link", "100644 one.txt"}; !reflect.DeepEqual(paths, want) {
+	if want := []string{"100644 a/b/two [1].txt", "100644 a/empty", "120000 link", "100644 one.txt"}; !reflect.DeepEqual(paths, want) {
 		t.Errorf("ls-tree -r: %q, want %q", paths, want)
 	}
 	if !all[0].Regular() || all[2].Regular() {
@@ -185,8 +185,8 @@ func TestTreesAndBlobs(t *testing.T) {
 		}
 	}
 
-	index, err := r.LsFiles(ctx, Repo{Dir: dir}, "a/b/two *.txt", "link", "absent")
-	if err != nil || len(index) != 2 || index[0].Path != "a/b/two *.txt" || index[0].ID != ids[0] || index[1].Mode != "120000" {
+	index, err := r.LsFiles(ctx, Repo{Dir: dir}, "a/b/two [1].txt", "link", "absent")
+	if err != nil || len(index) != 2 || index[0].Path != "a/b/two [1].txt" || index[0].ID != ids[0] || index[1].Mode != "120000" {
 		t.Errorf("ls-files: %+v, %v", index, err)
 	}
 }

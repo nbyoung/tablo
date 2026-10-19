@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -45,7 +46,11 @@ func binary(tb testing.TB) string {
 			return
 		}
 		binDir = dir
-		out := filepath.Join(dir, "tablo")
+		name := "tablo"
+		if runtime.GOOS == "windows" {
+			name += ".exe" // Windows starts a file by its extension alone
+		}
+		out := filepath.Join(dir, name)
 		cmd := exec.Command("go", "build", "-o", out, "../../cmd/tablo")
 		if msg, err := cmd.CombinedOutput(); err != nil {
 			binErr = fmt.Errorf("go build ./cmd/tablo: %v\n%s", err, msg)
