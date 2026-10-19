@@ -30,6 +30,9 @@ const (
 // reserved is the reason the method reserves for the hand-off.
 const reserved = "review"
 
+// complete is the state of finished work, which has nothing to reaffirm.
+const complete = "complete"
+
 // Queue returns the work queue of q.Person within the subtree under q.Task,
 // or, with q.Brief, the brief of one of its items. With q.Brief the items
 // are empty, and the brief is null unless the person's queue holds work,
@@ -199,7 +202,9 @@ func (b builder) items() []view.QueueItem {
 				add(itemReady, j.Gate, waits)
 			}
 		}
-		if f.Leaf(id) && s.Kind == derive.Recorded && s.Recorder == person {
+		// Finished work has nothing to reaffirm: a complete status gives
+		// no reaffirmation, as the Audit leaves it out of the stale ones.
+		if f.Leaf(id) && s.Kind == derive.Recorded && s.Recorder == person && s.State != complete {
 			if s.Commit != nil {
 				recorded[id] = s.Commit.Time
 			}
