@@ -1,3 +1,3 @@
-gate: unit
+gate: integrate
 state: nominal
-note: internal/corpustest holds the corpus copy at tableaux 50a373b and known.yaml is empty; T1 and T3 to T20 pass under go test ./... with no network, and T2 (corpus.sh fetch from GitHub) and T21 (all 103 entries, tableaux-tooling among them, through TABLO_CORPUS) pass on this host; integrate reruns T20 with TABLO_BIN on the binary of a release archive; the unit gate of fcec may now run
+note: T20 passes on the binary of the v0.1.0 archive (77ec4fa, its checksum checked), 102 entries passing and tableaux-tooling skipping on the embedded copy, and with TABLO_CORPUS on a clone of the umbrella all 103 pass; the validate gate is the owner reading the conformance report in the CI job summary; the front ends read data the corpus has checked once tabloio (1422), tablotui (518e) and tableaud pin tablo v0.1.0, which the dispatcher checks at the review
