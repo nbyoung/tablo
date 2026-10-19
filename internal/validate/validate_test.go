@@ -164,12 +164,12 @@ func TestOwnPlan(t *testing.T) {
 	if !p.Exists || len(p.Tasks) < 12 {
 		t.Fatalf("the working tree holds no plan of tablo: %d tasks", len(p.Tasks))
 	}
-	// Task 4b4f requires a task of the tableaux repository by URL (4b4f decision
-	// 6), which an offline run with no cache and no --replace cannot resolve:
-	// J8 on that requirement is the price the decision names.
+	// Tasks 4b4f and cdb0 require tasks of the tableaux repository by URL (4b4f
+	// decision 6), which an offline run with no cache and no --replace cannot
+	// resolve: J8 on those requirements is the price the decision names.
 	var got []model.Diagnostic
 	for _, d := range Files(p) {
-		if d.Code == "J8" && d.Task == "4b4f" {
+		if d.Code == "J8" && (d.Task == "4b4f" || d.Task == "cdb0") {
 			continue
 		}
 		got = append(got, d)
