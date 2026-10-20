@@ -42,8 +42,8 @@ func Files(p *model.Project) []model.Diagnostic {
 }
 
 // files applies the rules in the order the design gives: the project, the
-// version, the gates, the tree, each task file, the requirement cycles and
-// each status file.
+// version, the gates, the agents file, the tree, each task file, the
+// requirement cycles and each status file.
 func (r *run) files() {
 	p := r.project
 	if r.p1() {
@@ -60,6 +60,7 @@ func (r *run) files() {
 	}
 	r.shape = newShape(p)
 	r.gating()
+	r.a1()
 	r.tree()
 	for _, id := range p.TaskIDs() {
 		r.task(p.Tasks[id])

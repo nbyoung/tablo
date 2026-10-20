@@ -67,6 +67,15 @@ func buildGating(file *model.File) *model.Gating {
 	return g
 }
 
+// buildAgents types agents.yaml, with an entry for every item written.
+func buildAgents(file *model.File) *model.Agents {
+	a := &model.Agents{File: file}
+	for _, node := range items(file.Root.Get("agents")) {
+		a.Emails = append(a.Emails, model.StrOf(node))
+	}
+	return a
+}
+
 // buildTask types tasks/<id>.yaml as written. It first takes the scalar at
 // each of the four places a task file names an id as a string, so that 07e0
 // stays 07e0 in the typed model and in what Plain hands a schema.

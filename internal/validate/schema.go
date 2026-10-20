@@ -18,19 +18,20 @@ import (
 	"github.com/nbyoung/tablo/schemas"
 )
 
-// fileKind is which of the four files of the layout a schema judges.
+// fileKind is which of the five files of the layout a schema judges.
 type fileKind int
 
 // The file kinds, each with a schema of its own.
 const (
 	versionFile fileKind = iota
 	gatesFile
+	agentsFile
 	taskFile
 	statusFile
 )
 
 // schemaNames are the embedded schema files, by file kind.
-var schemaNames = [...]string{"version", "gates", "task", "status"}
+var schemaNames = [...]string{"version", "gates", "agents", "task", "status"}
 
 // entryDefs are the definitions of task.schema.yaml that judge one junction
 // entry alone, by the kind of the entry.
@@ -41,7 +42,7 @@ var entryDefs = [...]string{model.Plain: "plain", model.Recursive: "recursive", 
 // and nothing ever fetches it.
 const schemaBase = "https://tableaux.invalid/"
 
-// compiled holds the four schemas and the three definitions of a junction
+// compiled holds the five schemas and the three definitions of a junction
 // entry. Nothing changes them once they compile.
 type compiled struct {
 	file  [len(schemaNames)]*jsonschema.Schema
@@ -199,6 +200,9 @@ func row(k fileKind, root *model.Value, at []string, keyword string, failed json
 	switch k {
 	case versionFile:
 		return "P3", "", true
+
+	case agentsFile:
+		return "A1", "", true
 
 	case gatesFile:
 		if len(at) == 0 {
@@ -439,6 +443,8 @@ func place(file *model.File, at []string, keyword string, failed jsonschema.Erro
 		return one(pos, "%s is %s, below %s", where, show(node), failed.Want.RatString())
 	case *kind.MinItems:
 		return one(pos, "%s holds %d, fewer than %d", where, failed.Got, failed.Want)
+	case *kind.UniqueItems:
+		return one(pos, "%s states an item twice", where)
 	case *kind.Const:
 		return one(pos, "%s is %s, not %v", where, show(node), failed.Want)
 	}

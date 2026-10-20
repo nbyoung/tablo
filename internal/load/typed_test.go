@@ -188,6 +188,10 @@ func TestContentFaultsAreNotTheLoaders(t *testing.T) {
 	if p := load(t, loader(t, Options{}), entry(t, "file-stray-path"), "HEAD"); !reflect.DeepEqual(p.Stray, []string{"NOTES.md"}) || len(p.Files) != 5 {
 		t.Errorf("file-stray-path: stray %v, %d files", p.Stray, len(p.Files))
 	}
+	// agents.yaml is a file of the layout from 0.4.0 (cdb0, T3).
+	if p := load(t, loader(t, Options{}), entry(t, "agents-listed"), "HEAD"); p.Stray != nil || !p.Agents.Lists("opus@example.org") || len(p.Agents.Emails) != 1 {
+		t.Errorf("agents-listed: stray %v, agents %+v", p.Stray, p.Agents)
+	}
 }
 
 // T9: presence shows in the model, for the Validator to report.

@@ -13,6 +13,9 @@ func (r *run) junction(t *model.Task, j *model.Junction) {
 	}
 	kind := j.Kind()
 	codes := r.leaves(checkEntry(t.File, t.ID, j, kind))
+	if kind == model.Plain && len(codes) == 0 {
+		r.a2(t, j)
+	}
 	if kind != model.Recursive {
 		return
 	}

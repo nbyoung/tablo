@@ -5,8 +5,15 @@
 # and drops the parts the diagnostic lacks; <file> is the path below .tableaux.
 # The test compares every part but the message. The Loader raises L1 to L4 and P4;
 # every other line is the Validator's. The rules that read derived facts (R9, R13,
-# P5, S11, J13, H1 to H6) are not here: facts.yaml fixes them.
-# A trial of this design produces the file from tableaux 93a6acc.
+# P5, S11, J13, H1 to H8) are not here: facts.yaml fixes them.
+# Design cdb0 regenerates the file from tableaux df523e4.
+# agent-work-under-person
+# agents-listed
+# agents-not-email
+agents.yaml:3:5: error: A1: agents.0 Corpus Agent is no email address
+# agents-unlisted-model
+tasks/b2c9.yaml:8:26: error: A2 task=b2c9 gate=design: the design junction states the model claude-fable beside bot@example.org, whom agents.yaml does not list
+# authorised-by-merge
 # file-duplicate-key
 status/b2c9.yaml:3:1: error: L2 task=b2c9: the mapping states the key "gate" twice; the first stands
 # file-not-yaml
@@ -54,6 +61,9 @@ tasks/b2c9.yaml:8:22: error: J6 task=b2c9 gate=design: junctions.design.applies 
 tasks/b2c9.yaml:8:3: error: J4 task=b2c9 gate=design: the entry mixes the fields of more than one kind
 # junction-model-without-contributor
 tasks/b2c9.yaml:8:20: error: J5 task=b2c9 gate=design: junctions.design states model and no contributor
+# junction-review-waived
+# junction-reviewer-true
+tasks/b2c9.yaml:8:23: error: T4 task=b2c9 gate=design: junctions.design.reviewer true is neither an email address nor false
 # junction-subproject-without-url
 tasks/b2c9.yaml:8:26: error: J7 task=b2c9 gate=release: junctions.release.subproject lacks url
 # junction-undefined-not-applicable
@@ -70,6 +80,7 @@ tasks/b2c9.yaml:8:3: error: J1 task=b2c9 gate=nonesuch: junction key nonesuch na
 # model-trailer-missing
 # no-tableaux-directory
 error: P1: no .tableaux directory at or above the repository's root
+# reaffirmed-snapshot
 # recursive-on-parent
 tasks/e4a1.yaml:8:3: error: J3 task=e4a1 gate=design: a parent states a recursive junction
 # requires-across-projects
@@ -99,7 +110,11 @@ tasks/b2c9.yaml:10:40: error: R7 task=b2c9 gate=design: to design does not apply
 tasks/b2c9.yaml:8:40: error: R10 task=b2c9 gate=undefined: to is undefined: no work needs a result before definition
 # requires-unknown-field
 tasks/b2c9.yaml:8:36: error: R8 task=b2c9: why is no field of requires.0
+# requires-unpinned
+tasks/b2c9.yaml:8:19: error: J15 task=b2c9: the absolute url https://example.org/lib.git states no commit
+# review-after-status
 # review-by-non-reviewer
+# review-nearest-person
 # roll-up-tie
 # siblings-same-order
 tasks/e4a1.yaml: warning: T12 task=e4a1: b2c9 and c3d7 share order 1 under e4a1
@@ -124,6 +139,7 @@ status/e4a1.yaml: error: S2 task=e4a1: e4a1 is a parent: its status derives from
 status/b2c9.yaml:2:1: error: S9 task=b2c9 gate=defined: the next junction, design, is recursive, so the file holds only the gate
 # status-undefined-gate-nominal-state
 status/b2c9.yaml:2:8: error: S4 task=b2c9: state is nominal, not undefined
+# status-undefined-with-reason
 # status-unknown-field
 status/b2c9.yaml:3:1: error: S3 task=b2c9: colour is no field of the file
 # status-unknown-gate
@@ -141,6 +157,10 @@ tasks/b2c9.yaml:8:45: error: J14 task=b2c9 gate=design: junctions.design.subproj
 tasks/b2c9.yaml:8:45: error: J17 task=b2c9 gate=design: commit 7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981 is not the commit the submodule sub pins, 2aeb31a1f1729bad254dc89d30ff134fd64494b5
 # subproject-directory-with-commit
 tasks/b2c9.yaml:8:45: error: J16 task=b2c9 gate=design: url lib is a directory of this repository, which nothing pins
+# subproject-field
+status/c100.yaml:2:7: error: S10 task=c100 gate=function: the next junction, design, is plain and the file states no state
+# subproject-field-on-parent
+# subproject-language-behind
 # subproject-path-missing
 tasks/b2c9.yaml:8:33: error: J8 task=b2c9 gate=release: url elsewhere resolves to no Tableaux project the tool can read: missing
 # subproject-pin-off-trunk
@@ -180,16 +200,20 @@ error: T8: 2 tasks state no parent: c3d7, e4a1
 # trunk-inferred
 # trunk-stated
 # trunk-undetermined
+# undefined-leaf-reaffirmed
 # unknown-trailer
 # unmet-requirement
 # unquoted-id
 tasks/1a00.yaml:5:15: warning: T7 task=1a00: parent.id is written as the integer 1000, not the string "1000"
+# unquoted-id-text
+tasks/07e0.yaml:7:15: warning: T7 task=07e0: parent.id is written as the integer 0010, not the string "0010"
+tasks/b2c9.yaml:8:11: warning: T7 task=b2c9: requires.0.id is written as the float 07e0, not the string "07e0"
 # version-bad-pattern
 version.yaml:1:11: error: P3: tableaux 0.2 does not match ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$
 # version-major-mismatch
-version.yaml:1:11: error: P4: the project states tableaux 1.0.0; the module accepts major 0 up to minor 3
+version.yaml:1:11: error: P4: the project states tableaux 1.0.0; the module accepts major 0 up to minor 4
 # version-minor-ahead
-version.yaml:1:11: error: P4: the project states tableaux 0.4.0; the module accepts major 0 up to minor 3
+version.yaml:1:11: error: P4: the project states tableaux 0.5.0; the module accepts major 0 up to minor 4
 # version-missing
 version.yaml: error: P2: version.yaml is missing
 # version-trunk-empty

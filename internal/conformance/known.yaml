@@ -20,12 +20,6 @@ known:
   - entry: agents-listed
     reason: "tasks.b2c9.junctions.default.reviewer: want olive@example.org, got (absent); and 1 more"
     owes: cdb0
-  - entry: agents-not-email
-    reason: "valid: want false, got true; and 2 more"
-    owes: cdb0
-  - entry: agents-unlisted-model
-    reason: "valid: want false, got true; and 2 more"
-    owes: cdb0
   - entry: authorised-by-merge
     reason: "tasks.c3d4.events.length: want 3, got 2"
     owes: cdb0

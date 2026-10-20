@@ -267,8 +267,8 @@ func TestPlainAgreesWithYAML(t *testing.T) {
 	if files < 500 {
 		t.Errorf("%d files compared; the corpus holds more", files)
 	}
-	if ids != 1 {
-		t.Errorf("%d ids differ from what YAML reads; the corpus holds one, in unquoted-id", ids)
+	if ids != 3 {
+		t.Errorf("%d ids differ from what YAML reads; the corpus holds three, one in unquoted-id and two in unquoted-id-text", ids)
 	}
 }
 

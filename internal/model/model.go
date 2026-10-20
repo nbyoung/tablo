@@ -22,6 +22,7 @@ type Project struct {
 	Stray       []string         // paths under .tableaux the layout does not name, by path
 	Version     *Version         // nil when version.yaml is absent or does not parse
 	Gating      *Gating          // nil when gates.yaml is absent or does not parse
+	Agents      *Agents          // nil when agents.yaml is absent or does not parse
 	Tasks       map[string]*Task // by id: the file's name without .yaml, whatever it is
 	Statuses    map[string]*Status
 	Links       []*Link      // each distinct subproject the files name, by URL then commit
@@ -82,6 +83,25 @@ type State struct {
 type Reason struct {
 	Key, Symbol, Synopsis StrField
 	Node                  *Value
+}
+
+// Agents is agents.yaml: the identities that are agents.
+type Agents struct {
+	File   *File
+	Emails []StrField // each item under agents, in file order, whatever it is
+}
+
+// Lists reports whether the file lists an email among its scalar items.
+func (a *Agents) Lists(email string) bool {
+	if a == nil {
+		return false
+	}
+	for _, item := range a.Emails {
+		if item.Node.Scalar() && item.V == email {
+			return true
+		}
+	}
+	return false
 }
 
 // Task is tasks/<id>.yaml as written. Nothing here is inherited, defaulted or resolved.
