@@ -527,14 +527,17 @@ func TestHistoryProvenance(t *testing.T) {
 		{Query{Task: "c07d", Level: Provenance}, []string{
 			format + source + " -- .tableaux/tasks/c07d.yaml .tableaux/status/c07d.yaml firmware",
 			format + "-E --grep='^(Authorised|Reaffirmed): (c07d)$' --grep='^Reviewed: (c07d) ' " + source,
+			format + "--first-parent --merges main -- .tableaux/tasks/c07d.yaml",
 		}},
 		{Query{Level: Provenance}, []string{
 			format + source + " -- .tableaux/tasks .tableaux/status firmware",
 			format + "-E --grep='^(Authorised|Reaffirmed): ([0-9a-f]{4})$' --grep='^Reviewed: ([0-9a-f]{4}) ' " + source,
+			format + "--first-parent --merges main -- .tableaux/tasks",
 		}},
 		{Query{Task: "4e2b", From: hashes["W8"], Level: Provenance}, []string{
 			format + hashes["W8"] + ".." + source + " -- .tableaux/tasks/4e2b.yaml .tableaux/status/4e2b.yaml .tableaux/tasks/9f31.yaml .tableaux/status/9f31.yaml .tableaux/tasks/c07d.yaml .tableaux/status/c07d.yaml firmware",
 			format + "-E --grep='^(Authorised|Reaffirmed): (4e2b|9f31|c07d)$' --grep='^Reviewed: (4e2b|9f31|c07d) ' " + hashes["W8"] + ".." + source,
+			format + "--first-parent --merges " + hashes["W8"] + "..main -- .tableaux/tasks/4e2b.yaml .tableaux/tasks/9f31.yaml .tableaux/tasks/c07d.yaml",
 		}},
 	} {
 		var got []string

@@ -327,3 +327,58 @@ func TestUnpinnedCondition(t *testing.T) {
 		t.Errorf("the pin events are %q; want one at %s with no old commit", got, url)
 	}
 }
+
+// TestMergeAuthorises is T12: on authorised-by-merge, olive's merge A4 on the
+// trunk's first-parent line brings in c3d4's file: an authorised event, the
+// deciding commit by merge, while A3 keeps the status's date and recorder.
+func TestMergeAuthorises(t *testing.T) {
+	f, hashes := view(t, "authorised-by-merge")
+	names := map[string]string{}
+	for name, hash := range hashes {
+		names[hash] = name
+	}
+	var events []string
+	for _, e := range f.Events("c3d4") {
+		events = append(events, label(names, e.Commit)+" "+e.Commit.Author.Email+" "+string(e.Kind))
+	}
+	if got := strings.Join(events, ", "); got != "A2 pat@example.org task, A3 pat@example.org status, A4 olive@example.org authorised" {
+		t.Errorf("c3d4's events: %s", got)
+	}
+	if a := f.Authorisation("c3d4"); a == nil || !a.Authorised || a.Way != ByMerge || label(names, a.Commit) != "A4" {
+		t.Errorf("c3d4's authorisation: %+v", a)
+	}
+	if s := f.Status("c3d4"); s == nil || label(names, s.Commit) != "A3" || s.Recorder != "pat@example.org" {
+		t.Errorf("c3d4's status: %+v", s)
+	}
+}
+
+// TestMoot is T8, the Derivation's half: a reaffirmed event says why it
+// confirms nothing, as the files stand at its commit: a leaf whose next
+// junction is recursive, a parent, a leaf with no status file; and nothing
+// for a leaf with a status of its own.
+func TestMoot(t *testing.T) {
+	moots := func(f *Facts, id string) string {
+		var out []string
+		for _, e := range f.Events(id) {
+			if e.Kind == Reaffirmed {
+				out = append(out, e.Moot.String())
+			}
+		}
+		return fmt.Sprintf("%q", out)
+	}
+	snapshot, _ := view(t, "reaffirmed-snapshot")
+	if got := moots(snapshot, "b2c9"); got != `["recursive"]` {
+		t.Errorf("reaffirmed-snapshot b2c9: %s", got)
+	}
+	if got := moots(snapshot, "e4a1"); !strings.Contains(got, `"parent"`) {
+		t.Errorf("reaffirmed-snapshot e4a1: %s", got)
+	}
+	undefined, _ := view(t, "undefined-leaf-reaffirmed")
+	if got := moots(undefined, "b2c9"); got != `["absent"]` {
+		t.Errorf("undefined-leaf-reaffirmed b2c9: %s", got)
+	}
+	station, _ := view(t, "weather-station")
+	if got := moots(station, "9f31"); got != `[""]` {
+		t.Errorf("weather-station 9f31: %s; want one reaffirmation that confirms its status", got)
+	}
+}

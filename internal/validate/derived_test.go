@@ -169,8 +169,8 @@ func TestDerivedOnFacts(t *testing.T) {
 			t.Errorf("%s:\n got  %s\n want %s", e.Entry, strings.Join(got, "\n      "), strings.Join(want, "\n      "))
 		}
 	}
-	if len(names) != 10 {
-		t.Errorf("facts.yaml holds %d corpus entries; want 10", len(names))
+	if len(names) != 12 {
+		t.Errorf("facts.yaml holds %d corpus entries; want 12", len(names))
 	}
 }
 

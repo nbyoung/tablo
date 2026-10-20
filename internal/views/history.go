@@ -286,7 +286,10 @@ func (b builder) count(h *view.History) {
 	}
 }
 
-// historyCommands returns the two commands of the history's provenance.
+// historyCommands returns the commands of the history's provenance: the
+// two of README.md#history over the subtree and the range, and, where the
+// trunk is determined, the third, which lists the merges of its
+// first-parent line that bring in a task file (F11).
 func (b builder) historyCommands(top string) []view.Command {
 	log := b.f.Log()
 	if log == nil {
@@ -317,8 +320,23 @@ func (b builder) historyCommands(top string) []view.Command {
 		}
 	}
 	format := "git log --format='%H %as %ae %s' "
-	return []view.Command{
+	commands := []view.Command{
 		{Text: format + span + " -- " + strings.Join(paths, " ")},
 		{Text: format + "-E --grep='^(Authorised|Reaffirmed): (" + pattern + ")$' --grep='^Reviewed: (" + pattern + ") ' " + span},
 	}
+	if trunk := b.f.Trunk(); trunk.Tip != "" {
+		tasks := []string{b.fromRoot("tasks")}
+		if top != b.f.Root() {
+			tasks = tasks[:0]
+			for _, id := range ids {
+				tasks = append(tasks, b.fromRoot("tasks/"+id+".yaml"))
+			}
+		}
+		line := trunk.Name
+		if b.q.From != "" {
+			line = b.q.From + ".." + line
+		}
+		commands = append(commands, view.Command{Text: format + "--first-parent --merges " + line + " -- " + strings.Join(tasks, " ")})
+	}
+	return commands
 }

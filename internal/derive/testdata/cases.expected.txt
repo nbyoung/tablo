@@ -113,5 +113,6 @@ C16: on the trunk
   event 2026-09-16 C15 pat@example.org b2c9 status design nominal "From both"; at release
   event 2026-09-17 C16 olive@example.org b2c9 reaffirmed; at release
   event 2026-09-02 C2 pat@example.org c3d7 task
+  event 2026-09-03 C3 olive@example.org c3d7 authorised
   event 2026-09-05 C5 pat@example.org c3d7 authorised
   event 2026-09-07 C7 pat@example.org c3d7 authorised

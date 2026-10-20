@@ -17,7 +17,7 @@ type History struct {
 // HistoryProvenance is what the history adds at provenance. There each line
 // also carries its LineProvenance.
 type HistoryProvenance struct {
-	Commands []Command `json:"commands"` // the two git log commands of README.md#history, over the subtree and the range
+	Commands []Command `json:"commands"` // the git log commands of README.md#history, over the subtree and the range: two, and a third where the trunk is determined
 }
 
 // EventCount counts the events of one kind.

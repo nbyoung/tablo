@@ -139,3 +139,22 @@ func TestCoAuthor(t *testing.T) {
 		}
 	}
 }
+
+// TestThirdCommand: where the trunk is determined, the history's provenance
+// holds the third command of README.md#history, the merges of the trunk's
+// first-parent line that bring in a task file; with no trunk it holds two.
+func TestThirdCommand(t *testing.T) {
+	merge := derived(t, load.Options{}, builtAt(t, "authorised-by-merge"), "main", "")
+	commands := History(merge, Query{Level: Provenance}).Commands
+	if len(commands) != 3 || commands[2].Text != "git log --format='%H %as %ae %s' --first-parent --merges main -- .tableaux/tasks" {
+		t.Errorf("authorised-by-merge: the commands are %+v", commands)
+	}
+	if c := History(merge, Query{Task: "c3d4", Level: Provenance}).Commands; len(c) != 3 ||
+		c[2].Text != "git log --format='%H %as %ae %s' --first-parent --merges main -- .tableaux/tasks/c3d4.yaml" {
+		t.Errorf("authorised-by-merge c3d4: the commands are %+v", c)
+	}
+	none := derived(t, load.Options{}, builtAt(t, "trunk-undetermined"), "main", "")
+	if c := History(none, Query{Level: Provenance}).Commands; len(c) != 2 {
+		t.Errorf("trunk-undetermined: the commands are %+v; want two", c)
+	}
+}

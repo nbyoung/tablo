@@ -102,6 +102,16 @@ model-trailer-missing main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 2
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <M4>  # shows the finding
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 no-tableaux-directory main: refused
+reaffirmed-snapshot main: now 2026-09-08, stale 7: 0 error(s), 2 warning(s), 1 information
+  H8 warning [e4a1] at "" in []: none -> pat@example.org
+    message: Reaffirmed: e4a1 confirms nothing: e4a1 is a parent, so its status derives from its children
+    commits: R1
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R1>  # shows the finding
+  H8 warning [b2c9] at "" in []: none -> pat@example.org
+    message: Reaffirmed: b2c9 confirms nothing: the next junction, design, is recursive, so the status is the subproject's
+    commits: R1
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R1>  # shows the finding
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 2 information; most pat@example.org 2
   R9 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: await -> pat@example.org
     message: the requirement on 5a00 from design is due at release and unmet: 5a00 stands at defined
@@ -236,7 +246,11 @@ trunk-undetermined main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 2 in
     $ git log -1 --format='%as %H %ae' -- .tableaux/version.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
-undefined-leaf-reaffirmed main: now 2026-09-05, stale 7: 0 error(s), 1 warning(s), 2 information; most olive@example.org 1
+undefined-leaf-reaffirmed main: now 2026-09-05, stale 7: 0 error(s), 2 warning(s), 2 information; most olive@example.org 1
+  H8 warning [b2c9] at "" in []: none -> pat@example.org
+    message: Reaffirmed: b2c9 confirms nothing: b2c9 has no status file, so its date is its task file's
+    commits: U3
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U3>  # shows the finding
   proposed warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: authorise -> olive@example.org
     message: The task stands proposed: pat@example.org, the author of its deciding commit, is none of its authorities
     commits: U2

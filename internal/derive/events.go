@@ -76,6 +76,31 @@ type Reading struct {
 	CoAuthor    string // the first agent a Co-Authored-By: trailer names on a person's commit; "" for none
 }
 
+// Moot says why a Reaffirmed: trailer confirms nothing (H8).
+type Moot int
+
+// The reasons a task has no status of its own to confirm.
+const (
+	NotMoot      Moot = iota
+	MootParent        // the task is a parent at the commit
+	MootSnapshot      // the task's next junction is recursive at the commit
+	MootAbsent        // the task is a leaf with no status file at the commit
+)
+
+// String returns "parent", "recursive" or "absent", or "" for NotMoot, as
+// the Validator's facts name them.
+func (m Moot) String() string {
+	switch m {
+	case MootParent:
+		return "parent"
+	case MootSnapshot:
+		return "recursive"
+	case MootAbsent:
+		return "absent"
+	}
+	return ""
+}
+
 // Event is one event of one task.
 type Event struct {
 	Commit                    *history.Commit
@@ -88,6 +113,7 @@ type Event struct {
 	SubTitle                  string      // an event taken from a subproject: the title of Sub as the files at the pin state it; else ""
 	Reading                   *Reading    // status and reaffirmed
 	Effect                    Effect      // reviewed
+	Moot                      Moot        // reaffirmed: why the task has no status of its own to confirm, as the files stand at the commit
 }
 
 // Unread is a task trailer the method cannot read (H1).
@@ -216,7 +242,11 @@ func (f *Facts) under(id, ancestor string) bool {
 // ownEvents returns the events of this project's own history by task, each
 // task's the oldest commit first and one commit's in the order of the kinds,
 // and fills the unread trailers. One walk of the commits the source reaches
-// makes them all.
+// makes them all. A merge on the trunk's first-parent line is an authorised
+// event of each task whose file it brings in against its first parent, as
+// the deciding commit of the authorisation reads it (F11), so an Authorised:
+// trailer on the same merge adds none; a status keeps the default log's
+// reading, under which such a merge changes nothing.
 func (f *Facts) ownEvents() map[string][]*Event {
 	if f.own != nil {
 		return f.own
@@ -234,6 +264,15 @@ func (f *Facts) ownEvents() map[string][]*Event {
 				at[e.Task] = map[EventKind][]*Event{}
 			}
 			at[e.Task][e.Kind] = append(at[e.Task][e.Kind], e)
+		}
+		if c.Merge() && c.Trunk >= 0 {
+			for _, change := range c.Changes {
+				below, inPlan := strings.CutPrefix(change.Path, plan)
+				dir, name := path.Split(below)
+				if id, isFile := strings.CutSuffix(name, ".yaml"); inPlan && isFile && dir == "tasks/" {
+					add(&Event{Task: id, Kind: Authorised})
+				}
+			}
 		}
 		for _, change := range c.Changes {
 			if !f.log.Changed(c, change.Path) {
@@ -266,7 +305,7 @@ func (f *Facts) ownEvents() map[string][]*Event {
 				case t.Key == "Authorised" && len(at[words[0]][Authorised]) == 0:
 					add(&Event{Task: words[0], Kind: Authorised})
 				case t.Key == "Reaffirmed" && len(at[words[0]][Reaffirmed]) == 0:
-					add(&Event{Task: words[0], Kind: Reaffirmed, Reading: f.readingAt(c, words[0], "", false)})
+					add(&Event{Task: words[0], Kind: Reaffirmed, Reading: f.readingAt(c, words[0], "", false), Moot: f.moot(c, words[0])})
 				}
 			case "Reviewed":
 				id, gate := "", ""
@@ -307,6 +346,28 @@ func (f *Facts) ownEvents() map[string][]*Event {
 		}
 	}
 	return f.own
+}
+
+// moot says why a Reaffirmed: trailer on a commit confirms nothing for a
+// task, as the files stand at the commit: a parent, a leaf with no status
+// file, or a leaf whose next junction is recursive; NotMoot for a leaf with
+// a status of its own, and where the commit's files hold no such task.
+func (f *Facts) moot(c *history.Commit, id string) Moot {
+	then := f.past(c.ID)
+	if then == nil || then.task(id) == nil {
+		return NotMoot
+	}
+	file := then.p.Statuses[id]
+	switch {
+	case len(then.children[id]) > 0:
+		return MootParent
+	case file == nil:
+		return MootAbsent
+	}
+	if j := then.junction(id, then.next(id, file.Gate.V)); j != nil && j.Kind == model.Recursive {
+		return MootSnapshot
+	}
+	return NotMoot
 }
 
 // before returns the object a path holds at a commit's first parent, or "".

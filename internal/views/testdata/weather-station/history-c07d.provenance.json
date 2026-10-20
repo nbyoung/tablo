@@ -569,6 +569,10 @@
     {
       "text": "git log --format='%H %as %ae %s' -E --grep='^(Authorised|Reaffirmed): (c07d)$' --grep='^Reviewed: (c07d) ' edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a",
       "comment": ""
+    },
+    {
+      "text": "git log --format='%H %as %ae %s' --first-parent --merges main -- .tableaux/tasks/c07d.yaml",
+      "comment": ""
     }
   ]
 }

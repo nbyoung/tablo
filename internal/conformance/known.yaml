@@ -13,13 +13,4 @@
 # The first full run filled the list by the rule of design 4b4f, "Known
 # failures", as 8118 decision 11 amends it: the owes comes from the path of the
 # first mismatch, and a finding with a rule P, G, T, R, J, S or H owes 8118.
-known:
-  - entry: authorised-by-merge
-    reason: "tasks.c3d4.events.length: want 3, got 2"
-    owes: cdb0
-  - entry: reaffirmed-snapshot
-    reason: "findings: want H8 at b2c9 (R1), got none; and 1 more"
-    owes: cdb0
-  - entry: undefined-leaf-reaffirmed
-    reason: "findings: want H8 at b2c9 (U3), got none"
-    owes: cdb0
+known: []

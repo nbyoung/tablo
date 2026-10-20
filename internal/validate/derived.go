@@ -71,8 +71,10 @@ type Commit struct {
 type Trailer struct{ Key, Value string }
 
 // Event is one event of the history view; Kind is of the history schema's
-// event enum.
-type Event struct{ Task, Kind, Gate string }
+// event enum, and Gate is also the junction a reaffirmed event's commit is
+// at. Moot is "parent", "recursive" or "absent" on a reaffirmed event whose
+// task has no status of its own to confirm at the commit; else "".
+type Event struct{ Task, Kind, Gate, Moot string }
 
 // Pin is a linkage whose commit is off its subproject's trunk.
 type Pin struct {
@@ -85,11 +87,12 @@ type Pin struct {
 // The keys of the method's four trailers, and the kind of the event a
 // Reviewed: trailer gives.
 const (
-	keyAuthorised = "Authorised"
-	keyReaffirmed = "Reaffirmed"
-	keyReviewed   = "Reviewed"
-	keyModel      = "Model"
-	reviewedEvent = "reviewed"
+	keyAuthorised   = "Authorised"
+	keyReaffirmed   = "Reaffirmed"
+	keyReviewed     = "Reviewed"
+	keyModel        = "Model"
+	reviewedEvent   = "reviewed"
+	reaffirmedEvent = "reaffirmed"
 )
 
 // Derived applies the rules that read derived facts: R9 from f.Requirements,
@@ -109,6 +112,7 @@ func Derived(p *model.Project, f *Facts) []model.Diagnostic {
 		wrong := r.trailers()
 		r.models()
 		r.h7()
+		r.h8()
 		r.h4(wrong)
 		r.h5()
 	}
@@ -426,6 +430,38 @@ func (r *run) h7() {
 				r.commit("H7", model.Pos{}, j, c.Hash, "", "%s authors the agent's work at the %s junction, whose contributor is %s",
 					c.Author, j.Gate, junction.Contributor)
 			}
+		}
+	}
+}
+
+// h8 warns of a Reaffirmed: trailer that confirms nothing: a reaffirmed
+// event whose task has, as the files stand at the commit, no status of its
+// own, on a task the project holds.
+func (r *run) h8() {
+	for _, c := range r.facts.History.Commits {
+		for _, e := range c.Events {
+			if e.Kind != reaffirmedEvent || r.project.Tasks[e.Task] == nil {
+				continue
+			}
+			var why string
+			switch e.Moot {
+			case "parent":
+				why = e.Task + " is a parent, so its status derives from its children"
+			case "recursive":
+				why = "the next junction, " + e.Gate + ", is recursive, so the status is the subproject's"
+			case "absent":
+				why = e.Task + " has no status file, so its date is its task file's"
+			default:
+				continue
+			}
+			line := keyReaffirmed + ": " + e.Task
+			for _, trailer := range c.Trailers {
+				if words := strings.Fields(trailer.Value); trailer.Key == keyReaffirmed && len(words) == 1 && words[0] == e.Task {
+					line = trailer.Key + ": " + trailer.Value
+					break
+				}
+			}
+			r.commit("H8", model.Pos{}, Junction{Task: e.Task}, c.Hash, line, "Reaffirmed: %s confirms nothing: %s", e.Task, why)
 		}
 	}
 }

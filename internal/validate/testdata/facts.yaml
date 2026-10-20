@@ -149,3 +149,29 @@ entries:
       - "warning: H7 task=b2c9 gate=design commit=M1"
       - "warning: H7 task=b2c9 gate=design commit=M2"
       - "warning: H7 task=d3a6 gate=design commit=C4"
+
+  # H8: a Reaffirmed: trailer on a task with no status of its own to confirm,
+  # as the Derivation's Moot names it: R1 of the entry, on a leaf whose next
+  # junction is recursive and on the root, a parent; R0 is literal, a
+  # reaffirmation of a status the leaf does have, and says nothing.
+  - entry: reaffirmed-snapshot
+    history:
+      trunk: main
+      commits:
+        - { hash: R1, by: pat@example.org, tableaux: 0.4.0, trailers: ["Reaffirmed: b2c9", "Reaffirmed: e4a1"],
+            events: [{ task: b2c9, kind: reaffirmed, gate: design, moot: recursive }, { task: e4a1, kind: reaffirmed, gate: defined, moot: parent }] }
+        - { hash: R0, by: pat@example.org, tableaux: 0.4.0, trailers: ["Reaffirmed: b2c9"], events: [{ task: b2c9, kind: reaffirmed, gate: design }] }
+        - *plan
+    want:
+      - "warning: H8 task=b2c9 commit=R1 trailer=Reaffirmed: b2c9"
+      - "warning: H8 task=e4a1 commit=R1 trailer=Reaffirmed: e4a1"
+
+  # H8 on a leaf with no status file.
+  - entry: undefined-leaf-reaffirmed
+    history:
+      trunk: main
+      commits:
+        - { hash: U3, by: pat@example.org, tableaux: 0.4.0, trailers: ["Reaffirmed: b2c9"], events: [{ task: b2c9, kind: reaffirmed, gate: defined, moot: absent }] }
+        - { hash: U1, by: olive@example.org, tableaux: 0.4.0, events: [{ task: e4a1, kind: task }, { task: b2c9, kind: task }] }
+    want:
+      - "warning: H8 task=b2c9 commit=U3 trailer=Reaffirmed: b2c9"

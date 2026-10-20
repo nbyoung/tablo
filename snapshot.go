@@ -833,7 +833,11 @@ func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 		}
 		seen := map[validate.Junction]bool{}
 		for _, e := range events[c.ID] {
-			vc.Events = append(vc.Events, validate.Event{Task: e.Task, Kind: string(e.Kind), Gate: e.Gate})
+			ve := validate.Event{Task: e.Task, Kind: string(e.Kind), Gate: e.Gate, Moot: e.Moot.String()}
+			if e.Kind == derive.Reaffirmed && e.Reading != nil {
+				ve.Gate = e.Reading.Gate // the junction the commit is at
+			}
+			vc.Events = append(vc.Events, ve)
 			// A commit is at the junction of the gate it records when it
 			// changes a status's gate; any other commit to a status, and a
 			// Reaffirmed: commit, is at the task's next applicable junction
