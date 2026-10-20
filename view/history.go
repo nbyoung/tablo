@@ -17,7 +17,7 @@ type History struct {
 // HistoryProvenance is what the history adds at provenance. There each line
 // also carries its LineProvenance.
 type HistoryProvenance struct {
-	Commands []Command `json:"commands"` // the two git log commands of README.md#history, over the subtree and the range
+	Commands []Command `json:"commands"` // the git log commands of README.md#history, over the subtree and the range: two, and a third where the trunk is determined
 }
 
 // EventCount counts the events of one kind.
@@ -55,6 +55,7 @@ type LineDetail struct {
 	Model        string      `json:"model"`         // the commit's first Model: trailer; "" for none
 	Check        *ModelCheck `json:"check"`         // the model check of the line's status or reaffirmed event; null where it reads no model
 	Committer    string      `json:"committer"`     // the committer's email where it differs from the author's; else ""
+	CoAuthor     string      `json:"co_author"`     // the first agent a Co-Authored-By: trailer names on a person's commit; else ""
 }
 
 // LineProvenance is what a line adds at provenance.

@@ -392,7 +392,7 @@ func TestPlainForms(t *testing.T) {
 		t.Errorf("validate writes %q, exit %d", r.stdout, r.code)
 	}
 	r := run(t, "version")
-	if r.code != 0 || r.stdout != "tablo "+tablo.Version+" (tableaux 0.3, schema "+tablo.SchemaVersion+")\n" {
+	if r.code != 0 || r.stdout != "tablo "+tablo.Version+" (tableaux 0.4, schema "+tablo.SchemaVersion+")\n" {
 		t.Errorf("version writes %q", r.stdout)
 	}
 	if r := run(t, "version", "--json"); r.stdout != golden(t, "version.json") {

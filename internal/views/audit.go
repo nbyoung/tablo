@@ -134,7 +134,7 @@ func (b builder) findingFacts(x *audit.Finding) (view.FindingFacts, bool) {
 	if facts.Reading != nil && len(x.Commits) > 0 {
 		out.Model, carries = &view.ModelCheck{
 			Commit: x.Commits[len(x.Commits)-1].ID, Gate: facts.Reading.Gate, Stated: facts.Reading.Stated,
-			Trailer: facts.Reading.Trailer, Reading: reading(facts.Reading.Verdict),
+			Trailer: facts.Reading.Trailer, Reading: reading(facts.Reading.Verdict), CoAuthor: facts.Reading.CoAuthor,
 		}, true
 	}
 	return out, carries

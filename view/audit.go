@@ -28,7 +28,7 @@ type Finding struct {
 	Kind     string    `json:"kind"`     // the rule's title, or the kind's: tablo's words
 	Tasks    []TaskRef `json:"tasks"`    // in display order; empty for a finding that names none
 	Gate     string    `json:"gate"`     // "" when the finding names none
-	Act      string    `json:"act"`      // one of the ten acts
+	Act      string    `json:"act"`      // one of the twelve acts
 	Resolver string    `json:"resolver"` // an email; "" when the files name nobody
 	*FindingDetail
 	*FindingProvenance

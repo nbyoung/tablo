@@ -7,19 +7,22 @@ import (
 // By says what supplies a field of a resolved junction.
 type By int
 
-// The suppliers. e4c7 A3 names them default, task and assignee.
+// The suppliers. e4c7 A3 names them default, task and assignee; design cdb0
+// adds the nearest person.
 const (
 	ByDefault  By = iota // no entry states the field, and the plain default gives none
 	ByTask               // the entry of Field.Task states it
 	ByAssignee           // no entry states it, and the task's assignee takes it
+	ByNearest            // no entry states the reviewer of an agent, and the nearest authority who is a person takes it
 )
 
-// Field is one field of a resolved plain junction.
+// Field is one field of a resolved plain junction. A waiver is a reviewer
+// ByTask with V empty.
 type Field struct {
 	V    string
 	By   By
-	Task string       // the task whose entry states it; "" unless By is ByTask
-	Node *model.Value // the value in that entry; nil unless By is ByTask
+	Task string       // the task whose entry states it; for ByNearest, the ancestor whose assignee reviews; else ""
+	Node *model.Value // the value in that entry, or that ancestor's assignee; nil for ByDefault and ByAssignee
 }
 
 // Junction is a task's junction at one gate after undefined, resolved.
@@ -30,6 +33,8 @@ type Junction struct {
 	References                   []*model.Reference // of a plain junction
 	ReferencesFrom               string             // the task whose entry states them; "" for none
 	Entry                        string             // the task whose entry makes it recursive or exempt
+	Delegated                    bool               // recursive by the task-level subproject field, not by an entry at the gate
+	Agent                        bool               // a plain junction whose contributor is an agent, as the version of the files reads it
 	Snapshot                     *Snapshot          // of a recursive junction
 
 	sources []string
@@ -73,8 +78,8 @@ func (m Mark) Symbol() string {
 }
 
 // Marks returns the marks of the junction, the contributor's first: person
-// or agent, then reviewer only where the reviewer differs from the
-// contributor; or subproject; or exempt.
+// or agent, as Agent says, then reviewer only where the reviewer differs
+// from the contributor; or subproject; or exempt.
 func (j *Junction) Marks() []Mark {
 	switch j.Kind {
 	case model.Recursive:
@@ -83,7 +88,7 @@ func (j *Junction) Marks() []Mark {
 		return []Mark{MarkExempt}
 	}
 	marks := []Mark{MarkPerson}
-	if j.Model.V != "" {
+	if j.Agent {
 		marks[0] = MarkAgent
 	}
 	if j.Reviewer.V != "" && j.Reviewer.V != j.Contributor.V {
@@ -94,13 +99,14 @@ func (j *Junction) Marks() []Mark {
 
 // DefaultMarks returns the marks of the junction as a default, as the
 // subtree of its task inherits it: the marks of Marks, without the reviewer
-// where no entry states one and the task's own assignee takes the review,
-// since a child takes its own assignee and inherits no review from its
-// parent's (decision 12). A parent's cell and a parent's defaults read
-// them; a leaf's marks are those of Marks.
+// where no entry states one and the task's own assignee or the nearest
+// person takes the review, since a child computes its own and inherits no
+// review from its parent's (decision 12, as cdb0 decision 5 amends it). A
+// parent's cell and a parent's defaults read them; a leaf's marks are those
+// of Marks.
 func (j *Junction) DefaultMarks() []Mark {
 	marks := j.Marks()
-	if j.Kind == model.Plain && j.Reviewer.By == ByAssignee && len(marks) > 1 {
+	if j.Kind == model.Plain && (j.Reviewer.By == ByAssignee || j.Reviewer.By == ByNearest) && len(marks) > 1 {
 		return marks[:1]
 	}
 	return marks
@@ -225,7 +231,10 @@ func (f *Facts) resolved(id string) []*Junction {
 	for _, gate := range f.gates[1:] {
 		j := f.resolve(task, gate)
 		if j.Kind == model.Recursive {
-			field := entry(task, gate).Subproject
+			field := task.Subproject
+			if !j.Delegated {
+				field = entry(task, gate).Subproject
+			}
 			link, sub := f.reach(field)
 			target := field.ID.V
 			if target == "" {
@@ -269,17 +278,78 @@ func stated(field model.StrField) bool {
 	return field.Node.Scalar() && field.V != ""
 }
 
+// Agent reports whether an identity is an agent's as the files of the facts
+// state it: listed in agents.yaml, or, without that file, the contributor of
+// an entry of any task that states a model beside it. A project before 0.4.0
+// reads an agent at a junction by its model alone; Junction.Agent applies
+// that reading.
+func (f *Facts) Agent(email string) bool {
+	if !f.enter() {
+		return false
+	}
+	defer f.leave()
+	return f.agent(email)
+}
+
+// agent is Agent under the lock. The pairing reads every entry of every task
+// file, a parent's included, once per facts.
+func (f *Facts) agent(email string) bool {
+	if f == nil || f.p == nil || email == "" {
+		return false
+	}
+	if f.p.Agents != nil {
+		return f.p.Agents.Lists(email)
+	}
+	if f.paired == nil {
+		f.paired = map[string]bool{}
+		for _, task := range f.p.Tasks {
+			for _, e := range task.Junctions {
+				if stated(e.Contributor) && stated(e.Model) {
+					f.paired[e.Contributor.V] = true
+				}
+			}
+		}
+	}
+	return f.paired[email]
+}
+
+// nearest returns the nearest person among a task's assignee and its
+// authorities: the assignee when it is a person, else the nearest authority
+// who is one (ByNearest), else the assignee.
+func (f *Facts) nearest(task *model.Task) Field {
+	assignee := Field{V: task.Assignee.V, By: ByAssignee}
+	if !f.agent(task.Assignee.V) {
+		return assignee
+	}
+	for cur := f.above(task); cur != nil; cur = f.above(cur) {
+		if !f.agent(cur.Assignee.V) {
+			return Field{V: cur.Assignee.V, By: ByNearest, Task: cur.ID, Node: cur.Assignee.Node}
+		}
+	}
+	return assignee
+}
+
 // resolve walks the task's own entry at a gate and then its ancestors',
-// nearest first. The task's own recursive entry resolves at once. A plain
+// nearest first. A task that states the task-level subproject field and no
+// entry of its own at a gate after the first that follows undefined is
+// recursive there, Delegated; an own entry of any form there walks as
+// below. The task's own recursive entry resolves at once. A plain
 // entry supplies, field by field, what no nearer entry supplies: the
 // reviewer; the references, whole; and the contributor with the model as one
 // pair. A not-applicable entry ends the walk: with no nearer plain entry the
 // junction is exempt, and with one it is plain and holds only what the walk
 // gathered below the exemption. A mixed entry, one that states applies:
-// true, and a recursive entry of an ancestor supply nothing. Then the
-// defaults: the assignee contributes, and reviews an agent that has no
-// reviewer.
+// true, and a recursive entry of an ancestor supply nothing. A reviewer
+// that YAML reads as false waives review: it supplies an empty reviewer,
+// which stops the walk for the field as a stated one does; one that reads
+// as true supplies nothing. Then the defaults: the assignee contributes;
+// the contributor is an agent by a model or, from 0.4.0, by its identity;
+// and an agent with no reviewer takes the assignee before 0.4.0 and the
+// nearest person from it. The version is that of the files the facts read.
 func (f *Facts) resolve(task *model.Task, gate string) *Junction {
+	if task.Subproject != nil && entry(task, gate) == nil && f.index[gate] >= 2 {
+		return &Junction{Task: task.ID, Gate: gate, Kind: model.Recursive, Entry: task.ID, Delegated: true, sources: []string{task.ID}}
+	}
 	j := &Junction{Task: task.ID, Gate: gate, Kind: model.Plain}
 	nearest := "" // the nearest task with a plain entry
 	pair := false // an entry states the contributor or the model
@@ -322,9 +392,17 @@ walk:
 				j.Model = Field{V: e.Model.V, By: ByTask, Task: cur.ID, Node: e.Model.Node}
 			}
 		}
-		if j.Reviewer.By != ByTask && stated(e.Reviewer) {
-			j.Reviewer = Field{V: e.Reviewer.V, By: ByTask, Task: cur.ID, Node: e.Reviewer.Node}
-			supplies = true
+		if j.Reviewer.By != ByTask {
+			switch {
+			case e.Waives():
+				j.Reviewer = Field{By: ByTask, Task: cur.ID, Node: e.Reviewer.Node}
+				supplies = true
+			case e.Reviewer.Node != nil && e.Reviewer.Node.Kind == model.Bool:
+				// true is neither an address nor the waiver: T4 reports it
+			case stated(e.Reviewer):
+				j.Reviewer = Field{V: e.Reviewer.V, By: ByTask, Task: cur.ID, Node: e.Reviewer.Node}
+				supplies = true
+			}
 		}
 		if j.ReferencesFrom == "" && len(e.References) > 0 {
 			j.References, j.ReferencesFrom = e.References, cur.ID
@@ -337,8 +415,14 @@ walk:
 	if j.Contributor.By != ByTask {
 		j.Contributor = Field{V: task.Assignee.V, By: ByAssignee}
 	}
-	if j.Reviewer.By != ByTask && j.Model.V != "" {
+	before := f.p.Version.Before(model.AgentIdentity)
+	j.Agent = j.Model.V != "" || !before && f.agent(j.Contributor.V)
+	switch {
+	case j.Reviewer.By == ByTask || !j.Agent:
+	case before:
 		j.Reviewer = Field{V: task.Assignee.V, By: ByAssignee}
+	default:
+		j.Reviewer = f.nearest(task)
 	}
 	return j
 }

@@ -39,6 +39,7 @@ const (
 	strayFile = iota
 	versionFile
 	gatesFile
+	agentsFile
 	taskFile
 	statusFile
 )
@@ -51,6 +52,8 @@ func layout(p string) (kind int, id string) {
 		return versionFile, ""
 	case "gates.yaml":
 		return gatesFile, ""
+	case "agents.yaml":
+		return agentsFile, ""
 	}
 	dir, name := path.Split(p)
 	id, ok := strings.CutSuffix(name, ".yaml")
@@ -232,6 +235,7 @@ type Piece struct {
 	file        *model.File
 	version     *model.Version
 	gating      *model.Gating
+	agents      *model.Agents
 	task        *model.Task
 	status      *model.Status
 	diagnostics []model.Diagnostic
@@ -271,6 +275,8 @@ func parse(c content) *Piece {
 			piece.diagnostics = append(piece.diagnostics, more...)
 		case gatesFile:
 			piece.gating = buildGating(piece.file)
+		case agentsFile:
+			piece.agents = buildAgents(piece.file)
 		case taskFile:
 			piece.task = buildTask(id, piece.file)
 		case statusFile:
@@ -314,6 +320,8 @@ func Compose(where model.Location, pieces []*Piece, stray []string) *model.Proje
 			p.Version = piece.version
 		case piece.gating != nil:
 			p.Gating = piece.gating
+		case piece.agents != nil:
+			p.Agents = piece.agents
 		case piece.task != nil:
 			p.Tasks[piece.id] = piece.task
 		case piece.status != nil:

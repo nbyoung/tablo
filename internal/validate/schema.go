@@ -18,19 +18,20 @@ import (
 	"github.com/nbyoung/tablo/schemas"
 )
 
-// fileKind is which of the four files of the layout a schema judges.
+// fileKind is which of the five files of the layout a schema judges.
 type fileKind int
 
 // The file kinds, each with a schema of its own.
 const (
 	versionFile fileKind = iota
 	gatesFile
+	agentsFile
 	taskFile
 	statusFile
 )
 
 // schemaNames are the embedded schema files, by file kind.
-var schemaNames = [...]string{"version", "gates", "task", "status"}
+var schemaNames = [...]string{"version", "gates", "agents", "task", "status"}
 
 // entryDefs are the definitions of task.schema.yaml that judge one junction
 // entry alone, by the kind of the entry.
@@ -41,7 +42,7 @@ var entryDefs = [...]string{model.Plain: "plain", model.Recursive: "recursive", 
 // and nothing ever fetches it.
 const schemaBase = "https://tableaux.invalid/"
 
-// compiled holds the four schemas and the three definitions of a junction
+// compiled holds the five schemas and the three definitions of a junction
 // entry. Nothing changes them once they compile.
 type compiled struct {
 	file  [len(schemaNames)]*jsonschema.Schema
@@ -200,6 +201,9 @@ func row(k fileKind, root *model.Value, at []string, keyword string, failed json
 	case versionFile:
 		return "P3", "", true
 
+	case agentsFile:
+		return "A1", "", true
+
 	case gatesFile:
 		if len(at) == 0 {
 			switch {
@@ -258,6 +262,15 @@ func row(k fileKind, root *model.Value, at []string, keyword string, failed json
 			return "T2", "", true
 		case "references":
 			return "T5", "", true
+		case "subproject":
+			// The task-level field maps as a junction's, with no gate.
+			if len(at) >= 2 && at[1] == "id" {
+				return "T6", "", true
+			}
+			if len(at) >= 2 && at[1] == "commit" {
+				return "J14", "", true
+			}
+			return "J7", "", true
 		case "parent":
 			if len(at) == 2 && at[1] == "id" {
 				return "T6", "", true
@@ -373,6 +386,11 @@ func place(file *model.File, at []string, keyword string, failed jsonschema.Erro
 	one := func(pos model.Pos, format string, args ...any) []model.Diagnostic {
 		return []model.Diagnostic{{Pos: pos, Message: fmt.Sprintf(format, args...)}}
 	}
+	// A reviewer is an email address or false: the two leaves of its oneOf,
+	// and any other under it, give one message (T4).
+	if len(at) >= 3 && at[0] == "junctions" && at[2] == "reviewer" {
+		return one(pos, "%s %s is neither an email address nor false", where, show(node))
+	}
 	switch failed := failed.(type) {
 	case *kind.AdditionalProperties:
 		names := append([]string{}, failed.Properties...)
@@ -434,6 +452,8 @@ func place(file *model.File, at []string, keyword string, failed jsonschema.Erro
 		return one(pos, "%s is %s, below %s", where, show(node), failed.Want.RatString())
 	case *kind.MinItems:
 		return one(pos, "%s holds %d, fewer than %d", where, failed.Got, failed.Want)
+	case *kind.UniqueItems:
+		return one(pos, "%s states an item twice", where)
 	case *kind.Const:
 		return one(pos, "%s is %s, not %v", where, show(node), failed.Want)
 	}

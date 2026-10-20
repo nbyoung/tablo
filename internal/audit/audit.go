@@ -22,7 +22,8 @@ import (
 // Act is the kind of action that resolves a finding.
 type Act string
 
-// The acts: the eight of VIEWS.md#audit, then the two this design adds.
+// The acts: the ten of design dada, then the two that VIEWS.md#audit adds at
+// 0.4.0, for R14 and J19.
 const (
 	Authorise     Act = "authorise"      // an authority accepts the task
 	Review        Act = "review"         // the reviewer accepts the junction
@@ -33,6 +34,8 @@ const (
 	MovePin       Act = "move_pin"       // someone moves the pin or the commit field
 	Checkout      Act = "checkout"       // whoever holds the clone gives the tool the subproject
 	Await         Act = "await"          // the originating task passes the gate a requirement names
+	StateCommit   Act = "state_commit"   // someone states the commit an unpinned requirement lacks
+	RaiseLanguage Act = "raise_language" // the subproject raises its version.yaml to the project's language
 	None          Act = "none"           // nothing resolves it
 )
 

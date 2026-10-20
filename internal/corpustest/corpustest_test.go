@@ -240,15 +240,15 @@ func TestRules(t *testing.T) {
 			t.Errorf("rule %s names no entry", r.ID)
 		}
 	}
-	if len(rules) != 81 || counts["error"] != 67 || counts["warning"] != 13 || counts["information"] != 1 {
+	if len(rules) != 88 || counts["error"] != 70 || counts["warning"] != 16 || counts["information"] != 2 {
 		t.Errorf("%d rules: %v", len(rules), counts)
 	}
-	for _, id := range []string{"P1", "L4", "H6", "S11", "R13"} {
+	for _, id := range []string{"P1", "L4", "A1", "A2", "H6", "S11", "R13", "R14", "J18", "J19", "H7", "H8"} {
 		if !ids[id] {
 			t.Errorf("rule %s is missing", id)
 		}
 	}
-	if rules[0].ID != "P1" || rules[len(rules)-1].ID != "H6" {
+	if rules[0].ID != "P1" || rules[len(rules)-1].ID != "H8" {
 		t.Errorf("the rules run from %s to %s", rules[0].ID, rules[len(rules)-1].ID)
 	}
 	for _, r := range rules {
@@ -259,7 +259,7 @@ func TestRules(t *testing.T) {
 			}
 		}
 	}
-	if n := len(c.Names()); n != 103 {
+	if n := len(c.Names()); n != 120 {
 		t.Errorf("%d entries", n)
 	}
 }

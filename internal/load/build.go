@@ -67,8 +67,17 @@ func buildGating(file *model.File) *model.Gating {
 	return g
 }
 
+// buildAgents types agents.yaml, with an entry for every item written.
+func buildAgents(file *model.File) *model.Agents {
+	a := &model.Agents{File: file}
+	for _, node := range items(file.Root.Get("agents")) {
+		a.Emails = append(a.Emails, model.StrOf(node))
+	}
+	return a
+}
+
 // buildTask types tasks/<id>.yaml as written. It first takes the scalar at
-// each of the four places a task file names an id as a string, so that 07e0
+// each of the five places a task file names an id as a string, so that 07e0
 // stays 07e0 in the typed model and in what Plain hands a schema.
 func buildTask(id string, file *model.File) *model.Task {
 	root := file.Root
@@ -84,13 +93,14 @@ func buildTask(id string, file *model.File) *model.Task {
 		asID(node.Get("id"))
 		t.Requires = append(t.Requires, &model.Requirement{
 			ID:         model.StrOf(node.Get("id")),
-			Subproject: buildSubproject(node.Get("subproject")),
+			Subproject: buildSubproject(node.Get("subproject"), model.OnRequirement),
 			From:       model.StrOf(node.Get("from")),
 			To:         model.StrOf(node.Get("to")),
 			Text:       model.StrOf(node.Get("text")),
 			Node:       node,
 		})
 	}
+	t.Subproject = buildSubproject(root.Get("subproject"), model.OnTask)
 	if junctions := root.Get("junctions"); junctions != nil {
 		for _, field := range junctions.Fields {
 			node := field.Value
@@ -101,7 +111,7 @@ func buildTask(id string, file *model.File) *model.Task {
 				Model:       model.StrOf(node.Get("model")),
 				Reviewer:    model.StrOf(node.Get("reviewer")),
 				References:  buildReferences(node.Get("references")),
-				Subproject:  buildSubproject(node.Get("subproject")),
+				Subproject:  buildSubproject(node.Get("subproject"), model.OnJunction),
 				Applies:     model.BoolOf(node.Get("applies")),
 				Node:        node,
 			})
@@ -131,9 +141,10 @@ func buildReferences(list *model.Value) []*model.Reference {
 	return references
 }
 
-// buildSubproject types a subproject field; nil when the file states none.
-// The Loader sets Link once it resolves the project's links.
-func buildSubproject(node *model.Value) *model.Subproject {
+// buildSubproject types a subproject field and records which field holds
+// it; nil when the file states none. The Loader sets Link once it resolves
+// the project's links.
+func buildSubproject(node *model.Value, on model.Holder) *model.Subproject {
 	if node == nil {
 		return nil
 	}
@@ -143,6 +154,7 @@ func buildSubproject(node *model.Value) *model.Subproject {
 		ID:     model.StrOf(node.Get("id")),
 		Commit: model.StrOf(node.Get("commit")),
 		Node:   node,
+		On:     on,
 	}
 }
 
@@ -175,14 +187,17 @@ func items(list *model.Value) []*model.Value {
 	return list.Items
 }
 
-// subprojects returns every subproject field of a task, a requirement's
-// before a junction's, each in file order.
+// subprojects returns every subproject field of a task: a requirement's,
+// then the task-level field, then a junction's, each in file order.
 func subprojects(t *model.Task) []*model.Subproject {
 	var all []*model.Subproject
 	for _, r := range t.Requires {
 		if r.Subproject != nil {
 			all = append(all, r.Subproject)
 		}
+	}
+	if t.Subproject != nil {
+		all = append(all, t.Subproject)
 	}
 	for _, j := range t.Junctions {
 		if j.Subproject != nil {

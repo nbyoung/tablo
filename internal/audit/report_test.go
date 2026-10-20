@@ -194,7 +194,7 @@ func TestMinimum(t *testing.T) {
 			t.Errorf("the silence reads %+v", quiet)
 		}
 	}
-	if got := strings.Join(silent, " "); got != "P5 R12 R13 J8 J9 J13 J14 J15 J16 J17 H1 H2 H3 H4 H5 H6 stale" {
+	if got := strings.Join(silent, " "); got != "P5 R12 R13 R14 J8 J9 J13 J14 J15 J16 J17 J19 H1 H2 H3 H4 H5 H6 H7 H8 stale" {
 		t.Errorf("the silent kinds are %s; want stale among them and no sole_review", got)
 	}
 	// A kind the minimum hides is not silent, and one Keep drops is.

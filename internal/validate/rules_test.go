@@ -34,7 +34,7 @@ func TestRulesEqualTheCorpus(t *testing.T) {
 	}
 }
 
-// TestRuleTable holds the table to the design without the corpus: 81 rules,
+// TestRuleTable holds the table to the design without the corpus: 88 rules,
 // each id once, each with a title, and the count of each tier.
 func TestRuleTable(t *testing.T) {
 	tiers := map[Tier]int{}
@@ -49,8 +49,8 @@ func TestRuleTable(t *testing.T) {
 			t.Errorf("RuleOf(%s) = %+v, %v", rule.ID, got, ok)
 		}
 	}
-	if len(Rules) != 81 || tiers[TierLoad] != 5 || tiers[TierFiles] != 65 || tiers[TierFacts] != 1 || tiers[TierHistory] != 10 {
-		t.Errorf("%d rules by tier %v; want 81: 5, 65, 1 and 10", len(Rules), tiers)
+	if len(Rules) != 88 || tiers[TierLoad] != 5 || tiers[TierFiles] != 70 || tiers[TierFacts] != 1 || tiers[TierHistory] != 12 {
+		t.Errorf("%d rules by tier %v; want 88: 5, 70, 1 and 12", len(Rules), tiers)
 	}
 	if _, ok := RuleOf("Z9"); ok {
 		t.Error("RuleOf finds Z9")

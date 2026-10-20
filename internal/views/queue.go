@@ -276,7 +276,8 @@ func (b builder) itemDetail(id string, item view.QueueItem) *view.ItemDetail {
 }
 
 // briefSource names where a field of a resolved junction comes from: the
-// task whose entry states it, the assignee, or the plain default.
+// task whose entry states it, the assignee, the ancestor whose assignee is
+// the nearest person, or the plain default.
 func (b builder) briefSource(field derive.Field) view.BriefSource {
 	switch field.By {
 	case derive.ByTask:
@@ -284,6 +285,9 @@ func (b builder) briefSource(field derive.Field) view.BriefSource {
 		return view.BriefSource{Kind: "task", ID: ref.ID, Title: ref.Title}
 	case derive.ByAssignee:
 		return view.BriefSource{Kind: "assignee"}
+	case derive.ByNearest:
+		ref := b.ref(field.Task)
+		return view.BriefSource{Kind: "nearest", ID: ref.ID, Title: ref.Title}
 	}
 	return view.BriefSource{Kind: "default"}
 }

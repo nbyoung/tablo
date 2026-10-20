@@ -278,6 +278,7 @@
       "model": "",
       "check": null,
       "committer": "",
+      "co_author": "",
       "commit": {
         "hash": "79e0237eea866c2951968e2e401552dde5b6f9b8",
         "subject": "Plan the firmware",
@@ -354,6 +355,7 @@
       "model": "",
       "check": null,
       "committer": "",
+      "co_author": "",
       "commit": {
         "hash": "22a758bec2a079fd908bba970db5eb51ecccd0c6",
         "subject": "Define the node firmware task",
@@ -425,6 +427,7 @@
       "model": "",
       "check": null,
       "committer": "",
+      "co_author": "",
       "commit": {
         "hash": "cf5b16964dba7f8f1c8842a8202878fd572ad835",
         "subject": "Record the node image design",
@@ -525,6 +528,7 @@
       "model": "",
       "check": null,
       "committer": "",
+      "co_author": "",
       "commit": {
         "hash": "97e423122790a250e4e067d7d33bbf88622b00d5",
         "subject": "Pin the firmware at its design",
@@ -564,6 +568,10 @@
     },
     {
       "text": "git log --format='%H %as %ae %s' -E --grep='^(Authorised|Reaffirmed): (c07d)$' --grep='^Reviewed: (c07d) ' edb30d2baa5ea3c7e3fb8eef8ac6cce6e145221a",
+      "comment": ""
+    },
+    {
+      "text": "git log --format='%H %as %ae %s' --first-parent --merges main -- .tableaux/tasks/c07d.yaml",
       "comment": ""
     }
   ]

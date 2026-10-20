@@ -156,7 +156,7 @@ const (
 // README.md's order, or Observer alone: owner; authority for the assignee
 // of a task with children; assignee; contributor and reviewer at any
 // junction of a leaf, since a parent's junctions are defaults; and agent
-// beside contributor where the junction states a model.
+// beside contributor where the junction's contributor is an agent.
 func (f *Facts) Roles(email string) []Role {
 	if !f.enter() {
 		return nil
@@ -179,7 +179,7 @@ func (f *Facts) Roles(email string) []Role {
 				}
 				if j.Contributor.V == email {
 					held[Contributor] = true
-					held[Agent] = held[Agent] || j.Model.V != ""
+					held[Agent] = held[Agent] || j.Agent
 				}
 				held[Reviewer] = held[Reviewer] || j.Reviewer.V == email
 			}

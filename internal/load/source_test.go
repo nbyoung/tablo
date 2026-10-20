@@ -165,6 +165,8 @@ func TestLayout(t *testing.T) {
 	}{
 		{"version.yaml", versionFile, ""},
 		{"gates.yaml", gatesFile, ""},
+		{"agents.yaml", agentsFile, ""},
+		{"tasks/agents.yaml", taskFile, "agents"},
 		{"tasks/a1c0.yaml", taskFile, "a1c0"},
 		{"tasks/leaf-two.yaml", taskFile, "leaf-two"},
 		{"status/9f31.yaml", statusFile, "9f31"},
@@ -495,5 +497,29 @@ func TestParseAndCompose(t *testing.T) {
 	}
 	if empty := Compose(where, nil, nil); empty.Exists || empty.Tasks == nil {
 		t.Errorf("Compose of nothing gives %+v; want a project that does not exist", empty)
+	}
+}
+
+// T3, the half that needs no repository: agents.yaml is a file of the layout,
+// typed with an entry for every item written, and Lists reads its scalars.
+// A file that is no YAML gives no Agents, and a project without the file has
+// none.
+func TestAgentsFile(t *testing.T) {
+	where := model.Location{Commit: "c0ffee"}
+	agents := Parse("agents.yaml", []byte("agents:\n  - opus@example.org\n  - [bot@example.org]\n  - Corpus Agent\n"))
+	p := Compose(where, []*Piece{agents}, nil)
+	if p.Agents == nil || len(p.Agents.Emails) != 3 || p.Agents.File.Path != "agents.yaml" || len(p.Diagnostics) != 0 {
+		t.Fatalf("Compose gives the agents %+v and the diagnostics %v", p.Agents, p.Diagnostics)
+	}
+	for email, want := range map[string]bool{"opus@example.org": true, "bot@example.org": false, "Corpus Agent": true, "": false} {
+		if p.Agents.Lists(email) != want {
+			t.Errorf("Lists(%q) is %v", email, !want)
+		}
+	}
+	if q := Compose(where, []*Piece{Parse("agents.yaml", []byte("agents: [unclosed\n"))}, nil); q.Agents != nil || len(q.Diagnostics) != 1 || q.Diagnostics[0].Code != "L1" {
+		t.Errorf("an agents file that is no YAML gives %+v and %v", q.Agents, q.Diagnostics)
+	}
+	if q := Compose(where, []*Piece{Parse("gates.yaml", []byte("gates: []\n"))}, nil); q.Agents != nil || q.Agents.Lists("opus@example.org") {
+		t.Errorf("a project without the file has the agents %+v", q.Agents)
 	}
 }

@@ -12,11 +12,11 @@ references:
   - { url: https://github.com/nbyoung/tableaux/blob/main/design/7166.md, text: "The language clarifications and what tablo changes (decision 4)" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/design/9f3f.md, text: "The subproject linkage and what tablo changes" }
   - { url: https://github.com/nbyoung/tableaux/blob/main/design/ac33.md, text: "The agent identity and the tablo tasks that follow" }
-  - { url: https://github.com/nbyoung/tableaux/blob/1d1cb02b1e1bb7bbc68ede0a765edc78e6895722/corpus/RULES.md, text: "The rules at 0.4.0" }
+  - { url: https://github.com/nbyoung/tableaux/blob/df523e4396bc581f18d58985050fb783f559723c/corpus/RULES.md, text: "The rules at 0.4.0" }
 requires:
-  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "7166", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The language clarifications }
-  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "9f3f", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The subproject linkage }
-  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "ac33", commit: 85e50853d1b761a6f3ed08a0382bc59cc18c3f22 }, from: design, to: design, text: The agent identity }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "7166", commit: df523e4396bc581f18d58985050fb783f559723c }, from: implementation, to: design, text: The language clarifications }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "9f3f", commit: df523e4396bc581f18d58985050fb783f559723c }, from: implementation, to: design, text: The subproject linkage }
+  - { subproject: { url: https://github.com/nbyoung/tableaux, id: "ac33", commit: df523e4396bc581f18d58985050fb783f559723c }, from: implementation, to: design, text: The agent identity }
 junctions:
   mockup:         { applies: false }
   function:       { applies: false }

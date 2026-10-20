@@ -152,11 +152,33 @@ func (r *run) r10(t *model.Task, q *model.Requirement) {
 	}
 }
 
+// r14 reports, as information, an unpinned requirement: one on an absolute
+// URL that states no commit, which reads the tip of the other project's
+// trunk, or, with no project there, no trunk at all.
+func (r *run) r14(t *model.Task, sub *model.Subproject) {
+	if !sub.Unpinned() {
+		return
+	}
+	link := sub.Link
+	if link.Problem == model.Resolved && link.Project != nil {
+		r.add("R14", posOf(t.File, sub.Node), t.ID, "", "the requirement on %s at %s states no commit and reads the tip of %s, %s",
+			sub.ID.V, sub.URL.V, link.Trunk, link.Commit)
+		return
+	}
+	r.add("R14", posOf(t.File, sub.Node), t.ID, "", "the requirement on %s at %s states no commit and reads no trunk: %s",
+		sub.ID.V, sub.URL.V, link.Problem)
+}
+
 // r12 warns of a cross-project requirement on the task that a recursive
-// junction of the same task already reads: the same link, as the Loader
-// shares it, and the same task there.
+// junction or the task-level field of the same task already reads: the same
+// link, as the Loader shares it, and the same task there.
 func (r *run) r12(t *model.Task, q *model.Requirement, task string) {
 	link := q.Subproject.Link
+	if f := t.Subproject; f != nil && f.Link == link {
+		if read, ok := target(f, r.shapeOf(link.Project)); ok && read == task {
+			r.add("R12", q.Subproject.Node.Pos, t.ID, "", "the requirement on %s at %s names the task the subproject field reads", task, link.URL)
+		}
+	}
 	for _, j := range t.Junctions {
 		if j.Kind() != model.Recursive || j.Subproject == nil || j.Subproject.Link != link {
 			continue

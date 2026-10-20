@@ -73,6 +73,32 @@ type Reading struct {
 	Stated      string // the model it states there; "" for none
 	Trailer     string // the commit's first Model: trailer; "" for none
 	Verdict     Verdict
+	CoAuthor    string // the first agent a Co-Authored-By: trailer names on a person's commit; "" for none
+}
+
+// Moot says why a Reaffirmed: trailer confirms nothing (H8).
+type Moot int
+
+// The reasons a task has no status of its own to confirm.
+const (
+	NotMoot      Moot = iota
+	MootParent        // the task is a parent at the commit
+	MootSnapshot      // the task's next junction is recursive at the commit
+	MootAbsent        // the task is a leaf with no status file at the commit
+)
+
+// String returns "parent", "recursive" or "absent", or "" for NotMoot, as
+// the Validator's facts name them.
+func (m Moot) String() string {
+	switch m {
+	case MootParent:
+		return "parent"
+	case MootSnapshot:
+		return "recursive"
+	case MootAbsent:
+		return "absent"
+	}
+	return ""
 }
 
 // Event is one event of one task.
@@ -87,6 +113,7 @@ type Event struct {
 	SubTitle                  string      // an event taken from a subproject: the title of Sub as the files at the pin state it; else ""
 	Reading                   *Reading    // status and reaffirmed
 	Effect                    Effect      // reviewed
+	Moot                      Moot        // reaffirmed: why the task has no status of its own to confirm, as the files stand at the commit
 }
 
 // Unread is a task trailer the method cannot read (H1).
@@ -215,7 +242,11 @@ func (f *Facts) under(id, ancestor string) bool {
 // ownEvents returns the events of this project's own history by task, each
 // task's the oldest commit first and one commit's in the order of the kinds,
 // and fills the unread trailers. One walk of the commits the source reaches
-// makes them all.
+// makes them all. A merge on the trunk's first-parent line is an authorised
+// event of each task whose file it brings in against its first parent, as
+// the deciding commit of the authorisation reads it (F11), so an Authorised:
+// trailer on the same merge adds none; a status keeps the default log's
+// reading, under which such a merge changes nothing.
 func (f *Facts) ownEvents() map[string][]*Event {
 	if f.own != nil {
 		return f.own
@@ -233,6 +264,15 @@ func (f *Facts) ownEvents() map[string][]*Event {
 				at[e.Task] = map[EventKind][]*Event{}
 			}
 			at[e.Task][e.Kind] = append(at[e.Task][e.Kind], e)
+		}
+		if c.Merge() && c.Trunk >= 0 {
+			for _, change := range c.Changes {
+				below, inPlan := strings.CutPrefix(change.Path, plan)
+				dir, name := path.Split(below)
+				if id, isFile := strings.CutSuffix(name, ".yaml"); inPlan && isFile && dir == "tasks/" {
+					add(&Event{Task: id, Kind: Authorised})
+				}
+			}
 		}
 		for _, change := range c.Changes {
 			if !f.log.Changed(c, change.Path) {
@@ -265,7 +305,7 @@ func (f *Facts) ownEvents() map[string][]*Event {
 				case t.Key == "Authorised" && len(at[words[0]][Authorised]) == 0:
 					add(&Event{Task: words[0], Kind: Authorised})
 				case t.Key == "Reaffirmed" && len(at[words[0]][Reaffirmed]) == 0:
-					add(&Event{Task: words[0], Kind: Reaffirmed, Reading: f.readingAt(c, words[0], "", false)})
+					add(&Event{Task: words[0], Kind: Reaffirmed, Reading: f.readingAt(c, words[0], "", false), Moot: f.moot(c, words[0])})
 				}
 			case "Reviewed":
 				id, gate := "", ""
@@ -308,6 +348,28 @@ func (f *Facts) ownEvents() map[string][]*Event {
 	return f.own
 }
 
+// moot says why a Reaffirmed: trailer on a commit confirms nothing for a
+// task, as the files stand at the commit: a parent, a leaf with no status
+// file, or a leaf whose next junction is recursive; NotMoot for a leaf with
+// a status of its own, and where the commit's files hold no such task.
+func (f *Facts) moot(c *history.Commit, id string) Moot {
+	then := f.past(c.ID)
+	if then == nil || then.task(id) == nil {
+		return NotMoot
+	}
+	file := then.p.Statuses[id]
+	switch {
+	case len(then.children[id]) > 0:
+		return MootParent
+	case file == nil:
+		return MootAbsent
+	}
+	if j := then.junction(id, then.next(id, file.Gate.V)); j != nil && j.Kind == model.Recursive {
+		return MootSnapshot
+	}
+	return NotMoot
+}
+
 // before returns the object a path holds at a commit's first parent, or "".
 func (f *Facts) before(c *history.Commit, p string) string {
 	if parent := f.first(c); parent != nil {
@@ -328,14 +390,17 @@ func (f *Facts) link(url, commit string) *model.Link {
 	return found
 }
 
-// fields returns the subproject fields of a task, a requirement's before a
-// junction's, each in file order.
+// fields returns the subproject fields of a task: a requirement's, then the
+// task-level field, then a junction's, each in file order.
 func fields(task *model.Task) []*model.Subproject {
 	var all []*model.Subproject
 	for _, r := range task.Requires {
 		if r.Subproject != nil {
 			all = append(all, r.Subproject)
 		}
+	}
+	if task.Subproject != nil {
+		all = append(all, task.Subproject)
 	}
 	for _, j := range task.Junctions {
 		if j.Subproject != nil {
@@ -346,7 +411,7 @@ func fields(task *model.Task) []*model.Subproject {
 }
 
 // naming returns the tasks whose files, as they stand at a commit, name a
-// submodule path in a junction or a requirement, by id.
+// submodule path in a junction, a requirement or the task-level field, by id.
 func (f *Facts) naming(c *history.Commit, submodule string) []string {
 	p := f.log.Project(c.ID)
 	var ids []string
@@ -414,11 +479,37 @@ func (f *Facts) statusEvent(c *history.Commit, id string) *Event {
 	return e
 }
 
+// CoAuthor returns the first agent a Co-Authored-By: trailer of a commit
+// names, where the commit's author is no agent, as the files at the commit
+// judge both; "" for none and for a commit the pass lacks.
+func (f *Facts) CoAuthor(c *history.Commit) string {
+	if c == nil || !f.enter() {
+		return ""
+	}
+	defer f.leave()
+	return coAuthor(f.past(c.ID), c)
+}
+
+// coAuthor is CoAuthor with the facts at the commit: nil reads no agent.
+func coAuthor(then *Facts, c *history.Commit) string {
+	if then.agent(c.Author.Email) {
+		return ""
+	}
+	for _, p := range c.CoAuthors() {
+		if then.agent(p.Email) {
+			return p.Email
+		}
+	}
+	return ""
+}
+
 // readingAt gives the junction a status or reaffirmed commit is at and its
 // model check. A commit that changes the status's gate is at the junction of
 // the gate it records; any other is at the task's next applicable junction
 // as the files stand at that commit. gate is the gate the status states at
-// the commit; "" reads it from the files there.
+// the commit; "" reads it from the files there. On a commit whose author is
+// no agent, the reading names the first agent its Co-Authored-By: trailers
+// name, as the files at the commit judge both, at every version.
 func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Reading {
 	then := f.past(c.ID)
 	if !records {
@@ -434,6 +525,7 @@ func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Rea
 	if values := c.Values("Model"); len(values) > 0 {
 		r.Trailer = values[0]
 	}
+	r.CoAuthor = coAuthor(then, c)
 	if j := then.junction(id, gate); j != nil && j.Kind == model.Plain {
 		r.Contributor, r.Stated = j.Contributor.V, j.Model.V
 	}
@@ -448,25 +540,10 @@ func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Rea
 		r.Verdict = Mismatch
 	case c.Author.Email != r.Contributor:
 		r.Verdict = NoModel
-	case before021(then.p.Version):
+	case then.p.Version.Before(model.ModelTrailer):
 		r.Verdict = Exempt
 	default:
 		r.Verdict = Missing
 	}
 	return r
-}
-
-// before021 reports whether a version.yaml states a language before 0.2.1,
-// which introduced the Model: trailer.
-func before021(v *model.Version) bool {
-	if v == nil || !v.WellFormed {
-		return false
-	}
-	switch {
-	case v.Major != 0:
-		return false
-	case v.Minor != 2:
-		return v.Minor < 2
-	}
-	return v.Patch < 1
 }

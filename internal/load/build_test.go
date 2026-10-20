@@ -2,6 +2,7 @@ package load
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/nbyoung/tablo/internal/model"
@@ -128,7 +129,8 @@ func TestBuildVersion(t *testing.T) {
 	}{
 		{"tableaux: 0.3.1\ntrunk: main\n", true, true, nil},
 		{"tableaux: 0.1.0\n", true, true, nil},
-		{"# a comment\ntableaux:   0.4.0\n", true, false, []string{"version.yaml:2:13 error P4"}},
+		{"tableaux: 0.4.9\n", true, true, nil},
+		{"# a comment\ntableaux:   0.5.0\n", true, false, []string{"version.yaml:2:13 error P4"}},
 		{"tableaux: \"1.0.0\"\n", true, false, []string{"version.yaml:1:11 error P4"}},
 		{"tableaux: \"0.2\"\n", false, false, nil},
 		{"tableaux: 1.0\n", false, false, nil},
@@ -144,6 +146,10 @@ func TestBuildVersion(t *testing.T) {
 		if got := codes(diagnostics); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q: diagnostics %v, want %v", tt.text, got, tt.want)
 		}
+	}
+	if _, diagnostics := buildVersion(file(t, "version.yaml", "tableaux: 0.5.0\n")); len(diagnostics) != 1 ||
+		!strings.HasSuffix(diagnostics[0].Message, "the module accepts major 0 up to minor 4") {
+		t.Errorf("0.5.0: %v", diagnostics)
 	}
 	version, _ := buildVersion(file(t, "version.yaml", "tableaux: 0.3.1\ntrunk: develop\n"))
 	if version.Major != 0 || version.Minor != 3 || version.Patch != 1 || version.Trunk.V != "develop" || version.Tableaux.V != "0.3.1" {

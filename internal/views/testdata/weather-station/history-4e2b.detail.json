@@ -354,7 +354,8 @@
       "effect": "authorised_commit",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -392,7 +393,8 @@
       "effect": "authorised_commit",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -451,7 +453,8 @@
       "effect": "authorised_commit",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -498,7 +501,8 @@
       "effect": "",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -557,7 +561,8 @@
       "effect": "proposed",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -616,7 +621,8 @@
       "effect": "authorised_merge",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -680,7 +686,8 @@
       "effect": "",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -739,7 +746,8 @@
       "effect": "accepts",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -803,7 +811,8 @@
       "effect": "",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -900,7 +909,8 @@
       "effect": "accepts",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     },
     {
       "task": {
@@ -959,7 +969,8 @@
       "effect": "",
       "model": "",
       "check": null,
-      "committer": ""
+      "committer": "",
+      "co_author": ""
     }
   ]
 }

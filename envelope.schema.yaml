@@ -150,9 +150,9 @@ allOf:
   - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
     then: { properties: { data: { properties: { commands: false, lines: { items: { properties: { after: false, effect: false, commit: false } } } } } } }
   - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: detail } } } } }
-    then: { properties: { data: { properties: { commands: false, lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer], properties: { commit: false } } } } } } }
+    then: { properties: { data: { properties: { commands: false, lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer, co_author], properties: { commit: false } } } } } } }
   - if:   { required: [command, data, params], properties: { command: { const: history }, data: { type: object }, params: { required: [level], properties: { level: { const: provenance } } } } }
-    then: { properties: { data: { required: [commands], properties: { lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer, commit] } } } } } }
+    then: { properties: { data: { required: [commands], properties: { lines: { items: { required: [after, unchanged, subject_after, effect, model, check, committer, co_author, commit] } } } } } }
   - if:   { required: [command], properties: { command: { const: audit } } }
     then: { properties: { data: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_audit" }] } } }
   - if:   { required: [command, data, params], properties: { command: { const: audit }, data: { type: object }, params: { required: [level], properties: { level: { const: glance } } } } }
@@ -545,13 +545,14 @@ $defs:
       junction: { $ref: "#/$defs/view_junction_kind" }
   view_model_check:
     type: object
-    required: [commit, gate, stated, trailer, reading]
+    required: [commit, gate, stated, trailer, reading, co_author]
     properties:
       commit: { type: string }
       gate: { type: string }
       stated: { type: string }
       trailer: { type: string }
       reading: { $ref: "#/$defs/view_reading" }
+      co_author: { type: string }
   view_model_row:
     type: object
     required: [gate, model, stated_by, junctions, next]
@@ -814,7 +815,7 @@ $defs:
   view_advance:    { enum: ["", pin, gate] }                                            # what a snapshot cause advances; "" for another cause
   view_cause_mark: { enum: ["", person, agent, reviewer, subproject] }                  # the mark of a cause's resolver; "" for none
   view_wait_kind:  { enum: [requirement, reason, authorisation, review] }               # why a work item waits, in the order of its causes
-  view_source_kind: { enum: [task, assignee, default] }                                 # where a field of a brief resolves from
+  view_source_kind: { enum: [task, assignee, nearest, default] }                        # where a field of a brief resolves from
   view_follows:    { enum: ["", plain, recursive] }                                     # the kind of the junction after a brief's gate; "" at the last
   view_blockage:
     type: object
@@ -1070,7 +1071,7 @@ $defs:
   # The data of the audit (design dada). The same conventions hold. A finding's
   # key is a rule id or one of the three kinds no rule states.
   view_severity:    { enum: [error, warning, information] }   # as the audit lists a finding
-  view_finding_act: { enum: [authorise, review, reaffirm, record_handoff, clear_handoff, revise, move_pin, checkout, await, none] }   # the kind of action that resolves a finding
+  view_finding_act: { enum: [authorise, review, reaffirm, record_handoff, clear_handoff, revise, move_pin, checkout, await, state_commit, raise_language, none] }   # the kind of action that resolves a finding
   view_finding_key: { oneOf: [{ type: string, pattern: "^[A-Z][0-9]+$" }, { enum: [proposed, stale, sole_review] }] }
   view_audit:
     type: object
@@ -1171,4 +1172,5 @@ $defs:
       model: { type: string }
       check: { oneOf: [{ type: "null" }, { $ref: "#/$defs/view_model_check" }] }
       committer: { type: string }
+      co_author: { type: string }
       commit: { $ref: "#/$defs/view_commit" }

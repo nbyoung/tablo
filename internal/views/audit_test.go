@@ -118,9 +118,9 @@ func TestAuditSelection(t *testing.T) {
 		}
 	}
 	// A person who resolves nothing sees no row and zero counts, and every
-	// kind examined is silent: the seventeen of the golden data, R9, proposed
+	// kind examined is silent: the twenty-one of the golden data, R9, proposed
 	// and sole_review.
-	if a := Audit(f, r, Query{Person: "nobody@example.org", Level: Detail, Minimum: model.Information}); a.Errors+a.Warnings+a.Information != 0 || len(a.Findings) != 0 || a.Most != nil || len(a.Silent) != 20 {
+	if a := Audit(f, r, Query{Person: "nobody@example.org", Level: Detail, Minimum: model.Information}); a.Errors+a.Warnings+a.Information != 0 || len(a.Findings) != 0 || a.Most != nil || len(a.Silent) != 24 {
 		t.Errorf("a stranger's audit counts %d, %d and %d over %d rows, most %+v, %d silent", a.Errors, a.Warnings, a.Information, len(a.Findings), a.Most, len(a.Silent))
 	}
 }

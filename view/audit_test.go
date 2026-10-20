@@ -282,8 +282,8 @@ func TestAuditSchemaClosesTheWords(t *testing.T) {
 			t.Errorf("the schema refuses the severity %s", severity)
 		}
 	}
-	acts := strings.Fields("authorise review reaffirm record_handoff clear_handoff revise move_pin checkout await none")
-	if len(acts) != 10 {
+	acts := strings.Fields("authorise review reaffirm record_handoff clear_handoff revise move_pin checkout await state_commit raise_language none")
+	if len(acts) != 12 {
 		t.Fatalf("%d acts", len(acts))
 	}
 	for _, act := range acts {
@@ -298,6 +298,7 @@ func TestAuditSchemaClosesTheWords(t *testing.T) {
 	}
 	for _, c := range [][3]string{
 		{"R9", "warning", "advance"},
+		{"R14", "information", "move_on"},
 		{"R9", "warning", ""},
 		{"self_review", "information", "none"},
 		{"", "warning", "revise"},

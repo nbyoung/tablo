@@ -349,3 +349,54 @@ func TestChangedAtAMerge(t *testing.T) {
 		t.Errorf("at C5 the owner is %q; want olive", owner)
 	}
 }
+
+// T3, the history's half: the pass composes agents.yaml at each commit, so the
+// files at a commit say which identities are agents there. A history whose
+// second commit adds the file holds it from that commit and not before.
+func TestAgentsAtEachCommit(t *testing.T) {
+	repo := filepath.Join(t.TempDir(), "repo")
+	gitRun(t, t.TempDir(), "init", "-q", repo)
+	write(t, repo, project("trunk: main\n"))
+	gitRun(t, repo, "add", "-A")
+	gitRun(t, repo, "commit", "-q", "-m", "Plan the root")
+	before := gitRun(t, repo, "rev-parse", "HEAD")
+	write(t, repo, map[string]string{".tableaux/agents.yaml": "agents: [opus@example.org]\n"})
+	gitRun(t, repo, "add", "-A")
+	gitRun(t, repo, "commit", "-q", "-m", "List the agents")
+	after := gitRun(t, repo, "rev-parse", "HEAD")
+	log := pass(t, NewReader(Options{}), loaded(t, load.Options{}, repo, "main"), "")
+	if p := log.Project(before); p == nil || p.Agents != nil {
+		t.Errorf("the first commit holds the agents %+v", p)
+	}
+	if p := log.Project(after); p == nil || !p.Agents.Lists("opus@example.org") || len(p.Stray) != 0 {
+		t.Errorf("the second commit holds %+v", p)
+	}
+	// agent-work-under-person keeps no file: the pairing decides there.
+	dir, hashes := entry(t, "agent-work-under-person"), labels(t, "agent-work-under-person")
+	log = pass(t, NewReader(Options{}), loaded(t, load.Options{}, dir, "main"), "")
+	for label, commit := range hashes {
+		if p := log.Project(commit); p == nil || p.Agents != nil {
+			t.Errorf("agent-work-under-person: %s holds the agents %+v", label, p)
+		}
+	}
+}
+
+// CoAuthors reads each Co-Authored-By: trailer of the form Name <email>, in
+// order, in the case SYNTAX.md writes the key, and skips any other value.
+func TestCoAuthors(t *testing.T) {
+	c := &Commit{Trailers: []Trailer{
+		{"Co-Authored-By", "Corpus Agent <bot@example.org>"},
+		{"Model", "claude-fable-5-1"},
+		{"Co-authored-by", "Other Case <case@example.org>"},
+		{"Co-Authored-By", "no address"},
+		{"Co-Authored-By", "<bare@example.org>"},
+		{"Co-Authored-By", "Trailing <tail@example.org> more"},
+		{"Co-Authored-By", "Pat Lee <pat@example.org>"},
+	}}
+	if got := fmt.Sprint(c.CoAuthors()); got != "[{Corpus Agent bot@example.org} {Pat Lee pat@example.org}]" {
+		t.Errorf("CoAuthors gives %s", got)
+	}
+	if (&Commit{}).CoAuthors() != nil {
+		t.Error("a commit with no trailer has co-authors")
+	}
+}

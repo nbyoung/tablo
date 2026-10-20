@@ -17,6 +17,8 @@ import (
 // author and its committer, and its label stands for its hash.
 type factsCommit struct {
 	Hash, By, Tableaux string
+	AuthorAgent        bool     `yaml:"author_agent"`
+	CoAgents           []string `yaml:"co_agents"`
 	Trailers           []string
 	Events             []Event
 	At                 []Junction
@@ -27,7 +29,7 @@ type factsCommit struct {
 type factsEntry struct {
 	Entry     string
 	Junctions map[string]struct {
-		Recursive                    bool
+		Recursive, Agent             bool
 		Contributor, Model, Reviewer string
 	}
 	Requirements []Condition
@@ -67,7 +69,7 @@ func (e factsEntry) facts(t *testing.T, p *model.Project) *Facts {
 	t.Helper()
 	f := &Facts{Requirements: e.Requirements, Junctions: defaults(p)}
 	for key, j := range e.Junctions {
-		f.Junctions[junctionOf(t, key)] = Resolved{Recursive: j.Recursive, Contributor: j.Contributor, Model: j.Model, Reviewer: j.Reviewer}
+		f.Junctions[junctionOf(t, key)] = Resolved{Recursive: j.Recursive, Contributor: j.Contributor, Model: j.Model, Reviewer: j.Reviewer, Agent: j.Agent}
 	}
 	if e.History == nil {
 		return f
@@ -77,7 +79,8 @@ func (e factsEntry) facts(t *testing.T, p *model.Project) *Facts {
 		f.History.Reviews[junctionOf(t, key)] = commit
 	}
 	for _, c := range e.History.Commits {
-		commit := Commit{Hash: c.Hash, Author: c.By, Committer: c.By, Tableaux: c.Tableaux, Events: c.Events, At: c.At}
+		commit := Commit{Hash: c.Hash, Author: c.By, Committer: c.By, Tableaux: c.Tableaux, Events: c.Events, At: c.At,
+			AuthorAgent: c.AuthorAgent, CoAgents: c.CoAgents}
 		for _, line := range c.Trailers {
 			key, value, _ := strings.Cut(line, ": ")
 			commit.Trailers = append(commit.Trailers, Trailer{Key: key, Value: value})
@@ -166,8 +169,8 @@ func TestDerivedOnFacts(t *testing.T) {
 			t.Errorf("%s:\n got  %s\n want %s", e.Entry, strings.Join(got, "\n      "), strings.Join(want, "\n      "))
 		}
 	}
-	if len(names) != 9 {
-		t.Errorf("facts.yaml holds %d corpus entries; want 9", len(names))
+	if len(names) != 12 {
+		t.Errorf("facts.yaml holds %d corpus entries; want 12", len(names))
 	}
 }
 

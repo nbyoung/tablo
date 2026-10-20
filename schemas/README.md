@@ -2,7 +2,7 @@
 
 This directory holds a copy of the JSON Schema files from the
 [tableaux](https://github.com/nbyoung/tableaux) repository, one per Tableaux
-file kind: `version`, `gates`, `task`, `status` and `history`, each named
+file kind: `version`, `gates`, `agents`, `task`, `status` and `history`, each named
 `<kind>.schema.yaml` after its `$id`. `embed.go` embeds them into the binary,
 so a user installs nothing beside `tablo`.
 
@@ -14,8 +14,8 @@ To copy them, record the tableaux commit here and refresh the files:
 
 | Field            | Value       |
 |------------------|-------------|
-| tableaux commit  | `d95294b`   |
-| tableaux version | `0.3.1`     |
+| tableaux commit  | `df523e4`   |
+| tableaux version | `0.4.0`     |
 
 The tableaux version copied here must be one the module accepts; see
 `Accepts` in the root package.

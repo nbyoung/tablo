@@ -722,7 +722,7 @@ func validateFacts(f *derive.Facts) *validate.Facts {
 func resolvedOf(j *derive.Junction) (validate.Resolved, bool) {
 	switch j.Kind {
 	case model.Plain:
-		return validate.Resolved{Contributor: j.Contributor.V, Model: j.Model.V, Reviewer: j.Reviewer.V}, true
+		return validate.Resolved{Contributor: j.Contributor.V, Model: j.Model.V, Reviewer: j.Reviewer.V, Agent: j.Agent}, true
 	case model.Recursive:
 		return validate.Resolved{Recursive: true}, true
 	}
@@ -765,7 +765,7 @@ func reviews(f *derive.Facts) map[validate.Junction]string {
 
 // offTrunk returns each linkage whose commit its subproject's trunk does not
 // hold on its first-parent line: a recursive junction's, at each gate that
-// names it, and a cross-project requirement's.
+// names it; the task-level field's, once; and a cross-project requirement's.
 func offTrunk(f *derive.Facts) []validate.Pin {
 	var pins []validate.Pin
 	off := func(l *model.Link) (string, bool) {
@@ -777,10 +777,20 @@ func offTrunk(f *derive.Facts) []validate.Pin {
 	}
 	for _, id := range f.Order() {
 		for _, s := range f.Snapshots(id) {
-			if trunk, ok := off(s.Link); ok {
-				for _, gate := range s.Gates {
-					pins = append(pins, validate.Pin{Task: id, Gate: gate, Index: -1, Trunk: trunk})
+			trunk, ok := off(s.Link)
+			if !ok {
+				continue
+			}
+			field := false // the task-level field names the link, once and with no gate
+			for _, gate := range s.Gates {
+				if j := f.Junction(id, gate); j != nil && j.Delegated {
+					field = true
+					continue
 				}
+				pins = append(pins, validate.Pin{Task: id, Gate: gate, Index: -1, Trunk: trunk})
+			}
+			if field {
+				pins = append(pins, validate.Pin{Task: id, Index: -1, Trunk: trunk})
 			}
 		}
 		for i, c := range f.Requires(id) {
@@ -795,13 +805,14 @@ func offTrunk(f *derive.Facts) []validate.Pin {
 	return pins
 }
 
-// The keys of the method's four trailers, which History.Commits carries.
-var methodTrailers = map[string]bool{"Authorised": true, "Reviewed": true, "Reaffirmed": true, "Model": true}
+// The keys of the method's trailers, which History.Commits carries.
+var methodTrailers = map[string]bool{"Authorised": true, "Reviewed": true, "Reaffirmed": true, "Model": true, "Co-Authored-By": true}
 
 // commitsOf returns every commit the source reaches that carries a method
 // trailer, gives an event of the project's own or is at a junction, newest
 // first, each with the junctions it is at and those its Reviewed: trailers
-// name, as the files stand at that commit.
+// name, and whether its author and its co-authors are agents, as the files
+// stand at that commit.
 func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 	events := map[string][]*derive.Event{}
 	for _, e := range f.History() {
@@ -822,7 +833,11 @@ func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 		}
 		seen := map[validate.Junction]bool{}
 		for _, e := range events[c.ID] {
-			vc.Events = append(vc.Events, validate.Event{Task: e.Task, Kind: string(e.Kind), Gate: e.Gate})
+			ve := validate.Event{Task: e.Task, Kind: string(e.Kind), Gate: e.Gate, Moot: e.Moot.String()}
+			if e.Kind == derive.Reaffirmed && e.Reading != nil {
+				ve.Gate = e.Reading.Gate // the junction the commit is at
+			}
+			vc.Events = append(vc.Events, ve)
 			// A commit is at the junction of the gate it records when it
 			// changes a status's gate; any other commit to a status, and a
 			// Reaffirmed: commit, is at the task's next applicable junction
@@ -847,6 +862,12 @@ func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 		then := f.At(c.ID)
 		if p := log.Project(c.ID); p != nil && p.Version != nil {
 			vc.Tableaux = p.Version.Tableaux.V
+		}
+		vc.AuthorAgent = then.Agent(c.Author.Email)
+		for _, p := range c.CoAuthors() {
+			if then.Agent(p.Email) {
+				vc.CoAgents = append(vc.CoAgents, p.Email)
+			}
 		}
 		for _, j := range named {
 			if jj := then.Junction(j.Task, j.Gate); jj != nil {

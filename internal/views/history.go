@@ -141,6 +141,7 @@ func (b builder) line(subject string, events []*derive.Event) view.Line {
 	if c.Committer.Email != c.Author.Email {
 		d.Committer = c.Committer.Email
 	}
+	d.CoAuthor = from.CoAuthor(c)
 	d.After = b.statusAt(from, c.ID, task)
 	for _, parent := range c.Parents {
 		if from.At(parent) != nil && sameStatus(b.statusAt(from, parent, task), d.After) {
@@ -153,7 +154,8 @@ func (b builder) line(subject string, events []*derive.Event) view.Line {
 	}
 	for _, e := range events {
 		if (e.Kind == derive.StatusSet || e.Kind == derive.Reaffirmed) && e.Reading != nil && e.Reading.Verdict != derive.NoModel {
-			d.Check = &view.ModelCheck{Commit: c.ID, Gate: e.Reading.Gate, Stated: e.Reading.Stated, Trailer: e.Reading.Trailer, Reading: reading(e.Reading.Verdict)}
+			d.Check = &view.ModelCheck{Commit: c.ID, Gate: e.Reading.Gate, Stated: e.Reading.Stated, Trailer: e.Reading.Trailer,
+				Reading: reading(e.Reading.Verdict), CoAuthor: e.Reading.CoAuthor}
 			break
 		}
 	}
@@ -284,7 +286,10 @@ func (b builder) count(h *view.History) {
 	}
 }
 
-// historyCommands returns the two commands of the history's provenance.
+// historyCommands returns the commands of the history's provenance: the
+// two of README.md#history over the subtree and the range, and, where the
+// trunk is determined, the third, which lists the merges of its
+// first-parent line that bring in a task file (F11).
 func (b builder) historyCommands(top string) []view.Command {
 	log := b.f.Log()
 	if log == nil {
@@ -315,8 +320,23 @@ func (b builder) historyCommands(top string) []view.Command {
 		}
 	}
 	format := "git log --format='%H %as %ae %s' "
-	return []view.Command{
+	commands := []view.Command{
 		{Text: format + span + " -- " + strings.Join(paths, " ")},
 		{Text: format + "-E --grep='^(Authorised|Reaffirmed): (" + pattern + ")$' --grep='^Reviewed: (" + pattern + ") ' " + span},
 	}
+	if trunk := b.f.Trunk(); trunk.Tip != "" {
+		tasks := []string{b.fromRoot("tasks")}
+		if top != b.f.Root() {
+			tasks = tasks[:0]
+			for _, id := range ids {
+				tasks = append(tasks, b.fromRoot("tasks/"+id+".yaml"))
+			}
+		}
+		line := trunk.Name
+		if b.q.From != "" {
+			line = b.q.From + ".." + line
+		}
+		commands = append(commands, view.Command{Text: format + "--first-parent --merges " + line + " -- " + strings.Join(tasks, " ")})
+	}
+	return commands
 }

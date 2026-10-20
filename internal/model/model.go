@@ -22,6 +22,7 @@ type Project struct {
 	Stray       []string         // paths under .tableaux the layout does not name, by path
 	Version     *Version         // nil when version.yaml is absent or does not parse
 	Gating      *Gating          // nil when gates.yaml is absent or does not parse
+	Agents      *Agents          // nil when agents.yaml is absent or does not parse
 	Tasks       map[string]*Task // by id: the file's name without .yaml, whatever it is
 	Statuses    map[string]*Status
 	Links       []*Link      // each distinct subproject the files name, by URL then commit
@@ -84,6 +85,25 @@ type Reason struct {
 	Node                  *Value
 }
 
+// Agents is agents.yaml: the identities that are agents.
+type Agents struct {
+	File   *File
+	Emails []StrField // each item under agents, in file order, whatever it is
+}
+
+// Lists reports whether the file lists an email among its scalar items.
+func (a *Agents) Lists(email string) bool {
+	if a == nil {
+		return false
+	}
+	for _, item := range a.Emails {
+		if item.Node.Scalar() && item.V == email {
+			return true
+		}
+	}
+	return false
+}
+
 // Task is tasks/<id>.yaml as written. Nothing here is inherited, defaulted or resolved.
 type Task struct {
 	ID                           string
@@ -91,6 +111,7 @@ type Task struct {
 	Title, Description, Assignee StrField
 	References                   []*Reference
 	Requires                     []*Requirement
+	Subproject                   *Subproject // the task-level field; nil when the file states none
 	Junctions                    []*Junction // in file order
 	Parent                       *Parent     // nil exactly when the file has no parent key
 }
@@ -125,6 +146,11 @@ type Junction struct {
 	Subproject                   *Subproject
 	Applies                      BoolField
 	Node                         *Value
+}
+
+// Waives reports whether the entry states reviewer: false, which waives review.
+func (j *Junction) Waives() bool {
+	return j.Reviewer.Node != nil && j.Reviewer.Node.Kind == Bool && !BoolOf(j.Reviewer.Node).V
 }
 
 // JunctionKind is what the fields of an entry make it.
@@ -169,11 +195,29 @@ func (j *Junction) Kind() JunctionKind {
 	return Mixed
 }
 
-// Subproject is a subproject field, on a junction or a requirement, and what it leads to.
+// Holder says which field of a task file a subproject field is.
+type Holder int
+
+// The holders of a subproject field.
+const (
+	OnJunction    Holder = iota // junctions.<gate>.subproject
+	OnRequirement               // requires[i].subproject
+	OnTask                      // the task-level subproject
+)
+
+// Subproject is a subproject field, on a junction, a requirement or the
+// task, and what it leads to.
 type Subproject struct {
 	URL, ID, Commit StrField
 	Node            *Value
+	On              Holder
 	Link            *Link // nil when URL is not a scalar
+}
+
+// Unpinned reports whether the field is a requirement's on an absolute URL
+// that states no commit, which a tool reads at the tip of that project's trunk.
+func (s *Subproject) Unpinned() bool {
+	return s != nil && s.On == OnRequirement && s.URL.Node.Scalar() && absoluteURL.MatchString(s.URL.V) && s.Commit.Node == nil
 }
 
 // Status is status/<id>.yaml as written.

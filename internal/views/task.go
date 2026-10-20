@@ -159,6 +159,7 @@ func (b builder) taskProvenance(id string) *view.TaskProvenance {
 		}
 		p.Models = append(p.Models, view.ModelCheck{
 			Commit: e.Commit.ID, Gate: e.Reading.Gate, Stated: e.Reading.Stated, Trailer: e.Reading.Trailer, Reading: reading(e.Reading.Verdict),
+			CoAuthor: e.Reading.CoAuthor,
 		})
 	}
 	for i := len(events) - 1; i >= 0 && len(p.Events) < newestEvents; i-- {
