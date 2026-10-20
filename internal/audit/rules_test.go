@@ -14,23 +14,23 @@ import (
 const method = "https://github.com/nbyoung/tableaux/blob/main/"
 
 // T1: the table is total. It holds a row for every rule of validate.Rules
-// and no other; every act is one of the ten and none is advance; every role
+// and no other; every act is one of the twelve and none is advance; every role
 // is one the design defines; every source address starts with the method's.
 func TestTableIsTotal(t *testing.T) {
 	acts := map[Act]bool{Authorise: true, Review: true, Reaffirm: true, RecordHandoff: true, ClearHandoff: true,
-		Revise: true, MovePin: true, Checkout: true, Await: true, None: true}
-	if len(acts) != 10 || acts["advance"] {
+		Revise: true, MovePin: true, Checkout: true, Await: true, StateCommit: true, RaiseLanguage: true, None: true}
+	if len(acts) != 12 || acts["advance"] {
 		t.Fatalf("the acts are %v", acts)
 	}
 	roles := map[role]bool{owner: true, authority: true, assignee: true, keeper: true, recorder: true,
 		contributor: true, reviewer: true, author: true, origin: true, nobody: true}
-	if len(validate.Rules) != 81 || len(table) != len(validate.Rules) {
-		t.Errorf("the table holds %d rows for %d rules; RULES.md states 81", len(table), len(validate.Rules))
+	if len(validate.Rules) != 88 || len(table) != len(validate.Rules) {
+		t.Errorf("the table holds %d rows for %d rules; RULES.md states 88", len(table), len(validate.Rules))
 	}
 	check := func(id string, row rule) {
 		t.Helper()
 		if !acts[row.act] {
-			t.Errorf("%s: the act %q is none of the ten", id, row.act)
+			t.Errorf("%s: the act %q is none of the twelve", id, row.act)
 		}
 		if !roles[row.who] {
 			t.Errorf("%s: the role %q is none of the design's", id, row.who)
@@ -70,6 +70,9 @@ func TestTableIsTotal(t *testing.T) {
 		"H1": {act: None, who: author}, "H2": {act: Review, who: reviewer}, "H3": {act: None, who: author},
 		"H4": {act: RecordHandoff, who: contributor}, "H5": {act: ClearHandoff, who: contributor}, "H6": {act: None, who: author},
 		"P5": {act: Revise, who: owner}, "T8": {act: Revise, who: owner}, "T12": {act: Revise, who: assignee},
+		"R14": {act: StateCommit, who: assignee}, "J19": {act: RaiseLanguage, who: assignee},
+		"H7": {act: None, who: author}, "H8": {act: None, who: author},
+		"A1": {act: Revise, who: keeper}, "A2": {act: Revise, who: keeper}, "J18": {act: Revise, who: keeper},
 	} {
 		if got := table[id]; got.act != want.act || got.who != want.who {
 			t.Errorf("%s: %s by the %s, want %s by the %s", id, got.act, got.who, want.act, want.who)
@@ -83,8 +86,8 @@ func TestTableIsTotal(t *testing.T) {
 			t.Errorf("%s: revise by the %s", id, row.who)
 		}
 	}
-	if others != 67 {
-		t.Errorf("%d rules resolve by a revision of the keeper's, want 67", others)
+	if others != 70 {
+		t.Errorf("%d rules resolve by a revision of the keeper's, want 70", others)
 	}
 	// The silent rules are rules, in the order of validate.Rules.
 	at := -1
@@ -100,8 +103,8 @@ func TestTableIsTotal(t *testing.T) {
 		}
 		at = i
 	}
-	if len(silent) != 17 {
-		t.Errorf("%d silent rules, want the 17 of VIEWS.md#audit", len(silent))
+	if len(silent) != 21 {
+		t.Errorf("%d silent rules, want the 21 of VIEWS.md#audit", len(silent))
 	}
 }
 

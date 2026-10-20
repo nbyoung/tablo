@@ -448,25 +448,10 @@ func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Rea
 		r.Verdict = Mismatch
 	case c.Author.Email != r.Contributor:
 		r.Verdict = NoModel
-	case before021(then.p.Version):
+	case then.p.Version.Before(model.ModelTrailer):
 		r.Verdict = Exempt
 	default:
 		r.Verdict = Missing
 	}
 	return r
-}
-
-// before021 reports whether a version.yaml states a language before 0.2.1,
-// which introduced the Model: trailer.
-func before021(v *model.Version) bool {
-	if v == nil || !v.WellFormed {
-		return false
-	}
-	switch {
-	case v.Major != 0:
-		return false
-	case v.Minor != 2:
-		return v.Minor < 2
-	}
-	return v.Patch < 1
 }

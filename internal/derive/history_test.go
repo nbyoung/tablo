@@ -144,8 +144,8 @@ func TestModelCheck(t *testing.T) {
 		{WellFormed: true, Minor: 1, Patch: 9}: true, {WellFormed: true, Minor: 3}: false,
 		{WellFormed: true, Major: 1}: false, {Minor: 1}: false,
 	} {
-		if before021(v) != want {
-			t.Errorf("before021(%+v) is %v", v, !want)
+		if v.Before(model.ModelTrailer) != want {
+			t.Errorf("(%+v).Before(ModelTrailer) is %v", v, !want)
 		}
 	}
 }

@@ -158,7 +158,7 @@ func TestCompleteRefusedAndNoPass(t *testing.T) {
 			t.Errorf("with no pass %s is silent", quiet.Key)
 		}
 	}
-	if got := fmt.Sprint(silent); got != "[R9 R12 J8 J9 J14 J15 J16 J17 stale]" {
+	if got := fmt.Sprint(silent); got != "[R9 R12 R14 J8 J9 J14 J15 J16 J17 J19 stale]" {
 		t.Errorf("with no pass the silent kinds are %s", got)
 	}
 

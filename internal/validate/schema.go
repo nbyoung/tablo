@@ -373,6 +373,11 @@ func place(file *model.File, at []string, keyword string, failed jsonschema.Erro
 	one := func(pos model.Pos, format string, args ...any) []model.Diagnostic {
 		return []model.Diagnostic{{Pos: pos, Message: fmt.Sprintf(format, args...)}}
 	}
+	// A reviewer is an email address or false: the two leaves of its oneOf,
+	// and any other under it, give one message (T4).
+	if len(at) >= 3 && at[0] == "junctions" && at[2] == "reviewer" {
+		return one(pos, "%s %s is neither an email address nor false", where, show(node))
+	}
 	switch failed := failed.(type) {
 	case *kind.AdditionalProperties:
 		names := append([]string{}, failed.Properties...)

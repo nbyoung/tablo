@@ -47,6 +47,9 @@ var Rules = []Rule{
 	{"G11", model.Error, TierFiles, "An unknown field in the gates file"},
 	{"G12", model.Error, TierFiles, "No undefined or complete state at severity 0"},
 
+	{"A1", model.Error, TierFiles, "A malformed agents file"},
+	{"A2", model.Error, TierFiles, "A model beside a contributor the agents file does not list"},
+
 	{"T1", model.Error, TierFiles, "A task file name that is no id"},
 	{"T2", model.Error, TierFiles, "A task without title, description or assignee"},
 	{"T3", model.Error, TierFiles, "An unknown field in a task file"},
@@ -73,6 +76,7 @@ var Rules = []Rule{
 	{"R11", model.Error, TierFiles, "A malformed cross-project requirement"},
 	{"R12", model.Warning, TierFiles, "A requirement on what a junction reads"},
 	{"R13", model.Warning, TierHistory, "A requirement its commit alone leaves unmet"},
+	{"R14", model.Information, TierFiles, "An unpinned requirement"},
 
 	{"J1", model.Error, TierFiles, "A junction key that names no gate"},
 	{"J2", model.Error, TierFiles, "A not-applicable entry at undefined"},
@@ -91,6 +95,8 @@ var Rules = []Rule{
 	{"J15", model.Error, TierFiles, "An absolute URL without a commit"},
 	{"J16", model.Error, TierFiles, "A commit on a same-repository path"},
 	{"J17", model.Error, TierFiles, "A commit off the submodule's pin"},
+	{"J18", model.Error, TierFiles, "A task-level subproject on a parent"},
+	{"J19", model.Warning, TierFiles, "A subproject whose language lags"},
 
 	{"S1", model.Error, TierFiles, "A status for no task"},
 	{"S2", model.Error, TierFiles, "A status on a parent"},
@@ -111,6 +117,8 @@ var Rules = []Rule{
 	{"H4", model.Information, TierHistory, "A hand-off the history implies"},
 	{"H5", model.Warning, TierHistory, "A stale hand-off"},
 	{"H6", model.Warning, TierHistory, "No model trailer"},
+	{"H7", model.Warning, TierHistory, "An agent's work under a person's identity"},
+	{"H8", model.Warning, TierHistory, "A reaffirmation that confirms nothing"},
 }
 
 // byID indexes Rules.

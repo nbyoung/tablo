@@ -390,7 +390,7 @@ func (r *run) h6(c Commit, j Junction, junction Resolved, models []string) {
 	if len(models) > 0 || c.Author != junction.Contributor {
 		return
 	}
-	if major, minor, patch, ok := model.ParseVersion(c.Tableaux); ok && (major == 0 && (minor < 2 || (minor == 2 && patch < 1))) {
+	if model.Before(c.Tableaux, model.ModelTrailer) {
 		return // the language has no Model trailer before 0.2.1
 	}
 	r.commit("H6", model.Pos{}, j, c.Hash, "",

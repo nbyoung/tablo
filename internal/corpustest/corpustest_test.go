@@ -50,7 +50,7 @@ func (f *fake) run(fn func()) {
 }
 
 // TestVendoredCopy is T1: the copy is the one the lock names, and the lock's
-// commit is the commit the task file names.
+// commit is a commit the plan's task files name.
 func TestVendoredCopy(t *testing.T) {
 	repository, commit, tooling, digest := Lock()
 	if repository == "" {
@@ -66,33 +66,54 @@ func TestVendoredCopy(t *testing.T) {
 		t.Errorf("the copy's digest is %s, and the lock states %s; run corpus.sh refresh", got, digest)
 	}
 
-	data, err := os.ReadFile(filepath.Join("..", "..", ".tableaux", "tasks", "4b4f.yaml"))
-	if err != nil {
-		t.Skipf("the plan is absent: %v", err)
+	// The plan names the corpus at the lock: 4b4f's requirement on fcec, or,
+	// from language 0.4, cdb0's requirements on the umbrella's text, which
+	// holds the corpus. cdb0's first commit refreshes the copy and its next
+	// moves those requirements, so while cdb0 stands at design the lock may
+	// run ahead of the plan by one commit.
+	plan := filepath.Join("..", "..", ".tableaux")
+	type requirement struct {
+		Subproject *struct {
+			URL    string `yaml:"url"`
+			ID     string `yaml:"id"`
+			Commit string `yaml:"commit"`
+		} `yaml:"subproject"`
 	}
-	var task struct {
-		Requires []struct {
-			Subproject *struct {
-				URL    string `yaml:"url"`
-				ID     string `yaml:"id"`
-				Commit string `yaml:"commit"`
-			} `yaml:"subproject"`
-		} `yaml:"requires"`
+	read := func(id string) []requirement {
+		data, err := os.ReadFile(filepath.Join(plan, "tasks", id+".yaml"))
+		if err != nil {
+			t.Skipf("the plan is absent: %v", err)
+		}
+		var task struct {
+			Requires []requirement `yaml:"requires"`
+		}
+		if err := yaml.Unmarshal(data, &task); err != nil {
+			t.Fatal(err)
+		}
+		return task.Requires
 	}
-	if err := yaml.Unmarshal(data, &task); err != nil {
-		t.Fatal(err)
-	}
-	found := false
-	for _, r := range task.Requires {
+	found, named := false, false
+	for _, r := range read("4b4f") {
 		if s := r.Subproject; s != nil && s.ID == "fcec" && s.URL == repository {
 			found = true
-			if s.Commit != commit {
-				t.Errorf("the task file requires fcec at %s, and the lock names %s", s.Commit, commit)
-			}
+			named = named || s.Commit == commit
 		}
 	}
 	if !found {
 		t.Errorf("the task file states no requirement on fcec at %s", repository)
+	}
+	for _, r := range read("cdb0") {
+		if s := r.Subproject; s != nil && s.URL == repository && s.Commit == commit {
+			named = true
+		}
+	}
+	if !named {
+		status, _ := os.ReadFile(filepath.Join(plan, "status", "cdb0.yaml"))
+		if strings.HasPrefix(string(status), "gate: design\n") {
+			t.Logf("no requirement of 4b4f or cdb0 names the lock's commit %s while cdb0 stands at design", commit)
+		} else {
+			t.Errorf("no requirement of 4b4f on fcec or of cdb0 on %s names the lock's commit %s", repository, commit)
+		}
 	}
 }
 
@@ -240,15 +261,15 @@ func TestRules(t *testing.T) {
 			t.Errorf("rule %s names no entry", r.ID)
 		}
 	}
-	if len(rules) != 81 || counts["error"] != 67 || counts["warning"] != 13 || counts["information"] != 1 {
+	if len(rules) != 88 || counts["error"] != 70 || counts["warning"] != 16 || counts["information"] != 2 {
 		t.Errorf("%d rules: %v", len(rules), counts)
 	}
-	for _, id := range []string{"P1", "L4", "H6", "S11", "R13"} {
+	for _, id := range []string{"P1", "L4", "A1", "A2", "H6", "S11", "R13", "R14", "J18", "J19", "H7", "H8"} {
 		if !ids[id] {
 			t.Errorf("rule %s is missing", id)
 		}
 	}
-	if rules[0].ID != "P1" || rules[len(rules)-1].ID != "H6" {
+	if rules[0].ID != "P1" || rules[len(rules)-1].ID != "H8" {
 		t.Errorf("the rules run from %s to %s", rules[0].ID, rules[len(rules)-1].ID)
 	}
 	for _, r := range rules {
@@ -259,7 +280,7 @@ func TestRules(t *testing.T) {
 			}
 		}
 	}
-	if n := len(c.Names()); n != 103 {
+	if n := len(c.Names()); n != 120 {
 		t.Errorf("%d entries", n)
 	}
 }

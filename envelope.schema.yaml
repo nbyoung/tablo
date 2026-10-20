@@ -1070,7 +1070,7 @@ $defs:
   # The data of the audit (design dada). The same conventions hold. A finding's
   # key is a rule id or one of the three kinds no rule states.
   view_severity:    { enum: [error, warning, information] }   # as the audit lists a finding
-  view_finding_act: { enum: [authorise, review, reaffirm, record_handoff, clear_handoff, revise, move_pin, checkout, await, none] }   # the kind of action that resolves a finding
+  view_finding_act: { enum: [authorise, review, reaffirm, record_handoff, clear_handoff, revise, move_pin, checkout, await, state_commit, raise_language, none] }   # the kind of action that resolves a finding
   view_finding_key: { oneOf: [{ type: string, pattern: "^[A-Z][0-9]+$" }, { enum: [proposed, stale, sole_review] }] }
   view_audit:
     type: object

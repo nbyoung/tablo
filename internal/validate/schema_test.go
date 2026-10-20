@@ -131,7 +131,7 @@ func TestLeafTable(t *testing.T) {
 		{"task: junctions/<gate>, recursive", "tasks/b2c9.yaml", more("junctions: { design: { subproject: { url: lib }, colour: red } }\n"), []string{"tasks/b2c9.yaml:5:50: error: J4 task=b2c9 gate=design"}},
 		{"task: junctions/<gate>, not applicable", "tasks/b2c9.yaml", more("junctions: { design: { applies: false, colour: red } }\n"), []string{"tasks/b2c9.yaml:5:40: error: J6 task=b2c9 gate=design"}},
 		{"task: junctions/<gate>/contributor", "tasks/b2c9.yaml", more("junctions: { design: { contributor: nobody } }\n"), []string{"tasks/b2c9.yaml:5:37: error: T4 task=b2c9 gate=design"}},
-		{"task: junctions/<gate>/reviewer", "tasks/b2c9.yaml", more("junctions: { design: { reviewer: [olive@example.org] } }\n"), []string{"tasks/b2c9.yaml:5:34: error: T4 task=b2c9 gate=design"}},
+		{"task: junctions/<gate>/reviewer, oneOf", "tasks/b2c9.yaml", more("junctions: { design: { reviewer: [olive@example.org] } }\n"), []string{"tasks/b2c9.yaml:5:34: error: T4 task=b2c9 gate=design", "tasks/b2c9.yaml:5:34: error: T4 task=b2c9 gate=design"}},
 		{"task: junctions/<gate>/references/…", "tasks/b2c9.yaml", more("junctions: { design: { references: [{ text: Read me }] } }\n"), []string{"tasks/b2c9.yaml:5:37: error: T5 task=b2c9 gate=design"}},
 		{"task: junctions/<gate>/model", "tasks/b2c9.yaml", more("junctions: { design: { contributor: bot@example.org, model: \"\" } }\n"), []string{"tasks/b2c9.yaml:5:61: error: J10 task=b2c9 gate=design"}},
 		{"task: junctions/<gate>/applies", "tasks/b2c9.yaml", more("junctions: { design: { applies: true } }\n"), []string{"tasks/b2c9.yaml:5:33: error: J6 task=b2c9 gate=design"}},
