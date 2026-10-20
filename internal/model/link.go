@@ -1,5 +1,11 @@
 package model
 
+import "regexp"
+
+// absoluteURL matches a url with a scheme and ://, as the Loader reads one;
+// any other url is a path relative to the repository root.
+var absoluteURL = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*://`)
+
 // Form is which of the method's three url forms a link takes.
 type Form int
 
@@ -37,6 +43,7 @@ const (
 	CommitAbsent         // the clone does not hold the commit
 	NoProject            // no .tableaux is there
 	TooDeep              // more than eight links from the project first asked for
+	NoTrunk              // an unpinned URL whose clone holds no trunk to read
 )
 
 // String returns the problem's name in lower case.
@@ -56,6 +63,8 @@ func (p Problem) String() string {
 		return "commit absent"
 	case NoProject:
 		return "no project"
+	case NoTrunk:
+		return "no trunk"
 	}
 	return "too deep"
 }
@@ -69,4 +78,6 @@ type Link struct {
 	Problem  Problem
 	Detail   string
 	Checkout string // a Submodule whose pin the Loader read on disk: the checkout's directory, absolute; else ""
+	Unpinned bool   // a requirement's absolute URL with no commit: Commit is the tip of Trunk
+	Trunk    string // Unpinned: the trunk's name, or "HEAD" where version.yaml names none; else ""
 }

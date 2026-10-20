@@ -39,8 +39,8 @@ func (r *run) field(t *model.Task, codes map[string]bool) {
 }
 
 // subproject applies the rules of a subproject field, on a junction or, with
-// no gate, on a requirement or the task: J14, J15, J8, J19, J16, J17 and J9,
-// in that order. It returns the task the field reads in the linked project,
+// no gate, on a requirement or the task: J14, R14, J15, J8, J19, J16, J17 and
+// J9, in that order. It returns the task the field reads in the linked project,
 // and false where a rule ends the sequence.
 func (r *run) subproject(t *model.Task, gate string, sub *model.Subproject, codes map[string]bool) (string, bool) {
 	// J14 is the schema's. A url that is no scalar has no link, and the
@@ -48,6 +48,7 @@ func (r *run) subproject(t *model.Task, gate string, sub *model.Subproject, code
 	if codes["J14"] || sub == nil || sub.Link == nil {
 		return "", false
 	}
+	r.r14(t, sub)
 	if r.j15(t, gate, sub) || r.j8(t, gate, sub) {
 		return "", false
 	}
@@ -179,9 +180,10 @@ func (r *run) j12(t *model.Task) {
 	r.add("J12", model.Pos{File: t.File.Path}, t.ID, "", "no gate after undefined applies to %s", t.ID)
 }
 
-// j15 reports an absolute URL that states no commit.
+// j15 reports an absolute URL that states no commit, on a junction's field
+// or the task-level field: a requirement's is unpinned, which R14 reports.
 func (r *run) j15(t *model.Task, gate string, sub *model.Subproject) bool {
-	if sub.Link.Form != model.URL || sub.Commit.Node != nil {
+	if sub.On == model.OnRequirement || sub.Link.Form != model.URL || sub.Commit.Node != nil {
 		return false
 	}
 	r.add("J15", posOf(t.File, sub.Node), t.ID, gate, "the absolute url %s states no commit", sub.URL.V)

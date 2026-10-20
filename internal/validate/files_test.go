@@ -314,7 +314,8 @@ func TestSubprojects(t *testing.T) {
 	files = append(files, "/empty/keep", "A directory with no plan.\n", "/README.md", "A file.\n")
 
 	// A want names a rule and the field of the subproject it sits at: url,
-	// id, commit, or subproject for the field itself.
+	// id, commit, or subproject for the field itself; then the severity when
+	// it is no error.
 	cases := []struct {
 		name, field string
 		junction    []string // what the field gives on the junction at design
@@ -330,7 +331,8 @@ func TestSubprojects(t *testing.T) {
 		{"no project", `{ url: empty, id: "5a00" }`, []string{"J8 url"}, []string{"J8 url"}},
 		{"a version the module does not accept", `{ url: old, id: "5a00" }`, []string{"J8 url"}, []string{"J8 url"}},
 		{"a URL with no clone", `{ url: "` + url + `", id: "5a00", commit: ` + hash + ` }`, []string{"J8 url"}, []string{"J8 url"}},
-		{"a URL with no commit", `{ url: "` + url + `", id: "5a00" }`, []string{"J15 subproject"}, []string{"J15 subproject"}},
+		// An unpinned requirement: R14, and J8 with no clone (cdb0).
+		{"a URL with no commit", `{ url: "` + url + `", id: "5a00" }`, []string{"J15 subproject"}, []string{"R14 subproject information", "J8 url"}},
 		{"a URL with a short commit", `{ url: "` + url + `", id: "5a00", commit: abc123 }`, []string{"J14 commit"}, []string{"J14 commit"}},
 		{"a URL with a commit in upper case", `{ url: "` + url + `", id: "5a00", commit: ` + strings.ToUpper(hash) + ` }`, []string{"J14 commit"}, []string{"J14 commit"}},
 		{"a directory with a commit", `{ url: lib, id: "5a00", commit: ` + hash + ` }`, []string{"J16 commit"}, []string{"J16 commit"}},
@@ -341,9 +343,13 @@ func TestSubprojects(t *testing.T) {
 	}
 	// at returns where a want sits in the one line that holds the field.
 	at := func(line, want, mark string) string {
-		code, field, _ := strings.Cut(want, " ")
+		code, rest, _ := strings.Cut(want, " ")
+		field, severity, stated := strings.Cut(rest, " ")
+		if !stated {
+			severity = "error"
+		}
 		col := strings.Index(line, field+": ") + len(field) + 3
-		return fmt.Sprintf("tasks/b2c9.yaml:1:%d: error: %s%s", col, code, mark)
+		return fmt.Sprintf("tasks/b2c9.yaml:1:%d: %s: %s%s", col, severity, code, mark)
 	}
 	for _, c := range cases {
 		for _, on := range []string{"junction", "requirement"} {

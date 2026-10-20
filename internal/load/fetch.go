@@ -66,6 +66,29 @@ func (l *Loader) Fetch(ctx context.Context, url, commit string) error {
 	return nil
 }
 
+// FetchTip brings url into the cache with every branch, for a requirement
+// that reads the tip of its trunk. Load comes here only under Options.Fetch,
+// for a URL with no mapped clone, once per load.
+func (l *Loader) FetchTip(ctx context.Context, url string) error {
+	if !fetchable.MatchString(url) {
+		return fmt.Errorf("fetch %q: the URL is not https, http, ssh, git or file", url)
+	}
+	clone, err := l.clonePath(url)
+	if err != nil {
+		return err
+	}
+	if exists(clone) {
+		// The URL follows --, so git never reads it as an option.
+		_, err = l.run.Run(ctx, git.Repo{GitDir: clone}, nil, "fetch", "--quiet", "--", url, "+refs/heads/*:refs/heads/*")
+	} else {
+		err = l.clone(ctx, url, clone)
+	}
+	if err != nil {
+		return fmt.Errorf("fetch %q: %w", url, err)
+	}
+	return nil
+}
+
 // clone clones url bare beside its place in the cache and renames the clone
 // into place, so that a concurrent load never reads half a clone.
 func (l *Loader) clone(ctx context.Context, url, clone string) error {

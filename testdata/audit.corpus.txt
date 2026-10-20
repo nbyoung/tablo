@@ -115,6 +115,13 @@ requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+requires-unpinned main: now 2026-09-03, stale 7: 0 error(s), 0 warning(s), 3 information; most pat@example.org 1
+  R14 information [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: state_commit -> pat@example.org
+    message: the requirement on 5a00 at https://example.org/lib.git states no commit and reads the tip of main, b070f92c3351ac261fb2760f0c972cc1606a6c8c
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 review-after-status recorded: now 2026-09-02, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
   S11 error [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: review -> olive@example.org
     message: the status passes design, whose reviewer is olive@example.org, and no commit by the reviewer carries Reviewed: b2c9 design

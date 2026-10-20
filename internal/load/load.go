@@ -131,6 +131,7 @@ type session struct {
 	queue  []*node           // read, with links to resolve, nearest first
 	fresh  []*node           // read by this load at a commit
 	paths  map[string]string // absolute URL to clone path, from Git's configuration; nil until read
+	tips   map[string]bool   // the URLs whose tips FetchTip brought up to date in this load
 }
 
 // Load reads the project at src and every project it links to.
@@ -324,8 +325,8 @@ func (s *session) remember() {
 
 // reach walks the links of p breadth first. It returns every project they
 // reach and the most links to any of them. whole is false when a link has no
-// project or leads to a reading the memo does not keep: the working tree, a
-// bare tree, or the reading first asked for.
+// project, is unpinned, or leads to a reading the memo does not keep: the
+// working tree, a bare tree, or the reading first asked for.
 func (s *session) reach(p *model.Project) (graph map[key]*model.Project, height int, whole bool) {
 	graph = map[key]*model.Project{s.keys[p]: p}
 	level := []*model.Project{p}
@@ -333,7 +334,9 @@ func (s *session) reach(p *model.Project) (graph map[key]*model.Project, height 
 		var next []*model.Project
 		for _, q := range level {
 			for _, link := range q.Links {
-				if link.Problem != model.Resolved {
+				// An unpinned link reads a tip that moves while the commit
+				// that names it does not.
+				if link.Problem != model.Resolved || link.Unpinned {
 					return nil, 0, false
 				}
 				k := s.keys[link.Project]

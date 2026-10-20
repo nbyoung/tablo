@@ -391,9 +391,10 @@ func TestCorpus(t *testing.T) {
 	}
 	// The design states 24 and 18; 27a3 decision 15 leaves requires-from-not-applicable
 	// with its R6 alone, a revision, so its block goes; the corpus at 0.4.0 adds
-	// five: agent-work-under-person, review-after-status, review-nearest-person,
-	// subproject-language-behind and undefined-leaf-reaffirmed.
-	if blocks != 28 || refused != 18 {
-		t.Errorf("the audit reports on %d entries and has no report for %d; want 28 and 18", blocks, refused)
+	// six: agent-work-under-person, requires-unpinned, review-after-status,
+	// review-nearest-person, subproject-language-behind and
+	// undefined-leaf-reaffirmed.
+	if blocks != 29 || refused != 18 {
+		t.Errorf("the audit reports on %d entries and has no report for %d; want 29 and 18", blocks, refused)
 	}
 }

@@ -121,8 +121,11 @@ func (f *Facts) requires(id string) []*Condition {
 			c.Due = !named || next >= to
 		}
 		// Rule R13's question, and the blockage tree's: the same entry as the
-		// files stand at the tip of the originating project's trunk.
-		if e.Subproject != nil && origin.log != nil {
+		// files stand at the tip of the originating project's trunk. An
+		// unpinned entry reads that tip already.
+		if c.Link != nil && c.Link.Unpinned {
+			c.AtTrunk = known(c.Met)
+		} else if e.Subproject != nil && origin.log != nil {
 			if tip := origin.past(origin.log.Trunk.Tip); tip != nil {
 				there := tip.status(c.Origin)
 				from, fromNamed := tip.index[c.From]

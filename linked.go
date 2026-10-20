@@ -19,7 +19,8 @@ var absoluteURL = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*://`)
 // (4ed9 decision 18 b): the url names a link of the load, and the Loader
 // found no project there. Problem is the reason's name, as RULES.md's J8
 // and J9 read it: "outside", "missing", "no clone", "bad commit", "commit
-// absent", "no project" or "too deep". Detail says more.
+// absent", "no project", "too deep" or, for an unpinned requirement whose
+// clone holds no branch to read, "no trunk". Detail says more.
 type LinkError struct {
 	URL, Commit     string // the link: an absolute URL as written or the path cleaned, and its commit
 	Problem, Detail string

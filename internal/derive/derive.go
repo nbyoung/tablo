@@ -227,7 +227,8 @@ var absolute = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*://`)
 // the field has no link of its own: the links of the project in view with
 // its url stand for it, and the facts are the subproject's own past at the
 // commit the linkage fixes at this commit: the gitlink of a submodule, the
-// commit field beside an absolute URL, or this commit for a directory.
+// commit field beside an absolute URL, or this commit for a directory. An
+// unpinned field reads the tip the load read, since the past holds no other.
 func (f *Facts) reach(field *model.Subproject) (*model.Link, *Facts) {
 	if field == nil {
 		return nil, nil
@@ -262,6 +263,9 @@ func (f *Facts) reach(field *model.Subproject) (*model.Link, *Facts) {
 			pin = f.view.log.Object(f.commit, link.URL)
 		case model.URL:
 			pin = field.Commit.V
+			if field.Unpinned() && link.Unpinned {
+				pin = link.Commit
+			}
 		}
 		if sub := f.fam.of(link.Project).past(pin); sub != nil {
 			return link, sub

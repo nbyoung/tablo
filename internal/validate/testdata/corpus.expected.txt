@@ -111,7 +111,7 @@ tasks/b2c9.yaml:8:40: error: R10 task=b2c9 gate=undefined: to is undefined: no w
 # requires-unknown-field
 tasks/b2c9.yaml:8:36: error: R8 task=b2c9: why is no field of requires.0
 # requires-unpinned
-tasks/b2c9.yaml:8:19: error: J15 task=b2c9: the absolute url https://example.org/lib.git states no commit
+tasks/b2c9.yaml:8:19: information: R14 task=b2c9: the requirement on 5a00 at https://example.org/lib.git states no commit and reads the tip of main, b070f92c3351ac261fb2760f0c972cc1606a6c8c
 # review-after-status
 # review-by-non-reviewer
 # review-nearest-person

@@ -20,9 +20,6 @@ known:
   - entry: reaffirmed-snapshot
     reason: "findings: want H8 at b2c9 (R1), got none; and 1 more"
     owes: cdb0
-  - entry: requires-unpinned
-    reason: "valid: want true, got false; and 6 more"
-    owes: cdb0
   - entry: undefined-leaf-reaffirmed
     reason: "findings: want H8 at b2c9 (U3), got none"
     owes: cdb0

@@ -44,6 +44,10 @@ func (s *session) resolve(ctx context.Context, n *node) error {
 		var id string
 		t := &target{link: &model.Link{URL: url}}
 		switch clean := path.Clean(url); {
+		case absoluteURL.MatchString(url) && field.Unpinned():
+			// The tip of the trunk, apart from any link to the URL at a commit.
+			t.link.Form, t.link.Unpinned = model.URL, true
+			id = "tip\x00" + url
 		case absoluteURL.MatchString(url):
 			t.link.Form = model.URL
 			if field.Commit.Node.Scalar() {
@@ -81,7 +85,7 @@ func (s *session) resolve(ctx context.Context, n *node) error {
 		n.project.Links = append(n.project.Links, t.link)
 		switch {
 		case t.link.Problem != model.Resolved:
-		case t.link.Form == model.URL && !fullHash.MatchString(t.stated):
+		case t.link.Form == model.URL && !t.link.Unpinned && !fullHash.MatchString(t.stated):
 			t.link.Problem = model.BadCommit
 			t.link.Detail = "an absolute URL needs a commit field that is a full hash"
 		case n.depth >= maxDepth:
@@ -280,8 +284,9 @@ func (s *session) resolveSubmodule(ctx context.Context, n *node, t *target, pin 
 }
 
 // resolveURL reads a project in another repository at the commit the field
-// states. The clone is the one Options.Replace names, else the one Git's
-// configuration names under tableaux.<url>.path, else the one in the cache.
+// states, or, for an unpinned requirement, at the tip of its trunk. The
+// clone is the one Options.Replace names, else the one Git's configuration
+// names under tableaux.<url>.path, else the one in the cache.
 func (s *session) resolveURL(ctx context.Context, n *node, t *target) error {
 	url, commit := t.link.URL, t.stated
 	t.link.Commit = commit
@@ -300,6 +305,9 @@ func (s *session) resolveURL(ctx context.Context, n *node, t *target) error {
 			return nil
 		}
 		fetch = s.loader.options.Fetch
+	}
+	if t.link.Unpinned {
+		return s.resolveTip(ctx, n, t, clone, fetch)
 	}
 	if !exists(clone) {
 		if !fetch {
@@ -348,6 +356,123 @@ func (s *session) resolveURL(ctx context.Context, n *node, t *target) error {
 	}
 	settle(t.link, project)
 	return nil
+}
+
+// resolveTip reads the project of an unpinned requirement at the tip of its
+// trunk in the clone at clone. fetch says the clone is the cache's under
+// Options.Fetch: FetchTip then brings it up to date, once per load.
+func (s *session) resolveTip(ctx context.Context, n *node, t *target, clone string, fetch bool) error {
+	url := t.link.URL
+	if fetch && !s.tips[url] {
+		if s.tips == nil {
+			s.tips = map[string]bool{}
+		}
+		s.tips[url] = true
+		if err := s.loader.FetchTip(ctx, url); err != nil {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			if !exists(clone) {
+				t.link.Problem, t.link.Detail = model.NoClone, err.Error()
+				return nil
+			}
+		}
+	}
+	if !exists(clone) {
+		t.link.Problem = model.NoClone
+		t.link.Detail = "no clone of the URL is at " + clone
+		return nil
+	}
+	store := clone
+	if dotGit := filepath.Join(clone, ".git"); exists(dotGit) {
+		store = dotGit
+	}
+	commit, err := s.tip(ctx, store, t)
+	if err != nil || t.link.Problem != model.Resolved {
+		return err
+	}
+	other, found, err := s.open(ctx, store, commit)
+	switch {
+	case err != nil:
+		return err
+	case !found:
+		t.link.Problem = model.NoClone
+		t.link.Detail = "no Git repository is at " + clone
+		return nil
+	}
+	project, err := s.project(ctx, other.place, other.commit, other.commit, "", n.depth+1)
+	if err != nil {
+		return err
+	}
+	settle(t.link, project)
+	return nil
+}
+
+// tip resolves the trunk an unpinned link reads, in the clone at store: the
+// name version.yaml states at the clone's default branch,
+// refs/remotes/origin/HEAD else HEAD, read alone as listTree reads a file;
+// else that branch itself. The name resolves refs/remotes/origin/<name>
+// first, then refs/heads/<name>, as in every linked repository (27a3
+// decision 5). It sets the link's Trunk and Commit, or NoTrunk.
+func (s *session) tip(ctx context.Context, store string, t *target) (string, error) {
+	repo := git.Repo{GitDir: store}
+	var head opened
+	for _, rev := range []string{"refs/remotes/origin/HEAD", "HEAD"} {
+		o, found, err := s.open(ctx, store, rev)
+		if err != nil {
+			return "", err
+		}
+		if !found {
+			t.link.Problem = model.NoClone
+			t.link.Detail = "no Git repository is at " + store
+			return "", nil
+		}
+		if o.commit != "" {
+			head = o
+			break
+		}
+	}
+	if head.commit == "" {
+		t.link.Problem = model.NoTrunk
+		t.link.Detail = "the clone has no default branch to read"
+		return "", nil
+	}
+	name := ""
+	file := planDir + "/version.yaml"
+	entries, err := s.run.LsTree(ctx, repo, head.commit, false, file)
+	if err != nil {
+		return "", err
+	}
+	for _, e := range entries {
+		if e.Path != file || !e.Regular() {
+			continue
+		}
+		blobs, err := s.run.Blobs(ctx, repo, []string{e.ID})
+		if err != nil {
+			return "", err
+		}
+		if piece := Parse("version.yaml", blobs[0]); piece != nil && piece.version != nil && piece.version.Trunk.Node.Scalar() {
+			name = piece.version.Trunk.V
+		}
+	}
+	if name == "" {
+		t.link.Trunk, t.link.Commit = "HEAD", head.commit
+		return head.commit, nil
+	}
+	for _, ref := range []string{"refs/remotes/origin/" + name, "refs/heads/" + name} {
+		o, _, err := s.open(ctx, store, ref)
+		if err != nil {
+			return "", err
+		}
+		if o.commit != "" {
+			t.link.Trunk, t.link.Commit = name, o.commit
+			return o.commit, nil
+		}
+	}
+	t.link.Trunk = name
+	t.link.Problem = model.NoTrunk
+	t.link.Detail = "the clone holds no branch " + name + " to read"
+	return "", nil
 }
 
 // configured returns the clone Git's configuration names for an absolute

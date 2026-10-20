@@ -272,3 +272,58 @@ func TestIdentityAndReviewer(t *testing.T) {
 		t.Errorf("reviewer: true supplies %+v; want nothing, so the nearest person reviews", j.Reviewer)
 	}
 }
+
+// TestUnpinnedCondition is T13: requires-unpinned reads the library at the
+// tip of its trunk, met and due there, AtTrunk yes, with no pin event; the
+// facts at the entry's commit read the requirement at the tip too. A history
+// that then states the commit has a pin event with no old commit.
+func TestUnpinnedCondition(t *testing.T) {
+	const url = "https://example.org/lib.git"
+	options := load.Options{Replace: map[string]string{url: builtAt(t, "requires-unpinned.lib")}}
+	f := derived(t, options, builtAt(t, "requires-unpinned"), "main", "")
+	hashes, lib := labels(t, "requires-unpinned"), labels(t, "requires-unpinned.lib")
+	conditions := f.Requires("b2c9")
+	if len(conditions) != 1 {
+		t.Fatalf("b2c9 has %d conditions", len(conditions))
+	}
+	c := conditions[0]
+	if !c.Met || !c.Due || c.AtTrunk != Yes || c.Why != Determined || c.Link == nil || !c.Link.Unpinned || c.Link.Commit != lib["L2"] {
+		t.Errorf("the condition: met %v, due %v, at the trunk %s, why %s, link %+v", c.Met, c.Due, c.AtTrunk, c.Why, c.Link)
+	}
+	for _, e := range f.Events("b2c9") {
+		if e.Kind == Pinned {
+			t.Errorf("an unpinned requirement makes the pin event %+v", e)
+		}
+	}
+	past := f.At(hashes["only"])
+	if p := past.Requires("b2c9"); len(p) != 1 || !p[0].Met || p[0].Facts == nil || p[0].Facts.Project().Where.Commit != lib["L2"] {
+		t.Errorf("the past reads the requirement %+v", p)
+	}
+
+	// A later commit states the commit: a pin event with no old.
+	repo := filepath.Join(t.TempDir(), "repo")
+	gitRun(t, t.TempDir(), "clone", "-q", builtAt(t, "requires-unpinned"), repo)
+	task := filepath.Join(repo, ".tableaux", "tasks", "b2c9.yaml")
+	data, err := os.ReadFile(task)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pinned := strings.Replace(string(data), `id: "5a00" }`, `id: "5a00", commit: `+lib["L2"]+` }`, 1)
+	if pinned == string(data) {
+		t.Fatal("the task file holds no unpinned requirement to pin")
+	}
+	if err := os.WriteFile(task, []byte(pinned), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, repo, "commit", "-q", "-a", "-m", "State the library's commit")
+	g := derived(t, options, repo, "HEAD", "main")
+	var pins []string
+	for _, e := range g.Events("b2c9") {
+		if e.Kind == Pinned {
+			pins = append(pins, e.URL+" "+e.Old+" "+e.New)
+		}
+	}
+	if got := strings.Join(pins, ", "); got != url+"  "+lib["L2"] {
+		t.Errorf("the pin events are %q; want one at %s with no old commit", got, url)
+	}
+}

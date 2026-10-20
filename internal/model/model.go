@@ -214,6 +214,12 @@ type Subproject struct {
 	Link            *Link // nil when URL is not a scalar
 }
 
+// Unpinned reports whether the field is a requirement's on an absolute URL
+// that states no commit, which a tool reads at the tip of that project's trunk.
+func (s *Subproject) Unpinned() bool {
+	return s != nil && s.On == OnRequirement && s.URL.Node.Scalar() && absoluteURL.MatchString(s.URL.V) && s.Commit.Node == nil
+}
+
 // Status is status/<id>.yaml as written.
 type Status struct {
 	ID                        string

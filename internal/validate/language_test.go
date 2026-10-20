@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/nbyoung/tablo/internal/derive"
+	"github.com/nbyoung/tablo/internal/load"
 	"github.com/nbyoung/tablo/internal/model"
 )
 
@@ -187,6 +188,49 @@ func TestFieldResolvesAsTheDerivation(t *testing.T) {
 					t.Errorf("%s %s %s: kindAt %d; the Derivation gives %s", name, id, j.Gate, got, j.Kind)
 				}
 			}
+		}
+	}
+}
+
+// TestUnpinnedRules is T6 for R14 and J15: an unpinned requirement is R14,
+// information, with the trunk and the tip it reads, and no J15; with no
+// clone R14 says why beside J8. A junction's and the task-level field's
+// absolute URL with no commit stay J15.
+func TestUnpinnedRules(t *testing.T) {
+	lib := repository(t, map[string]string{
+		"version.yaml":    baseVersion,
+		"gates.yaml":      baseGates,
+		"tasks/5a00.yaml": "title: Lib\ndescription: The library.\nassignee: pat@example.org\n",
+	})
+	gitRun(t, lib, "add", "-A")
+	gitRun(t, lib, "commit", "-q", "-m", "Plan the library")
+	tip := gitRun(t, lib, "rev-parse", "HEAD")
+	const url = "https://example.org/lib.git"
+	leaf := baseLeaf + "requires: [{ subproject: { url: \"" + url + "\", id: \"5a00\" } }]\n"
+	read := func(replace map[string]string, files map[string]string) []string {
+		t.Helper()
+		var out []string
+		for _, d := range Files(loadAt(t, load.Options{Replace: replace, CacheDir: t.TempDir()}, repository(t, files), "")) {
+			out = append(out, where(d)+": "+d.Message)
+		}
+		return out
+	}
+	got := strings.Join(read(map[string]string{url: lib}, with(base(), "tasks/b2c9.yaml", leaf)), "\n")
+	if want := "tasks/b2c9.yaml:5:26: information: R14 task=b2c9: the requirement on 5a00 at " + url +
+		" states no commit and reads the tip of main, " + tip; got != want {
+		t.Errorf("an unpinned requirement:\n got  %s\n want %s", got, want)
+	}
+	got = strings.Join(read(nil, with(base(), "tasks/b2c9.yaml", leaf)), "\n")
+	if want := "tasks/b2c9.yaml:5:26: information: R14 task=b2c9: the requirement on 5a00 at " + url + " states no commit and reads no trunk: no clone\n" +
+		"tasks/b2c9.yaml:5:33: error: J8 task=b2c9: url " + url + " resolves to no Tableaux project the tool can read: no clone"; got != want {
+		t.Errorf("an unpinned requirement with no clone:\n got  %s\n want %s", got, want)
+	}
+	for name, file := range map[string]string{
+		"a junction":           leaf04(`{ subproject: { url: "` + url + `" } }`),
+		"the task-level field": baseLeaf + "subproject: { url: \"" + url + "\" }\n",
+	} {
+		if got := lines(t, with(base(), "tasks/b2c9.yaml", file), ""); len(got) != 1 || !strings.Contains(got[0], ": J15 task=b2c9") {
+			t.Errorf("%s with no commit: %q; want J15 alone", name, got)
 		}
 	}
 }
