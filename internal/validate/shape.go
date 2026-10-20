@@ -155,13 +155,19 @@ func decides(j *model.Junction) (resolved, bool) {
 	return plain, false
 }
 
-// kindAt resolves the kind of a task's junction at a gate: plain at
-// undefined; else the first entry at that key that decides, from the task's
-// own and then its ancestors', nearest first; else plain. A recursive entry
-// decides on the task itself and never on an ancestor.
+// kindAt resolves the kind of a task's junction at a gate, as the
+// Derivation does: plain at undefined; recursive at a gate after the first
+// that follows undefined where the task states the task-level subproject
+// field and no entry of its own; else the first entry at that key that
+// decides, from the task's own and then its ancestors', nearest first; else
+// plain. A recursive entry decides on the task itself and never on an
+// ancestor.
 func (s *shape) kindAt(id, gate string) resolved {
 	if gate == undefined {
 		return plain
+	}
+	if task := s.project.Tasks[id]; task != nil && task.Subproject != nil && s.entryAt(id, gate) == nil && s.gate[gate] >= 2 {
+		return recursive
 	}
 	above, _ := s.ancestors(id)
 	for i, at := range append([]string{id}, above...) {

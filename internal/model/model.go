@@ -111,6 +111,7 @@ type Task struct {
 	Title, Description, Assignee StrField
 	References                   []*Reference
 	Requires                     []*Requirement
+	Subproject                   *Subproject // the task-level field; nil when the file states none
 	Junctions                    []*Junction // in file order
 	Parent                       *Parent     // nil exactly when the file has no parent key
 }
@@ -189,10 +190,22 @@ func (j *Junction) Kind() JunctionKind {
 	return Mixed
 }
 
-// Subproject is a subproject field, on a junction or a requirement, and what it leads to.
+// Holder says which field of a task file a subproject field is.
+type Holder int
+
+// The holders of a subproject field.
+const (
+	OnJunction    Holder = iota // junctions.<gate>.subproject
+	OnRequirement               // requires[i].subproject
+	OnTask                      // the task-level subproject
+)
+
+// Subproject is a subproject field, on a junction, a requirement or the
+// task, and what it leads to.
 type Subproject struct {
 	URL, ID, Commit StrField
 	Node            *Value
+	On              Holder
 	Link            *Link // nil when URL is not a scalar
 }
 

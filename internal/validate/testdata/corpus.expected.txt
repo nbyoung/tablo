@@ -158,9 +158,10 @@ tasks/b2c9.yaml:8:45: error: J17 task=b2c9 gate=design: commit 7d2a2e749ca6def9f
 # subproject-directory-with-commit
 tasks/b2c9.yaml:8:45: error: J16 task=b2c9 gate=design: url lib is a directory of this repository, which nothing pins
 # subproject-field
-status/c100.yaml:2:7: error: S10 task=c100 gate=function: the next junction, design, is plain and the file states no state
 # subproject-field-on-parent
+tasks/e4a1.yaml:7:13: error: J18 task=e4a1: a parent states a task-level subproject field
 # subproject-language-behind
+tasks/b2c9.yaml:8:32: warning: J19 task=b2c9: the project at behind states tableaux 0.3.1, before this project's 0.3.2
 # subproject-path-missing
 tasks/b2c9.yaml:8:33: error: J8 task=b2c9 gate=release: url elsewhere resolves to no Tableaux project the tool can read: missing
 # subproject-pin-off-trunk

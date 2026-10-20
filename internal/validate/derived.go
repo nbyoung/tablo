@@ -74,8 +74,8 @@ type Event struct{ Task, Kind, Gate string }
 // Pin is a linkage whose commit is off its subproject's trunk.
 type Pin struct {
 	Task  string
-	Gate  string // the junction's gate; "" on a requirement
-	Index int    // the requirement's index; -1 on a junction
+	Gate  string // the junction's gate; "" on a requirement and on the task-level field
+	Index int    // the requirement's index; -1 on a junction and on the task-level field
 	Trunk string // the subproject's trunk
 }
 
@@ -234,12 +234,15 @@ func (r *run) j13() {
 			continue
 		}
 		var sub *model.Subproject
-		if pin.Gate != "" {
+		switch {
+		case pin.Gate != "":
 			if j := r.shape.entryAt(pin.Task, pin.Gate); j != nil {
 				sub = j.Subproject
 			}
-		} else if pin.Index >= 0 && pin.Index < len(task.Requires) {
+		case pin.Index >= 0 && pin.Index < len(task.Requires):
 			sub = task.Requires[pin.Index].Subproject
+		case pin.Index < 0:
+			sub = task.Subproject
 		}
 		if sub == nil || sub.Link == nil {
 			continue

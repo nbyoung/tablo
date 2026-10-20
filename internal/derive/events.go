@@ -328,14 +328,17 @@ func (f *Facts) link(url, commit string) *model.Link {
 	return found
 }
 
-// fields returns the subproject fields of a task, a requirement's before a
-// junction's, each in file order.
+// fields returns the subproject fields of a task: a requirement's, then the
+// task-level field, then a junction's, each in file order.
 func fields(task *model.Task) []*model.Subproject {
 	var all []*model.Subproject
 	for _, r := range task.Requires {
 		if r.Subproject != nil {
 			all = append(all, r.Subproject)
 		}
+	}
+	if task.Subproject != nil {
+		all = append(all, task.Subproject)
 	}
 	for _, j := range task.Junctions {
 		if j.Subproject != nil {
@@ -346,7 +349,7 @@ func fields(task *model.Task) []*model.Subproject {
 }
 
 // naming returns the tasks whose files, as they stand at a commit, name a
-// submodule path in a junction or a requirement, by id.
+// submodule path in a junction, a requirement or the task-level field, by id.
 func (f *Facts) naming(c *history.Commit, submodule string) []string {
 	p := f.log.Project(c.ID)
 	var ids []string

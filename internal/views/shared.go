@@ -298,6 +298,20 @@ func (b builder) statedEntry(task, gate, field string) view.Stated {
 	return out
 }
 
+// statedSubproject says where a task's file states its task-level subproject
+// field: at the field's own place in the file, under the key subproject.
+func (b builder) statedSubproject(task string) view.Stated {
+	out := view.Stated{By: task, Key: "subproject", File: taskFile(task)}
+	if t := b.f.Project().Tasks[task]; t != nil && t.Subproject != nil {
+		for i := range t.File.Root.Fields {
+			if t.File.Root.Fields[i].Key == "subproject" {
+				out.Line, out.Col = t.File.Root.Fields[i].KeyPos.Line, t.File.Root.Fields[i].KeyPos.Col
+			}
+		}
+	}
+	return out
+}
+
 // suppliers returns what supplies each field of a resolved junction, in the
 // order contributor, model, reviewer, references, subproject, applies. It
 // is never nil.
@@ -325,7 +339,11 @@ func (b builder) suppliers(j *derive.Junction) []view.Supplier {
 		if ref := b.subRef(j.Snapshot); ref != nil {
 			url = ref.URL
 		}
-		add("subproject", url, b.statedEntry(j.Entry, j.Gate, "subproject"))
+		if j.Delegated {
+			add("subproject", url, b.statedSubproject(j.Task))
+		} else {
+			add("subproject", url, b.statedEntry(j.Entry, j.Gate, "subproject"))
+		}
 	case model.NotApplicable:
 		add("applies", "false", b.statedEntry(j.Entry, j.Gate, "applies"))
 	}

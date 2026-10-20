@@ -35,15 +35,6 @@ known:
   - entry: review-nearest-person
     reason: "findings: want H4 at b2c9 release (N2), got none; and 5 more"
     owes: cdb0
-  - entry: subproject-field
-    reason: "valid: want true, got false; and 50 more"
-    owes: cdb0
-  - entry: subproject-field-on-parent
-    reason: "valid: want false, got true; and 1 more"
-    owes: cdb0
-  - entry: subproject-language-behind
-    reason: "findings: want J19 at b2c9, got none"
-    owes: cdb0
   - entry: undefined-leaf-reaffirmed
     reason: "findings: want H8 at b2c9 (U3), got none"
     owes: cdb0

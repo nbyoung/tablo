@@ -25,10 +25,13 @@ func (r *run) tree() {
 }
 
 // task applies the rules of one task file: its schema, the unquoted ids, the
-// junction entries, the requirements, and the gates that apply.
+// task-level subproject field, the junction entries, the requirements, and
+// the gates that apply.
 func (r *run) task(t *model.Task) {
-	// The codes the schema raises under each requirement, by index.
+	// The codes the schema raises under each requirement, by index, and
+	// under the task-level field.
 	under := map[string]map[string]bool{}
+	field := map[string]bool{}
 	for _, l := range checkFile(taskFile, t.File, t.ID) {
 		r.found = append(r.found, l.diagnostic)
 		if len(l.at) >= 2 && l.at[0] == "requires" {
@@ -37,8 +40,12 @@ func (r *run) task(t *model.Task) {
 			}
 			under[l.at[1]][l.diagnostic.Code] = true
 		}
+		if len(l.at) >= 1 && l.at[0] == "subproject" {
+			field[l.diagnostic.Code] = true
+		}
 	}
 	r.t7(t)
+	r.field(t, field)
 	for _, j := range t.Junctions {
 		r.junction(t, j)
 	}
@@ -55,7 +62,7 @@ func (r *run) t1(t *model.Task) {
 	}
 }
 
-// t7 warns of an id written without quotes, at each of the four places a task
+// t7 warns of an id written without quotes, at each of the five places a task
 // file names one.
 func (r *run) t7(t *model.Task) {
 	warn := func(node *model.Value, path string) {
@@ -82,6 +89,9 @@ func (r *run) t7(t *model.Task) {
 		if requirement.Subproject != nil {
 			warn(requirement.Subproject.ID.Node, at+".subproject.id")
 		}
+	}
+	if t.Subproject != nil {
+		warn(t.Subproject.ID.Node, "subproject.id")
 	}
 	for _, j := range t.Junctions {
 		if j.Subproject != nil {

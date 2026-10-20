@@ -262,6 +262,15 @@ func row(k fileKind, root *model.Value, at []string, keyword string, failed json
 			return "T2", "", true
 		case "references":
 			return "T5", "", true
+		case "subproject":
+			// The task-level field maps as a junction's, with no gate.
+			if len(at) >= 2 && at[1] == "id" {
+				return "T6", "", true
+			}
+			if len(at) >= 2 && at[1] == "commit" {
+				return "J14", "", true
+			}
+			return "J7", "", true
 		case "parent":
 			if len(at) == 2 && at[1] == "id" {
 				return "T6", "", true

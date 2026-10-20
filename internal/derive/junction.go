@@ -30,6 +30,7 @@ type Junction struct {
 	References                   []*model.Reference // of a plain junction
 	ReferencesFrom               string             // the task whose entry states them; "" for none
 	Entry                        string             // the task whose entry makes it recursive or exempt
+	Delegated                    bool               // recursive by the task-level subproject field, not by an entry at the gate
 	Snapshot                     *Snapshot          // of a recursive junction
 
 	sources []string
@@ -225,7 +226,10 @@ func (f *Facts) resolved(id string) []*Junction {
 	for _, gate := range f.gates[1:] {
 		j := f.resolve(task, gate)
 		if j.Kind == model.Recursive {
-			field := entry(task, gate).Subproject
+			field := task.Subproject
+			if !j.Delegated {
+				field = entry(task, gate).Subproject
+			}
 			link, sub := f.reach(field)
 			target := field.ID.V
 			if target == "" {
@@ -270,7 +274,10 @@ func stated(field model.StrField) bool {
 }
 
 // resolve walks the task's own entry at a gate and then its ancestors',
-// nearest first. The task's own recursive entry resolves at once. A plain
+// nearest first. A task that states the task-level subproject field and no
+// entry of its own at a gate after the first that follows undefined is
+// recursive there, Delegated; an own entry of any form there walks as
+// below. The task's own recursive entry resolves at once. A plain
 // entry supplies, field by field, what no nearer entry supplies: the
 // reviewer; the references, whole; and the contributor with the model as one
 // pair. A not-applicable entry ends the walk: with no nearer plain entry the
@@ -280,6 +287,9 @@ func stated(field model.StrField) bool {
 // defaults: the assignee contributes, and reviews an agent that has no
 // reviewer.
 func (f *Facts) resolve(task *model.Task, gate string) *Junction {
+	if task.Subproject != nil && entry(task, gate) == nil && f.index[gate] >= 2 {
+		return &Junction{Task: task.ID, Gate: gate, Kind: model.Recursive, Entry: task.ID, Delegated: true, sources: []string{task.ID}}
+	}
 	j := &Junction{Task: task.ID, Gate: gate, Kind: model.Plain}
 	nearest := "" // the nearest task with a plain entry
 	pair := false // an entry states the contributor or the model

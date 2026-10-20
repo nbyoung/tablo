@@ -765,7 +765,7 @@ func reviews(f *derive.Facts) map[validate.Junction]string {
 
 // offTrunk returns each linkage whose commit its subproject's trunk does not
 // hold on its first-parent line: a recursive junction's, at each gate that
-// names it, and a cross-project requirement's.
+// names it; the task-level field's, once; and a cross-project requirement's.
 func offTrunk(f *derive.Facts) []validate.Pin {
 	var pins []validate.Pin
 	off := func(l *model.Link) (string, bool) {
@@ -777,10 +777,20 @@ func offTrunk(f *derive.Facts) []validate.Pin {
 	}
 	for _, id := range f.Order() {
 		for _, s := range f.Snapshots(id) {
-			if trunk, ok := off(s.Link); ok {
-				for _, gate := range s.Gates {
-					pins = append(pins, validate.Pin{Task: id, Gate: gate, Index: -1, Trunk: trunk})
+			trunk, ok := off(s.Link)
+			if !ok {
+				continue
+			}
+			field := false // the task-level field names the link, once and with no gate
+			for _, gate := range s.Gates {
+				if j := f.Junction(id, gate); j != nil && j.Delegated {
+					field = true
+					continue
 				}
+				pins = append(pins, validate.Pin{Task: id, Gate: gate, Index: -1, Trunk: trunk})
+			}
+			if field {
+				pins = append(pins, validate.Pin{Task: id, Index: -1, Trunk: trunk})
 			}
 		}
 		for i, c := range f.Requires(id) {

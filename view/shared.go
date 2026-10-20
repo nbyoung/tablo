@@ -160,7 +160,7 @@ type SubRef struct {
 // Stated says where a value stands in the files.
 type Stated struct {
 	By   string `json:"by"`   // a task id; "own" for each task's own file; "assignee"; or "default"
-	Key  string `json:"key"`  // the key in that task's file: junctions.<gate>.<field> or assignee; "" for a default
+	Key  string `json:"key"`  // the key in that task's file: junctions.<gate>.<field>, assignee or subproject, the task-level field; "" for a default
 	File string `json:"file"` // .tableaux/tasks/<id>.yaml; "" unless By is a task id
 	Line int    `json:"line"` // from 1; 0 unless By is a task id
 	Col  int    `json:"col"`

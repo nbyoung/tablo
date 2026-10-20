@@ -25,10 +25,23 @@ func (r *run) junction(t *model.Task, j *model.Junction) {
 	}
 }
 
+// field applies the rules of the task-level subproject field: J18 on a
+// parent, then, with no J7 from the schema, the rules of any subproject
+// field, as a leaf's, with no gate.
+func (r *run) field(t *model.Task, codes map[string]bool) {
+	if t.Subproject == nil {
+		return
+	}
+	r.j18(t)
+	if !codes["J7"] {
+		r.subproject(t, "", t.Subproject, codes)
+	}
+}
+
 // subproject applies the rules of a subproject field, on a junction or, with
-// no gate, on a requirement: J14, J15, J8, J16, J17 and J9, in that order. It
-// returns the task the field reads in the linked project, and false where a
-// rule ends the sequence.
+// no gate, on a requirement or the task: J14, J15, J8, J19, J16, J17 and J9,
+// in that order. It returns the task the field reads in the linked project,
+// and false where a rule ends the sequence.
 func (r *run) subproject(t *model.Task, gate string, sub *model.Subproject, codes map[string]bool) (string, bool) {
 	// J14 is the schema's. A url that is no scalar has no link, and the
 	// schema reports it.
@@ -38,6 +51,7 @@ func (r *run) subproject(t *model.Task, gate string, sub *model.Subproject, code
 	if r.j15(t, gate, sub) || r.j8(t, gate, sub) {
 		return "", false
 	}
+	r.j19(t, sub)
 	r.j16(t, gate, sub)
 	r.j17(t, gate, sub)
 	if r.j9(t, gate, sub) {
@@ -172,6 +186,41 @@ func (r *run) j15(t *model.Task, gate string, sub *model.Subproject) bool {
 	}
 	r.add("J15", posOf(t.File, sub.Node), t.ID, gate, "the absolute url %s states no commit", sub.URL.V)
 	return true
+}
+
+// j18 reports a task-level subproject field on a task that another names
+// as its parent.
+func (r *run) j18(t *model.Task) {
+	if r.shape.isParent(t.ID) {
+		r.add("J18", posOf(t.File, t.Subproject.Node), t.ID, "", "a parent states a task-level subproject field")
+	}
+}
+
+// lag is a task and a project its recursive linkage reads, which J19 names once.
+type lag struct {
+	task string
+	link *model.Link
+}
+
+// j19 warns of a project that a junction's or the task-level field reads
+// whose version.yaml, at the commit the linkage fixes, states a language
+// before this project's, patch included: once per task and link, at the url
+// of the first field that reaches it. A requirement delegates no work, and
+// an unreadable version says nothing.
+func (r *run) j19(t *model.Task, sub *model.Subproject) {
+	mine, theirs := r.project.Version, sub.Link.Project.Version
+	if sub.On == model.OnRequirement || mine == nil || theirs == nil || !mine.WellFormed ||
+		!theirs.Before(model.Release{Major: mine.Major, Minor: mine.Minor, Patch: mine.Patch}) {
+		return
+	}
+	if r.lagging == nil {
+		r.lagging = map[lag]bool{}
+	}
+	if k := (lag{t.ID, sub.Link}); !r.lagging[k] {
+		r.lagging[k] = true
+		r.add("J19", posOf(t.File, sub.URL.Node, sub.Node), t.ID, "", "the project at %s states tableaux %s, before this project's %s",
+			sub.Link.URL, theirs.Tableaux.V, mine.Tableaux.V)
+	}
 }
 
 // j16 reports a commit on a directory of the same repository.

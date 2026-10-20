@@ -76,6 +76,58 @@ func TestWeatherStation(t *testing.T) {
 	if status := p.Statuses["9f31"]; status == nil || status.ID != "9f31" || status.Gate.V == "" || status.File.Path != "status/9f31.yaml" {
 		t.Errorf("status 9f31: %+v", status)
 	}
+	// Every subproject field records its holder (cdb0, T4).
+	for _, id := range p.TaskIDs() {
+		task := p.Tasks[id]
+		if task.Subproject != nil {
+			t.Errorf("%s states a task-level field: %+v", id, task.Subproject)
+		}
+		for _, r := range task.Requires {
+			if r.Subproject != nil && r.Subproject.On != model.OnRequirement {
+				t.Errorf("%s: a requirement's field holds %d", id, r.Subproject.On)
+			}
+		}
+		for _, j := range task.Junctions {
+			if j.Subproject != nil && j.Subproject.On != model.OnJunction {
+				t.Errorf("%s %s: a junction's field holds %d", id, j.Gate, j.Subproject.On)
+			}
+		}
+	}
+}
+
+// T4 of design cdb0: the task-level subproject field is the task's, held
+// OnTask, and shares one link with every field that names its target.
+func TestTaskLevelField(t *testing.T) {
+	p := load(t, loader(t, Options{}), entry(t, "subproject-field"), "HEAD")
+	task := p.Tasks["c100"]
+	if task == nil || task.Subproject == nil {
+		t.Fatalf("c100 states no task-level field: %+v", task)
+	}
+	field := task.Subproject
+	if field.On != model.OnTask || field.URL.V != "sub" || field.Link == nil || field.Link.Form != model.Submodule || field.Link.Project == nil {
+		t.Errorf("the field: %+v, link %+v", field, field.Link)
+	}
+	if len(p.Links) != 1 || p.Links[0] != field.Link {
+		t.Errorf("the project links %v; want the field's alone", p.Links)
+	}
+	for _, j := range task.Junctions {
+		if j.Subproject != nil {
+			t.Errorf("%s states a subproject of its own", j.Gate)
+		}
+	}
+	// In memory: subprojects lists a requirement's field, the task's, then a
+	// junction's, and the field's id is its source text.
+	piece := Parse("tasks/b2c9.yaml", []byte("title: Leaf\nassignee: pat@example.org\nsubproject: { url: lib, id: 5a00 }\n"+
+		"junctions:\n  release: { subproject: { url: ./lib } }\nrequires: [{ subproject: { url: lib, id: \"5a00\" } }]\n"))
+	q := Compose(model.Location{}, []*Piece{piece}, nil)
+	leaf := q.Tasks["b2c9"]
+	all := subprojects(leaf)
+	if len(all) != 3 || all[0].On != model.OnRequirement || all[1] != leaf.Subproject || all[2].On != model.OnJunction {
+		t.Errorf("subprojects gives %+v", all)
+	}
+	if id := leaf.Subproject.ID; id.V != "5a00" || id.Node.Kind != model.String || id.Node.Quoted {
+		t.Errorf("the field's id reads %+v; want the source text, unquoted", id.Node)
+	}
 }
 
 // T7: junction entries stay as written.
