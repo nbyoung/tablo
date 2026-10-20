@@ -1,0 +1,83 @@
+# What the Derivation gives and the Validator reports at each label of crossing.sh, read at that
+# label. The language is 0.3.2 at X1 to X3 and 0.4.0 from X4. Per label: each junction of b2c9 and
+# d3a6 with its contributor, its reviewer and the reviewer's supplier, and its marks; each review a
+# status passes, with the commit that accepts it; then what tablo validate prints. At X6, every event
+# of the two leaves, and the agent a person's commit names in Co-Authored-By:.
+X1: tableaux 0.3.2
+  b2c9 defined bot@example.org, reviewer none by default, marks person
+  b2c9 design bot@example.org, reviewer bot@example.org by assignee, marks agent
+  b2c9 release bot@example.org, reviewer none by default, marks person
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  validate: nothing
+X2: tableaux 0.3.2
+  b2c9 defined bot@example.org, reviewer none by default, marks person
+  b2c9 design bot@example.org, reviewer bot@example.org by assignee, marks agent
+  b2c9 release bot@example.org, reviewer none by default, marks person
+  b2c9 review design, reviewer bot@example.org: X2 by bot@example.org
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  validate: nothing
+X3: tableaux 0.3.2
+  b2c9 defined bot@example.org, reviewer none by default, marks person
+  b2c9 design bot@example.org, reviewer bot@example.org by assignee, marks agent
+  b2c9 release bot@example.org, reviewer none by default, marks person
+  b2c9 review design, reviewer bot@example.org: X2 by bot@example.org
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  d3a6 review design, reviewer pat@example.org: X3 by pat@example.org
+  validate: nothing
+X4: tableaux 0.4.0
+  b2c9 defined bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 design bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 release bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 review defined, reviewer olive@example.org: X1 by olive@example.org
+  b2c9 review design, reviewer olive@example.org: X2 by bot@example.org
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  d3a6 review design, reviewer pat@example.org: X3 by pat@example.org
+  validate:
+    .tableaux/status/b2c9.yaml: information: H4 the newest event is the contributor's and the status states no review; olive@example.org may have release to review
+X5: tableaux 0.4.0
+  b2c9 defined bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 design bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 release bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 review defined, reviewer olive@example.org: X1 by olive@example.org
+  b2c9 review design, reviewer olive@example.org: X2 by bot@example.org
+  b2c9 review release, reviewer olive@example.org: none
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  d3a6 review design, reviewer pat@example.org: X3 by pat@example.org
+  validate:
+    warning: H7 pat@example.org authors the agent's work at the release junction, whose contributor is bot@example.org
+    .tableaux/status/b2c9.yaml:1:7: error: S11 the status passes release, whose reviewer is olive@example.org, and no commit by the reviewer carries Reviewed: b2c9 release
+X6: tableaux 0.4.0
+  b2c9 defined bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 design bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 release bot@example.org, reviewer olive@example.org by nearest e4a1, marks agent reviewer
+  b2c9 review defined, reviewer olive@example.org: X1 by olive@example.org
+  b2c9 review design, reviewer olive@example.org: X2 by bot@example.org
+  b2c9 review release, reviewer olive@example.org: X6 by olive@example.org
+  d3a6 defined pat@example.org, reviewer none by default, marks person
+  d3a6 design bot@example.org, reviewer pat@example.org by assignee, marks agent reviewer
+  d3a6 release pat@example.org, reviewer none by default, marks person
+  d3a6 review design, reviewer pat@example.org: X3 by pat@example.org
+  event 2026-09-01 X1 olive@example.org b2c9 task
+  event 2026-09-01 X1 olive@example.org b2c9 status defined nominal; at defined
+  event 2026-09-02 X2 bot@example.org b2c9 status design nominal; at design
+  event 2026-09-02 X2 bot@example.org b2c9 reviewed design; accepts
+  event 2026-09-05 X5 pat@example.org b2c9 status release complete; at release
+    co-author bot@example.org
+  event 2026-09-06 X6 olive@example.org b2c9 reviewed release; accepts
+  event 2026-09-01 X1 olive@example.org d3a6 task
+  event 2026-09-01 X1 olive@example.org d3a6 status defined nominal; at defined
+  event 2026-09-03 X3 pat@example.org d3a6 status design nominal; at design
+    co-author bot@example.org
+  event 2026-09-03 X3 pat@example.org d3a6 reviewed design; accepts
+  validate:
+    warning: H7 pat@example.org authors the agent's work at the release junction, whose contributor is bot@example.org
