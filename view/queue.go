@@ -101,8 +101,8 @@ type BriefField struct {
 
 // BriefSource names where a field resolves from.
 type BriefSource struct {
-	Kind  string `json:"kind"` // task, assignee or default
-	ID    string `json:"id"`   // task: the task whose entry states it; else ""
+	Kind  string `json:"kind"` // task, assignee, nearest or default
+	ID    string `json:"id"`   // task: the task whose entry states it; nearest: the ancestor whose assignee reviews; else ""
 	Title string `json:"title"`
 }
 

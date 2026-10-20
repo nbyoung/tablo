@@ -84,6 +84,7 @@ type Facts struct {
 	events         map[string][]*Event        // by task: with its subprojects'
 	eventsBusy     map[string]bool
 	unread         []*Unread
+	paired         map[string]bool // the contributors an entry pairs with a model; nil until asked
 }
 
 // build makes the facts of one project: the refusal, or the tree and the gating.

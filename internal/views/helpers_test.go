@@ -180,6 +180,15 @@ func mem(t testing.TB, files map[string]string) *derive.Facts {
 // shell or no git.
 func cases(t testing.TB) (repo string, hashes map[string]string, order []string) {
 	t.Helper()
+	return scripted(t, "cases")
+}
+
+// scripted builds the repository a script the Derivation's tests keep
+// writes, under a temporary directory, and returns its path, the commits it
+// labels and the labels in order. It skips the test when the host has no
+// shell or no git.
+func scripted(t testing.TB, name string) (repo string, hashes map[string]string, order []string) {
+	t.Helper()
 	sh, err := exec.LookPath("sh")
 	if err != nil {
 		t.Skip("the host has no sh executable")
@@ -187,15 +196,15 @@ func cases(t testing.TB) (repo string, hashes map[string]string, order []string)
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("the host has no git executable")
 	}
-	script, err := filepath.Abs(filepath.Join("..", "derive", "testdata", "cases.sh"))
+	script, err := filepath.Abs(filepath.Join("..", "derive", "testdata", name+".sh"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo = filepath.Join(t.TempDir(), "cases")
+	repo = filepath.Join(t.TempDir(), name)
 	cmd := exec.Command(sh, script, repo)
 	cmd.Env = gitEnv()
 	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("cases.sh: %v\n%s", err, out)
+		t.Fatalf("%s.sh: %v\n%s", name, err, out)
 	}
 	data, err := os.ReadFile(repo + ".labels.txt")
 	if err != nil {

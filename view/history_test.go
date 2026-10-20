@@ -12,7 +12,7 @@ const (
 	historyGlance     = "legend subject events commits kinds days lines"
 	historyProvenance = "commands"
 	lineGlance        = "task proposal events"
-	lineDetail        = "after unchanged subject_after effect model check committer"
+	lineDetail        = "after unchanged subject_after effect model check committer co_author"
 	lineProvenance    = "commit"
 )
 
@@ -68,7 +68,7 @@ func TestHistoryKeysByLevel(t *testing.T) {
 			t.Errorf("a line at %s writes %v", c.name, values)
 		}
 		if c.level > 0 {
-			for key, want := range map[string]string{"after": "null", "subject_after": "null", "check": "null", "effect": `""`, "model": `""`, "committer": `""`, "unchanged": "false"} {
+			for key, want := range map[string]string{"after": "null", "subject_after": "null", "check": "null", "effect": `""`, "model": `""`, "committer": `""`, "co_author": `""`, "unchanged": "false"} {
 				if values[key] != want {
 					t.Errorf("a line at %s writes %s as %s, want %s", c.name, key, values[key], want)
 				}

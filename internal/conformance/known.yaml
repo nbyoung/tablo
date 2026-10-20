@@ -14,26 +14,14 @@
 # failures", as 8118 decision 11 amends it: the owes comes from the path of the
 # first mismatch, and a finding with a rule P, G, T, R, J, S or H owes 8118.
 known:
-  - entry: agent-work-under-person
-    reason: "findings: want H7 at d3a6 design (C4), got none"
-    owes: cdb0
-  - entry: agents-listed
-    reason: "tasks.b2c9.junctions.default.reviewer: want olive@example.org, got (absent); and 1 more"
-    owes: cdb0
   - entry: authorised-by-merge
     reason: "tasks.c3d4.events.length: want 3, got 2"
-    owes: cdb0
-  - entry: junction-review-waived
-    reason: "valid: want true, got false; and 2 more"
     owes: cdb0
   - entry: reaffirmed-snapshot
     reason: "findings: want H8 at b2c9 (R1), got none; and 1 more"
     owes: cdb0
   - entry: requires-unpinned
     reason: "valid: want true, got false; and 6 more"
-    owes: cdb0
-  - entry: review-nearest-person
-    reason: "findings: want H4 at b2c9 release (N2), got none; and 5 more"
     owes: cdb0
   - entry: undefined-leaf-reaffirmed
     reason: "findings: want H8 at b2c9 (U3), got none"

@@ -380,3 +380,23 @@ func TestAgentsAtEachCommit(t *testing.T) {
 		}
 	}
 }
+
+// CoAuthors reads each Co-Authored-By: trailer of the form Name <email>, in
+// order, in the case SYNTAX.md writes the key, and skips any other value.
+func TestCoAuthors(t *testing.T) {
+	c := &Commit{Trailers: []Trailer{
+		{"Co-Authored-By", "Corpus Agent <bot@example.org>"},
+		{"Model", "claude-fable-5-1"},
+		{"Co-authored-by", "Other Case <case@example.org>"},
+		{"Co-Authored-By", "no address"},
+		{"Co-Authored-By", "<bare@example.org>"},
+		{"Co-Authored-By", "Trailing <tail@example.org> more"},
+		{"Co-Authored-By", "Pat Lee <pat@example.org>"},
+	}}
+	if got := fmt.Sprint(c.CoAuthors()); got != "[{Corpus Agent bot@example.org} {Pat Lee pat@example.org}]" {
+		t.Errorf("CoAuthors gives %s", got)
+	}
+	if (&Commit{}).CoAuthors() != nil {
+		t.Error("a commit with no trailer has co-authors")
+	}
+}

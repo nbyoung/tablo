@@ -73,6 +73,7 @@ type Reading struct {
 	Stated      string // the model it states there; "" for none
 	Trailer     string // the commit's first Model: trailer; "" for none
 	Verdict     Verdict
+	CoAuthor    string // the first agent a Co-Authored-By: trailer names on a person's commit; "" for none
 }
 
 // Event is one event of one task.
@@ -417,11 +418,37 @@ func (f *Facts) statusEvent(c *history.Commit, id string) *Event {
 	return e
 }
 
+// CoAuthor returns the first agent a Co-Authored-By: trailer of a commit
+// names, where the commit's author is no agent, as the files at the commit
+// judge both; "" for none and for a commit the pass lacks.
+func (f *Facts) CoAuthor(c *history.Commit) string {
+	if c == nil || !f.enter() {
+		return ""
+	}
+	defer f.leave()
+	return coAuthor(f.past(c.ID), c)
+}
+
+// coAuthor is CoAuthor with the facts at the commit: nil reads no agent.
+func coAuthor(then *Facts, c *history.Commit) string {
+	if then.agent(c.Author.Email) {
+		return ""
+	}
+	for _, p := range c.CoAuthors() {
+		if then.agent(p.Email) {
+			return p.Email
+		}
+	}
+	return ""
+}
+
 // readingAt gives the junction a status or reaffirmed commit is at and its
 // model check. A commit that changes the status's gate is at the junction of
 // the gate it records; any other is at the task's next applicable junction
 // as the files stand at that commit. gate is the gate the status states at
-// the commit; "" reads it from the files there.
+// the commit; "" reads it from the files there. On a commit whose author is
+// no agent, the reading names the first agent its Co-Authored-By: trailers
+// name, as the files at the commit judge both, at every version.
 func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Reading {
 	then := f.past(c.ID)
 	if !records {
@@ -437,6 +464,7 @@ func (f *Facts) readingAt(c *history.Commit, id, gate string, records bool) *Rea
 	if values := c.Values("Model"); len(values) > 0 {
 		r.Trailer = values[0]
 	}
+	r.CoAuthor = coAuthor(then, c)
 	if j := then.junction(id, gate); j != nil && j.Kind == model.Plain {
 		r.Contributor, r.Stated = j.Contributor.V, j.Model.V
 	}

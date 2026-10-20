@@ -23,7 +23,8 @@ import (
 //	authorities          task      data.authorities[].email
 //	authorisation        task      state from data.authorised; commit from data.authorisation.commit.hash;
 //	                               by from data.authorisation.email
-//	junctions.default    task      { kind: plain, contributor: data.assignee }
+//	junctions.default    task      { kind: plain, contributor: data.assignee, reviewer: the reviewer of the
+//	                               first plain item of data.junctions whose from is empty } (cdb0 decision 7)
 //	junctions.<gate>     task      the item of data.junctions with that gate; source from its from[]
 //	applicable           task      undefined, then the gate of each item of data.junctions that is not not_applicable
 //	requires[]           task      data.requires[]: id from task.id, or subproject { url, id, pin } from
@@ -75,11 +76,21 @@ func observeTask(env map[string]any) map[string]any {
 		"state": state, "commit": asMap(auth["commit"])["hash"], "by": auth["email"],
 	}
 
-	junctions := map[string]any{"default": map[string]any{"kind": "plain", "contributor": d["assignee"]}}
+	plain := map[string]any{"kind": "plain", "contributor": d["assignee"]}
+	junctions := map[string]any{"default": plain}
 	applicable := []any{"undefined"}
 	for _, j := range asList(d["junctions"]) {
 		m := asMap(j)
 		gate := text(m["gate"])
+		// The plain default, where no entry supplies the junction: an agent's
+		// default has a reviewer, the nearest person.
+		if _, read := plain["reviewer"]; !read && m["kind"] == "plain" && len(asList(m["from"])) == 0 {
+			if reviewer := text(m["reviewer"]); reviewer != "" {
+				plain["reviewer"] = reviewer
+			} else {
+				plain["reviewer"] = nil
+			}
+		}
 		item := map[string]any{
 			"kind": m["kind"], "contributor": m["contributor"], "model": m["model"], "reviewer": m["reviewer"],
 			"source": m["from"],

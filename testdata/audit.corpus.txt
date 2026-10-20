@@ -1,3 +1,10 @@
+agent-work-under-person main: now 2026-09-04, stale 7: 0 error(s), 1 warning(s), 2 information
+  H7 warning [d3a6] at "design" in []: none -> pat@example.org
+    message: pat@example.org authors the agent's work at the design junction, whose contributor is bot@example.org
+    commits: C4
+    facts d3a6: junction
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <C4>  # shows the finding
+  sole_review information [b2c9 d3a6] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/d3a6.yaml]: none -> olive@example.org
 file-duplicate-key main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 2 information; most olive@example.org 1
   L2 error [b2c9] at "" in [.tableaux/status/b2c9.yaml]: revise -> olive@example.org
     message: the mapping states the key "gate" twice; the first stands
@@ -108,6 +115,14 @@ requires-commit-behind main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+review-after-status recorded: now 2026-09-02, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
+  S11 error [b2c9] at "design" in [.tableaux/status/b2c9.yaml]: review -> olive@example.org
+    message: the status passes design, whose reviewer is olive@example.org, and no commit by the reviewer carries Reviewed: b2c9 design
+    commits: R2
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 1 information; most olive@example.org 1
   H2 warning [b2c9] at "design" in []: review -> olive@example.org
     message: pat@example.org is not the reviewer of the design junction; olive@example.org is
@@ -116,6 +131,13 @@ review-by-non-reviewer main: now 2026-09-02, stale 7: 0 error(s), 1 warning(s), 
     $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <R2>  # shows the finding
     $ git commit --allow-empty --trailer 'Reviewed: b2c9 design'  # resolves it
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+review-nearest-person main: now 2026-09-05, stale 7: 0 error(s), 0 warning(s), 2 information; most bot@example.org 1
+  H4 information [b2c9] at "release" in [.tableaux/status/b2c9.yaml]: record_handoff -> bot@example.org
+    message: the newest event is the contributor's and the status states no review; olive@example.org may have release to review
+    commits: N2
+    facts b2c9: junction status
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <N2>  # shows the finding
+  sole_review information [d3a6] at "release" in [.tableaux/tasks/d3a6.yaml]: none -> bot@example.org
 siblings-same-order main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 4 information; most olive@example.org 1
   T12 warning [e4a1] at "" in [.tableaux/tasks/e4a1.yaml]: revise -> olive@example.org
     message: b2c9 and c3d7 share order 1 under e4a1
@@ -152,6 +174,12 @@ subproject-commit-off-pin main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s
     facts b2c9: junction linkage
     $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+subproject-language-behind main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 2 information; most pat@example.org 1
+  J19 warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: raise_language -> pat@example.org
+    message: the project at behind states tableaux 0.3.1, before this project's 0.3.2
+    commits: 
+    $ git log -1 --format='%as %H %ae' -- .tableaux/tasks/b2c9.yaml  # shows the finding
+  sole_review information [b2c9 7d1f] at "release" in [.tableaux/tasks/b2c9.yaml .tableaux/tasks/7d1f.yaml]: none -> olive@example.org
 subproject-path-missing main: now 2026-09-01, stale 7: 1 error(s), 0 warning(s), 1 information; most olive@example.org 1
   J8 error [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: revise -> olive@example.org
     message: url elsewhere resolves to no Tableaux project the tool can read: missing
@@ -199,6 +227,15 @@ trunk-undetermined main: now 2026-09-01, stale 7: 0 error(s), 1 warning(s), 2 in
     message: the trunk is undetermined: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch
     commits: 
     $ git log -1 --format='%as %H %ae' -- .tableaux/version.yaml  # shows the finding
+  sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+  sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
+undefined-leaf-reaffirmed main: now 2026-09-05, stale 7: 0 error(s), 1 warning(s), 2 information; most olive@example.org 1
+  proposed warning [b2c9] at "" in [.tableaux/tasks/b2c9.yaml]: authorise -> olive@example.org
+    message: The task stands proposed: pat@example.org, the author of its deciding commit, is none of its authorities
+    commits: U2
+    facts b2c9: authorisation
+    $ git show --no-patch --format='%as %H %ae %ce%n%(trailers)' <U2>  # shows the finding
+    $ git commit --allow-empty --trailer 'Authorised: b2c9'  # resolves it
   sole_review information [b2c9] at "design" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
   sole_review information [b2c9] at "release" in [.tableaux/tasks/b2c9.yaml]: none -> olive@example.org
 unknown-trailer main: now 2026-09-03, stale 7: 0 error(s), 2 warning(s), 2 information

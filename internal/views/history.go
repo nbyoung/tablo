@@ -141,6 +141,7 @@ func (b builder) line(subject string, events []*derive.Event) view.Line {
 	if c.Committer.Email != c.Author.Email {
 		d.Committer = c.Committer.Email
 	}
+	d.CoAuthor = from.CoAuthor(c)
 	d.After = b.statusAt(from, c.ID, task)
 	for _, parent := range c.Parents {
 		if from.At(parent) != nil && sameStatus(b.statusAt(from, parent, task), d.After) {
@@ -153,7 +154,8 @@ func (b builder) line(subject string, events []*derive.Event) view.Line {
 	}
 	for _, e := range events {
 		if (e.Kind == derive.StatusSet || e.Kind == derive.Reaffirmed) && e.Reading != nil && e.Reading.Verdict != derive.NoModel {
-			d.Check = &view.ModelCheck{Commit: c.ID, Gate: e.Reading.Gate, Stated: e.Reading.Stated, Trailer: e.Reading.Trailer, Reading: reading(e.Reading.Verdict)}
+			d.Check = &view.ModelCheck{Commit: c.ID, Gate: e.Reading.Gate, Stated: e.Reading.Stated, Trailer: e.Reading.Trailer,
+				Reading: reading(e.Reading.Verdict), CoAuthor: e.Reading.CoAuthor}
 			break
 		}
 	}

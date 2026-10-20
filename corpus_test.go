@@ -266,8 +266,9 @@ func TestAuditOfTheCorpus(t *testing.T) {
 		}
 	}
 	// dada's design states 24 and 18; 27a3 decision 15 leaves
-	// requires-from-not-applicable with its R6 alone, a revision, so its block goes.
-	if blocks != 23 || refused != 18 {
-		t.Errorf("the audit reports on %d entries and has no report for %d; want 23 and 18", blocks, refused)
+	// requires-from-not-applicable with its R6 alone, a revision, so its block
+	// goes; the corpus at 0.4.0 adds five (cdb0).
+	if blocks != 28 || refused != 18 {
+		t.Errorf("the audit reports on %d entries and has no report for %d; want 28 and 18", blocks, refused)
 	}
 }

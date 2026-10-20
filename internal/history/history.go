@@ -60,6 +60,23 @@ func (c *Commit) Values(key string) []string {
 	return values
 }
 
+// CoAuthors returns the identities the commit's Co-Authored-By: trailers
+// name, in order: each value of the form Name <email>; it skips any other.
+// It reads the key in the case SYNTAX.md writes, as the pass reads every trailer.
+func (c *Commit) CoAuthors() []Person {
+	var people []Person
+	for _, v := range c.Values("Co-Authored-By") {
+		name, rest, open := strings.Cut(v, "<")
+		email, tail, closed := strings.Cut(rest, ">")
+		name, email = strings.TrimSpace(name), strings.TrimSpace(email)
+		if !open || !closed || name == "" || email == "" || strings.TrimSpace(tail) != "" || strings.ContainsAny(email, "<> ") {
+			continue
+		}
+		people = append(people, Person{Name: name, Email: email})
+	}
+	return people
+}
+
 // From says what names the trunk.
 type From int
 

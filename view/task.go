@@ -110,11 +110,12 @@ type Review struct {
 
 // ModelCheck compares a junction's model with a commit's Model: trailer.
 type ModelCheck struct {
-	Commit  string `json:"commit"` // in full
-	Gate    string `json:"gate"`
-	Stated  string `json:"stated"`
-	Trailer string `json:"trailer"`
-	Reading string `json:"reading"` // agrees, differs, missing, exempt or unstated
+	Commit   string `json:"commit"` // in full
+	Gate     string `json:"gate"`
+	Stated   string `json:"stated"`
+	Trailer  string `json:"trailer"`
+	Reading  string `json:"reading"`   // agrees, differs, missing, exempt or unstated
+	CoAuthor string `json:"co_author"` // the first agent a Co-Authored-By: trailer names on a person's commit; else ""
 }
 
 // Event is one event of the task.

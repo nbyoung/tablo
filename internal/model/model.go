@@ -148,6 +148,11 @@ type Junction struct {
 	Node                         *Value
 }
 
+// Waives reports whether the entry states reviewer: false, which waives review.
+func (j *Junction) Waives() bool {
+	return j.Reviewer.Node != nil && j.Reviewer.Node.Kind == Bool && !BoolOf(j.Reviewer.Node).V
+}
+
 // JunctionKind is what the fields of an entry make it.
 type JunctionKind int
 

@@ -203,8 +203,8 @@ func TestProposedAgreesWithTheCorpus(t *testing.T) {
 			}
 		}
 	}
-	if onTrunk < 20 || proposed != 2 {
-		t.Errorf("%d entries on their trunk state %d proposed tasks; the corpus states 3c5d and c3d7 among more than 20", onTrunk, proposed)
+	if onTrunk < 20 || proposed != 3 {
+		t.Errorf("%d entries on their trunk state %d proposed tasks; the corpus states 3c5d, c3d7 and undefined-leaf-reaffirmed's b2c9 among more than 20", onTrunk, proposed)
 	}
 
 	cases := []struct {
@@ -390,8 +390,10 @@ func TestCorpus(t *testing.T) {
 		}
 	}
 	// The design states 24 and 18; 27a3 decision 15 leaves requires-from-not-applicable
-	// with its R6 alone, a revision, so its block goes.
-	if blocks != 23 || refused != 18 {
-		t.Errorf("the audit reports on %d entries and has no report for %d; want 23 and 18", blocks, refused)
+	// with its R6 alone, a revision, so its block goes; the corpus at 0.4.0 adds
+	// five: agent-work-under-person, review-after-status, review-nearest-person,
+	// subproject-language-behind and undefined-leaf-reaffirmed.
+	if blocks != 28 || refused != 18 {
+		t.Errorf("the audit reports on %d entries and has no report for %d; want 28 and 18", blocks, refused)
 	}
 }

@@ -19,7 +19,8 @@ type Junction struct{ Task, Gate string }
 // Resolved is a junction after inheritance and the defaults.
 type Resolved struct {
 	Recursive                    bool
-	Contributor, Model, Reviewer string // a plain junction; Reviewer is "" where it has none
+	Contributor, Model, Reviewer string // a plain junction; Reviewer is "" where it has none or waives review
+	Agent                        bool   // the contributor is an agent at the junction, as the version at the files reads it
 }
 
 // Condition is the derived condition of one requires entry.
@@ -52,7 +53,9 @@ type Commit struct {
 	Hash              string     // in full
 	Author, Committer string     // the two emails
 	Tableaux          string     // the language version.yaml states at the commit; "" when none
-	Trailers          []Trailer  // Authorised, Reviewed, Reaffirmed and Model, in message order
+	Trailers          []Trailer  // Authorised, Reviewed, Reaffirmed, Model and Co-Authored-By, in message order
+	AuthorAgent       bool       // the author's identity is an agent's, as the files at the commit judge it
+	CoAgents          []string   // the emails of the Co-Authored-By: trailers that name an agent at the commit, in message order
 	Events            []Event    // the events of the history view that the commit gives
 	At                []Junction // the junctions the commit is at, as README.md "Junctions" defines it
 
@@ -90,7 +93,7 @@ const (
 )
 
 // Derived applies the rules that read derived facts: R9 from f.Requirements,
-// and with f.History also R13, P5, S11, J13 and H1 to H6. It returns nil when
+// and with f.History also R13, P5, S11, J13 and H1 to H8. It returns nil when
 // f is nil, when p has no .tableaux or no gates.yaml, and when the module does
 // not accept p's version. With f.History nil it applies R9 alone.
 func Derived(p *model.Project, f *Facts) []model.Diagnostic {
@@ -105,6 +108,7 @@ func Derived(p *model.Project, f *Facts) []model.Diagnostic {
 		r.s11()
 		wrong := r.trailers()
 		r.models()
+		r.h7()
 		r.h4(wrong)
 		r.h5()
 	}
@@ -398,6 +402,32 @@ func (r *run) h6(c Commit, j Junction, junction Resolved, models []string) {
 	}
 	r.commit("H6", model.Pos{}, j, c.Hash, "",
 		"the contributor's commit at the %s junction carries no Model: trailer; the junction states %s", j.Gate, junction.Model)
+}
+
+// h7 warns of an agent's work under a person's identity: a commit at a
+// junction that is an agent's as the files stand at the commit, whose author
+// is no agent, and which carries a Model: trailer or names an agent in
+// Co-Authored-By:. A commit at which version.yaml states a language before
+// 0.4.0 is exempt.
+func (r *run) h7() {
+	for _, c := range r.facts.History.Commits {
+		if c.AuthorAgent || model.Before(c.Tableaux, model.AgentIdentity) {
+			continue
+		}
+		ran := len(c.CoAgents) > 0
+		for _, trailer := range c.Trailers {
+			ran = ran || trailer.Key == keyModel
+		}
+		if !ran {
+			continue
+		}
+		for _, j := range c.At {
+			if junction, ok := r.stood(c, j); ok && junction.Agent {
+				r.commit("H7", model.Pos{}, j, c.Hash, "", "%s authors the agent's work at the %s junction, whose contributor is %s",
+					c.Author, j.Gate, junction.Contributor)
+			}
+		}
+	}
 }
 
 // h4 reports, as information, a hand-off the history implies: a leaf whose

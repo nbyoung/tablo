@@ -55,6 +55,7 @@ type LineDetail struct {
 	Model        string      `json:"model"`         // the commit's first Model: trailer; "" for none
 	Check        *ModelCheck `json:"check"`         // the model check of the line's status or reaffirmed event; null where it reads no model
 	Committer    string      `json:"committer"`     // the committer's email where it differs from the author's; else ""
+	CoAuthor     string      `json:"co_author"`     // the first agent a Co-Authored-By: trailer names on a person's commit; else ""
 }
 
 // LineProvenance is what a line adds at provenance.

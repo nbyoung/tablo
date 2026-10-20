@@ -164,8 +164,9 @@ func TestCorpusEventsFromLines(t *testing.T) {
 			entries++
 		}
 	}
-	if lists != 18 || entries != 13 {
-		t.Errorf("the corpus states %d lists of events in %d entries; the design counts 18 in 13", lists, entries)
+	// The design counts 18 in 13; the corpus at 0.4.0 adds twelve lists in nine entries (cdb0).
+	if lists != 30 || entries != 22 {
+		t.Errorf("the corpus states %d lists of events in %d entries; want 30 in 22", lists, entries)
 	}
 }
 

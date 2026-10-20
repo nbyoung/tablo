@@ -722,7 +722,7 @@ func validateFacts(f *derive.Facts) *validate.Facts {
 func resolvedOf(j *derive.Junction) (validate.Resolved, bool) {
 	switch j.Kind {
 	case model.Plain:
-		return validate.Resolved{Contributor: j.Contributor.V, Model: j.Model.V, Reviewer: j.Reviewer.V}, true
+		return validate.Resolved{Contributor: j.Contributor.V, Model: j.Model.V, Reviewer: j.Reviewer.V, Agent: j.Agent}, true
 	case model.Recursive:
 		return validate.Resolved{Recursive: true}, true
 	}
@@ -805,13 +805,14 @@ func offTrunk(f *derive.Facts) []validate.Pin {
 	return pins
 }
 
-// The keys of the method's four trailers, which History.Commits carries.
-var methodTrailers = map[string]bool{"Authorised": true, "Reviewed": true, "Reaffirmed": true, "Model": true}
+// The keys of the method's trailers, which History.Commits carries.
+var methodTrailers = map[string]bool{"Authorised": true, "Reviewed": true, "Reaffirmed": true, "Model": true, "Co-Authored-By": true}
 
 // commitsOf returns every commit the source reaches that carries a method
 // trailer, gives an event of the project's own or is at a junction, newest
 // first, each with the junctions it is at and those its Reviewed: trailers
-// name, as the files stand at that commit.
+// name, and whether its author and its co-authors are agents, as the files
+// stand at that commit.
 func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 	events := map[string][]*derive.Event{}
 	for _, e := range f.History() {
@@ -857,6 +858,12 @@ func commitsOf(f *derive.Facts, log *history.Log) []validate.Commit {
 		then := f.At(c.ID)
 		if p := log.Project(c.ID); p != nil && p.Version != nil {
 			vc.Tableaux = p.Version.Tableaux.V
+		}
+		vc.AuthorAgent = then.Agent(c.Author.Email)
+		for _, p := range c.CoAuthors() {
+			if then.Agent(p.Email) {
+				vc.CoAgents = append(vc.CoAgents, p.Email)
+			}
 		}
 		for _, j := range named {
 			if jj := then.Junction(j.Task, j.Gate); jj != nil {

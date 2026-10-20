@@ -205,7 +205,7 @@ func (b builder) junction(j *derive.Junction, from bool) view.Junction {
 	out := view.Junction{
 		Gate: j.Gate, Kind: j.Kind.String(), Marks: []string{},
 		Contributor: j.Contributor.V, Model: j.Model.V, Reviewer: j.Reviewer.V,
-		ReviewerByDefault: j.Reviewer.By == derive.ByAssignee,
+		ReviewerByDefault: j.Reviewer.By == derive.ByAssignee || j.Reviewer.By == derive.ByNearest,
 		References:        b.refs(j.References),
 		Stands:            b.stands(j),
 	}
@@ -279,6 +279,13 @@ func statedField(gate, field string, f derive.Field) view.Stated {
 		return out
 	case derive.ByAssignee:
 		return view.Stated{By: "assignee", Key: "assignee"}
+	case derive.ByNearest:
+		// The ancestor whose assignee reviews, at its assignee (cdb0 decision 2).
+		out := view.Stated{By: f.Task, Key: "assignee", File: taskFile(f.Task)}
+		if f.Node != nil {
+			out.Line, out.Col = f.Node.Pos.Line, f.Node.Pos.Col
+		}
+		return out
 	}
 	return view.Stated{By: "default"}
 }
@@ -329,7 +336,11 @@ func (b builder) suppliers(j *derive.Junction) []view.Supplier {
 			add("model", j.Model.V, statedField(j.Gate, "model", j.Model))
 		}
 		if j.Reviewer.By != derive.ByDefault {
-			add("reviewer", j.Reviewer.V, statedField(j.Gate, "reviewer", j.Reviewer))
+			value := j.Reviewer.V
+			if j.Reviewer.By == derive.ByTask && value == "" {
+				value = "false" // the entry waives review
+			}
+			add("reviewer", value, statedField(j.Gate, "reviewer", j.Reviewer))
 		}
 		if j.ReferencesFrom != "" {
 			add("references", strconv.Itoa(len(j.References)), b.statedEntry(j.ReferencesFrom, j.Gate, "references"))
