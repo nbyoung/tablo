@@ -6,7 +6,7 @@
   "viewer": null,
   "params": {},
   "data": {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "tableaux": "0.4",
     "schema": "tablo/1"
   },
