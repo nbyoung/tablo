@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: tablo reads the language at 0.4.0, the umbrella's df523e4, and known.yaml lists nothing; the unit gate runs go test ./... plain, where conformance passes 119 of 120 entries and skips tableaux-tooling, and with TABLEAUX_CORPUS and TABLO_CORPUS on a built clone with its submodules, where it passes all 120; each front end's language raise waits on its own reconcile
+note: T1 to T18 pass on this host with go test ./... plain, where conformance passes 119 of 120 entries and skips tableaux-tooling, and with TABLEAUX_CORPUS and TABLO_CORPUS on a clone of the umbrella with its submodules, where it passes all 120 and known.yaml holds nothing; no test is assigned to a later gate; integrate needs each front end at its 0.4.0 reconcile reading nearest and co_author and state_commit and raise_language, and the umbrella's validation showing no J19
