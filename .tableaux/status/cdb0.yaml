@@ -1,3 +1,3 @@
-gate: unit
+gate: integrate
 state: nominal
-note: T1 to T18 pass on this host with go test ./... plain, where conformance passes 119 of 120 entries and skips tableaux-tooling, and with TABLEAUX_CORPUS and TABLO_CORPUS on a clone of the umbrella with its submodules, where it passes all 120 and known.yaml holds nothing; no test is assigned to a later gate; integrate needs each front end at its 0.4.0 reconcile reading nearest and co_author and state_commit and raise_language, and the umbrella's validation showing no J19
+note: tabloio at 45fc2a8, tablotui at 6fd2cec and tableaud at 089bcab pass their five checks on tablo fd3ecc3 and read nearest and co_author, and the acts state_commit and raise_language where they draw an audit, tablotui drawing none; the umbrella's validation at 2cfc66b exits 0 with no J19; validate needs the owner reading the tooling plan at 0.4.0 through the front ends, and fcec's validate moving corpus/tooling off 50a373b
