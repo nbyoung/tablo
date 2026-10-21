@@ -4,7 +4,7 @@ import "github.com/nbyoung/tablo/internal/model"
 
 // Version is the tablo release version. The tag v<Version> releases it, so a
 // release bumps this constant first.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 // The tableaux language versions the module accepts. The method's version rule
 // accepts a project whose major version equals the tool's own and whose minor
