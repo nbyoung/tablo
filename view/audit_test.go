@@ -262,7 +262,7 @@ func TestAuditGolden(t *testing.T) {
 }
 
 // T15: the schema closes the three sets of words (decision 2, 493e decision
-// 11): it accepts each severity, each of the ten acts and each key, and
+// 11): it accepts each severity, each of the twelve acts and each key, and
 // refuses advance, a fourth kind and a fourth severity.
 func TestAuditSchemaClosesTheWords(t *testing.T) {
 	s := auditSchema(t, "view_finding")
