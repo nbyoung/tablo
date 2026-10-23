@@ -1,3 +1,3 @@
 gate: integrate
 state: nominal
-note: The command emits the four views (TestLibraryAndCommandAgree), TestCorpus of 4b4f compares the task view with the corpus on all 103 entries, and the adapters of tabloio f9bcb02, tablotui cf22fbe and tableaud 450771b read the data, each suite passing against this branch; tabloio's T17 skips 41 keys of the four views, tablotui reads no data of gates, authority or assignment and drops 59 keys of the task view, and tableaud's adapters read no field of about twenty of tablo's types; the four views' own broken cases, 20 of TestSchemaClosesEverySet and 5 of TestSchemaClosesTheWords, hold; validate needs the views on a person's own plan in the three front ends
+note: The field tests now show the structural views rendering the family's own plans in the three front ends; validate waits on the owner's checks and on a person's own plan through the close of Parcelang's migration, for the four views in tablotui, tabloio and tableaud
