@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: The command emits the four views (TestLibraryAndCommandAgree), and the adapters of tabloio f9bcb02, tablotui cf22fbe and tableaud 450771b read them, each suite passing against this branch; tabloio's T17 skips 70 keys of the four views and none of the queue, tablotui's types hold no place for 195 keys of them, and tableaud's adapters read no field such as Blockage.NotDueCount, GridRow.Leaf, ItemDetail.AlsoRequiredBy, ItemDetail.ParentUnblocks or RowProvenance.Linkages; the four views' own broken cases, 8 of TestSchemaClosesEverySet and none of TestSchemaClosesTheWords, hold; validate needs the owner to read the queue and the tree of this plan
+reason: review
+note: Validate awaits the owner's review; the agent's queue on this plan lists the ten tasks of the wave as work ready at validate among 21 items, the owner's queue holds one item and the blockage tree names no cause, each rendering exiting 0; the owner reads the queue and the tree beside this plan

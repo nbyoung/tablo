@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: T20 passes on the binary of the v0.1.0 archive (77ec4fa, its checksum checked), 102 entries passing and tableaux-tooling skipping on the embedded copy, and with TABLO_CORPUS on a clone of the umbrella all 103 pass; the validate gate is the owner reading the conformance report in the CI job summary; the front ends read data the corpus has checked once tabloio (1422), tablotui (518e) and tableaud pin tablo v0.1.0, which the dispatcher checks at the review
+reason: review
+note: Validate awaits the owner's review; the CI run on main at 3d0bf2d passes its corpus job and its conformance step, and tablo v0.2.0 reads the umbrella's corpus locally with 120 entries passing, 88 rules confirmed and 137 findings agreeing; the front ends pin tablo v0.2.0 now, where the note named v0.1.0; the owner opens the run's summary page and reads the conformance report
