@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; the agent's queue on this plan lists the ten tasks of the wave as work ready at validate among 21 items, the owner's queue holds one item and the blockage tree names no cause, each rendering exiting 0; the owner reads the queue and the tree beside this plan
+note: The owner reviewed validate in 6ad080c and passed the checks that read the queue and the tree of this plan; the agent's queue lists the ten tasks of the wave as work ready at validate among 21 items, the owner's queue holds one item and the blockage tree names no cause, each rendering exiting 0
