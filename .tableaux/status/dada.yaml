@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; the audit of the tooling plan at detail and provenance exits 0 with 32 findings in 12 rows, 1 warning and 31 of information, the 16 H3, 4 H4 and 12 sole-review items agreeing with validate; all 21 commits the findings name exist, every task has a task file, each H3 commit's trailer differs from the junction's model and each H4 commit is the contributor's; the owner reads the audit beside the plan and the log
+note: The owner reviewed validate in 6ad080c and passed the checks that read the audit of the tooling plan at detail and provenance beside the plan and the log; the audit gives 32 findings in 12 rows, 16 H3, 4 H4 and 12 sole-review items agreeing with validate, all 21 commits it names exist, every task has a task file, each H3 trailer differs from the junction's model and each H4 commit is the contributor's

@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; tablo validate exits 0 on the umbrella with sixteen H3 warnings and four H4 notes and on the four subprojects with their URLs mapped, and without the mapping it gives the J8 errors four, three, one and none; every located diagnostic names a file its plan holds and a task with a task file; the owner reads the diagnostics of the family's own plans beside the plans
+note: The owner reviewed validate in 6ad080c and passed the checks that read the diagnostics of the family's own plans beside the plans; tablo validate gives exit 0 on the umbrella with sixteen H3 warnings and four H4 notes, on the four subprojects with their URLs mapped, and the J8 errors four, three, one and none without the mapping, and every located diagnostic names a file its plan holds and a task with a task file

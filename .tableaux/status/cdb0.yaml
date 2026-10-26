@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; corpus/tooling names b678789, the umbrella validates with no J19, and the front ends render the tooling plan at 0.4.0 with the nearest person, the co-author and the waiver, tableaud exporting 92 pages; the owner reads the plan at 0.4.0 in tablotui and in the export
+note: The owner reviewed validate in 6ad080c and passed the checks that read the tooling plan at 0.4.0 through the front ends; corpus/tooling names b678789, the umbrella validates with no J19, the views draw the nearest person and the co-author, the waiver shows in a brief of a playground since no item of the plan waives its reviewer, and tableaud exports 92 pages
