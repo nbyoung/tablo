@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; the CI run on main at 3d0bf2d passes its corpus job and its conformance step, and tablo v0.2.0 reads the umbrella's corpus locally with 120 entries passing, 88 rules confirmed and 137 findings agreeing; the front ends pin tablo v0.2.0 now, where the note named v0.1.0; the owner opens the run's summary page and reads the conformance report
+note: The owner reviewed validate in 6ad080c and passed the checks that read the conformance report in the CI job summary and from a local run; the CI run on main at 3d0bf2d passes its corpus job and conformance step, and tablo v0.2.0 reads the umbrella's corpus with 120 entries passing, 88 rules confirmed and 137 findings agreeing
