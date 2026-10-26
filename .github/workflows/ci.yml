@@ -64,11 +64,14 @@ jobs:
       # from what the command writes: bytes that no user of the module sees,
       # since the module zip carries LF. So this job proves the code on each
       # platform over LF files, and leaves unproved a plan that a user checks
-      # out with core.autocrlf on, which no test builds; the tests' own
-      # repositories ignore the global and system configuration.
+      # out with core.autocrlf on, which the step "Validate a checkout with
+      # core.autocrlf on" builds; the tests' own repositories ignore the
+      # global and system configuration.
       - name: Keep the line endings of the repository
         run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -78,6 +81,26 @@ jobs:
         run: go vet ./...
       - name: go test
         run: go test -count=1 ./...
+      # tablo's own plan, cloned twice from the checkout: once with LF and
+      # once with core.autocrlf on, which writes CRLF on every platform. Both
+      # validates must print the same lines and exit the same (4f60 decision
+      # 11). Without the umbrella's clone both give J8 and exit 1.
+      - name: Validate a checkout with core.autocrlf on
+        run: |
+          go build -o "$RUNNER_TEMP/bin/" ./cmd/tablo
+          tablo="$RUNNER_TEMP/bin/tablo"
+          [ -f "$tablo" ] || tablo="$tablo.exe"
+          for eol in false true; do
+            git clone -q -c core.autocrlf=$eol . "$RUNNER_TEMP/eol-$eol"
+            s=0
+            (cd "$RUNNER_TEMP/eol-$eol" && "$tablo" validate) > "$RUNNER_TEMP/validate-$eol.txt" 2>&1 || s=$?
+            echo "exit $s" >> "$RUNNER_TEMP/validate-$eol.txt"
+          done
+          n=$(cat "$RUNNER_TEMP"/eol-true/.tableaux/tasks/*.yaml | tr -cd '\r' | wc -c)
+          echo "carriage returns in the task files of the CRLF checkout: $n"
+          [ "$n" -gt 0 ]
+          cat "$RUNNER_TEMP/validate-true.txt"
+          diff "$RUNNER_TEMP/validate-false.txt" "$RUNNER_TEMP/validate-true.txt"
       - name: Fetch the tableaux repository at the locked commit
         run: sh internal/corpustest/corpus.sh fetch "$RUNNER_TEMP/tableaux"
       - name: Run the corpus in place
