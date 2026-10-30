@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: validate awaits the owner's review; the runs on a person's own plan of 67 tasks with 14 subprojects show tablotui's load at arrival in 467 ms and with four panes in 558 ms, and tableaud's first page in 1343 ms and the next five in 668 ms, over A8's 100 ms bound as at the baseline; the owner checks the figures and the feel of arrival in tablotui and of a page in tableaud
+note: The owner reviews validate in 96864ea and the checks of the figures and of the feel of arrival and of a page pass; on a person's own plan of 67 tasks with 14 subprojects tablotui loads at arrival in 467 ms and with four panes in 558 ms and tableaud serves its first page in 1343 ms and the next five in 668 ms, over A8's 100 ms bound as at the baseline, and this task and the derivation task cite that one reload cost
