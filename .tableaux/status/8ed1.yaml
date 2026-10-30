@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: The field tests now show the audit of the tooling plan agreeing with validate, with every commit it names present; validate waits on the owner's checks and on a person's own plan through the close of Parcelang's migration, for the history of a review period
+reason: review
+note: validate awaits the owner's review; the history of a review period of 33 commits shows 17 events (8 status, 2 reviewed, 5 pin, 1 task, 1 authorised) and every one of the 8 non-merge commits that touch the tableaux directory appears with none absent; the owner checks the history beside the wave's own account and the empty list of absent commits
