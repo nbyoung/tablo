@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: validate awaits the owner's review; the runs on a person's own plan of 67 tasks with 14 subprojects show the same costs as the loader, tablotui at arrival in 467 ms and with four panes in 558 ms and tableaud's first page in 1343 ms; the owner checks the figures and rules on decision 17, whether the passes stay sequential
+note: The owner reviews validate in 96864ea and the checks of the figures and of decision 17 pass; the passes stay sequential and decision 17 stands, and this task and the loader task cite one reload cost, tablotui at arrival in 467 ms and with four panes in 558 ms and tableaud's first page in 1343 ms on a person's own plan of 67 tasks with 14 subprojects
