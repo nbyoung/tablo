@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: validate awaits the owner's review; the four views at three levels over every task of a person's own plan and of its 14 subprojects gave 762 renderings on 15 plans with none failed, and the export gave 155 pages in 157 files; the owner checks the batch, the walk in tablotui, the export in a browser and tabloio's gates beside the exported page
+note: The owner reviews validate in 96864ea and the checks of the batch, the walk in tablotui, the export in a browser and tabloio's gates beside the exported page pass; the four views at three levels over every task of a person's own plan and of its 14 subprojects give 762 renderings on 15 plans with none failed, and the export gives 155 pages in 157 files

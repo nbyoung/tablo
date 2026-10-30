@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: validate awaits the owner's review; the history of a review period of 33 commits shows 17 events (8 status, 2 reviewed, 5 pin, 1 task, 1 authorised) and every one of the 8 non-merge commits that touch the tableaux directory appears with none absent; the owner checks the history beside the wave's own account and the empty list of absent commits
+note: The owner reviews validate in 96864ea and the checks of the history beside the wave's own account and of the empty list of absent commits pass; the history of a review period of 33 commits shows 17 events (8 status, 2 reviewed, 5 pin, 1 task, 1 authorised) and every one of the 8 non-merge commits that touch the tableaux directory appears with none absent
