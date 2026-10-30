@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: The field tests now show the Audit and the views agreeing with validate on the family's own plans; validate waits on the owner's checks and on a person's own plan through the close of Parcelang's migration, for the cost of the derivation in tablotui and tableaud, which decision 17 may reopen
+reason: review
+note: validate awaits the owner's review; the runs on a person's own plan of 67 tasks with 14 subprojects show the same costs as the loader, tablotui at arrival in 467 ms and with four panes in 558 ms and tableaud's first page in 1343 ms; the owner checks the figures and rules on decision 17, whether the passes stay sequential

@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: The field tests now show tablo v0.2.0 passing its platform job on macOS and Windows and loading the family's own plans with the diagnostics expected; validate waits on the owner's checks and on a person's own plan through the close of Parcelang's migration, for the reload cost in tablotui and tableaud
+reason: review
+note: validate awaits the owner's review; the runs on a person's own plan of 67 tasks with 14 subprojects show tablotui's load at arrival in 467 ms and with four panes in 558 ms, and tableaud's first page in 1343 ms and the next five in 668 ms, over A8's 100 ms bound as at the baseline; the owner checks the figures and the feel of arrival in tablotui and of a page in tableaud
