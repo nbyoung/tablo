@@ -197,7 +197,8 @@ func trailerLine(e *tablo.Envelope) string { return e.Data.(trailerData).Trailer
 
 // plainDiagnostics writes one line per diagnostic,
 // <path>:<line>:<col>: <severity>: <code> <message>, without the parts a
-// diagnostic lacks; nothing for none.
+// diagnostic lacks; nothing for none. A diagnostic with no path writes the
+// parts it holds of its commit (seven characters), task and gate first.
 func plainDiagnostics(list []tablo.Diagnostic) []byte {
 	var b strings.Builder
 	for _, d := range list {
@@ -210,6 +211,19 @@ func plainDiagnostics(list []tablo.Diagnostic) []byte {
 				}
 			}
 			b.WriteString(" ")
+		} else {
+			if len(d.Commit) > 7 {
+				d.Commit = d.Commit[:7]
+			}
+			var parts []string
+			for _, part := range []string{d.Commit, d.Task, d.Gate} {
+				if part != "" {
+					parts = append(parts, part)
+				}
+			}
+			if len(parts) > 0 {
+				b.WriteString(strings.Join(parts, " ") + ": ")
+			}
 		}
 		fmt.Fprintf(&b, "%s: %s %s\n", d.Severity, d.Code, d.Message)
 	}

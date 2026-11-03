@@ -382,8 +382,13 @@ func TestPlainForms(t *testing.T) {
 		{Severity: "warning", Code: "L4", Path: ".tableaux/notes.txt", Message: "m2"},
 		{Severity: "warning", Code: "X", Path: ".tableaux/gates.yaml", Line: 3, Message: "m3"},
 		{Severity: "information", Code: "H4", Message: "m4"},
+		{Severity: "warning", Code: "H3", Commit: "3d8ce0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7a8b", Task: "438a", Gate: "design", Message: "m5"},
+		{Severity: "warning", Code: "H3", Task: "438a", Gate: "design", Message: "m6"},
+		{Severity: "warning", Code: "H3", Commit: "3d8ce0e", Message: "m7"},
+		{Severity: "warning", Code: "H3", Path: ".tableaux/gates.yaml", Commit: "3d8ce0e", Task: "438a", Gate: "design", Message: "m8"},
 	}))
-	want := ".tableaux/tasks/b2c9.yaml:4:11: error: T4 m1\n.tableaux/notes.txt: warning: L4 m2\n.tableaux/gates.yaml:3: warning: X m3\ninformation: H4 m4\n"
+	want := ".tableaux/tasks/b2c9.yaml:4:11: error: T4 m1\n.tableaux/notes.txt: warning: L4 m2\n.tableaux/gates.yaml:3: warning: X m3\ninformation: H4 m4\n" +
+		"3d8ce0e 438a design: warning: H3 m5\n438a design: warning: H3 m6\n3d8ce0e: warning: H3 m7\n.tableaux/gates.yaml: warning: H3 m8\n"
 	if got != want {
 		t.Errorf("the plain diagnostics read\n%s", got)
 	}
@@ -400,6 +405,23 @@ func TestPlainForms(t *testing.T) {
 	}
 	if r := run(t, "version", "--yaml"); !strings.Contains(r.stdout, "schema: \"tablo/1\"\n") {
 		t.Errorf("version --yaml writes\n%s", r.stdout)
+	}
+}
+
+// TestPlainCommitDiagnostic covers a history diagnostic through the command:
+// the H3 line of the corpus entry model-mismatch names its commit, task and
+// gate.
+func TestPlainCommitDiagnostic(t *testing.T) {
+	quiet(t)
+	r := run(t, "-C", entry(t, "model-mismatch"), "--ref", "main", "validate")
+	ok := false
+	for _, l := range strings.Split(r.stdout, "\n") {
+		if strings.HasSuffix(l, " b2c9 design: warning: H3 Model claude-sonnet-5 is outside the stated model claude-fable") && len(strings.Fields(l)[0]) == 7 {
+			ok = true
+		}
+	}
+	if !ok {
+		t.Errorf("validate on model-mismatch writes %q", r.stdout)
 	}
 }
 
