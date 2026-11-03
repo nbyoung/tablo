@@ -108,9 +108,54 @@ func TestTableIsTotal(t *testing.T) {
 	}
 }
 
+// standsInRow reports whether a row of RULES.md holds a sentence of the table:
+// whole, without its final full stop, or as the opening of a quotation that
+// ends in " …\"".
+func standsInRow(row, sentence string) bool {
+	if strings.Contains(row, sentence) || strings.Contains(row, strings.TrimSuffix(sentence, ".")) {
+		return true
+	}
+	const ellipsis = " …\""
+	for rest := row; ; {
+		end := strings.Index(rest, ellipsis)
+		if end < 0 {
+			return false
+		}
+		quote := rest[:end]
+		for i := strings.LastIndex(quote, "\""); i >= 0; i = strings.LastIndex(quote[:i], "\"") {
+			if opening := quote[i+1:]; opening != "" && strings.HasPrefix(sentence, opening) {
+				return true
+			}
+		}
+		rest = rest[end+len(ellipsis):]
+	}
+}
+
+// TestStandsInRow checks the match of T1 without the corpus.
+func TestStandsInRow(t *testing.T) {
+	const sentence = "A task at its last applicable gate has the state `complete`, and only there."
+	for _, c := range []struct {
+		name, row string
+		want      bool
+	}{
+		{"whole", `| S8 | ` + sentence + ` | README |`, true},
+		{"without its full stop", `| S8 | "A task at its last applicable gate has the state ` + "`complete`, and only there" + `" |`, true},
+		{"shortened opening", `| S8 | README Status: "A task at its last applicable gate has the state ` + "`complete`" + ` …" |`, true},
+		{"shortened, not the opening", `| S8 | README Status: "its last applicable gate has the state ` + "`complete`" + ` …" |`, false},
+		{"shortened, other words", `| S8 | README Status: "A task at its first gate has the state …" |`, false},
+		{"different sentence", `| S8 | A task at its last gate has the state complete. |`, false},
+		{"empty row", ``, false},
+	} {
+		if got := standsInRow(c.row, sentence); got != c.want {
+			t.Errorf("%s: standsInRow = %v, want %v", c.name, got, c.want)
+		}
+	}
+}
+
 // T1: the table is true to the texts. Every sentence stands in that rule's
 // row of the corpus's RULES.md, or in the row above where the row says "Same
-// sentence".
+// sentence". A row may quote a sentence without its final full stop, or by
+// its opening words and "…".
 func TestTableIsTrueToTheTexts(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join(filepath.Dir(corpus(t)), "RULES.md"))
 	if err != nil {
@@ -136,7 +181,7 @@ func TestTableIsTrueToTheTexts(t *testing.T) {
 			t.Errorf("RULES.md holds no row for %s", known.ID)
 			continue
 		}
-		if sentence := table[known.ID].sentence; !strings.Contains(row, sentence) {
+		if sentence := table[known.ID].sentence; !standsInRow(row, sentence) {
 			t.Errorf("%s: the sentence %q stands nowhere in its row of RULES.md", known.ID, sentence)
 		}
 		cells := strings.Split(row, "|")
