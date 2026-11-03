@@ -167,6 +167,15 @@ func (b builder) taskProvenance(id string) *view.TaskProvenance {
 	}
 	if log := f.Log(); log != nil {
 		text := "git log --format='%H %as %ae %s' " + log.Source + " -- " + b.fromRoot(path.Join("tasks", id+".yaml")) + " " + b.fromRoot(path.Join("status", id+".yaml"))
+		// A roll-up's deciding commit changes the status file of a step of
+		// its chain, so the line names each such file in the project in view.
+		named := map[string]bool{id: true}
+		for _, s := range p.Chain {
+			if s.URL == "" && !named[s.Task.ID] {
+				named[s.Task.ID] = true
+				text += " " + b.fromRoot(path.Join("status", s.Task.ID+".yaml"))
+			}
+		}
 		for _, n := range f.Snapshots(id) {
 			if n.Link != nil && n.Link.Form == model.Submodule {
 				text += " " + n.Link.URL
