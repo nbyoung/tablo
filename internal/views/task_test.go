@@ -580,3 +580,26 @@ func encoded(t testing.TB, data any) []byte {
 	}
 	return b.Bytes()
 }
+
+// A parent's command reaches its deciding commit: the line names the status
+// file of each step of the chain in the project in view, and the newest
+// commit git log gives for the leaf's status file is the view's status_commit.
+func TestParentCommandReachesDecidingCommit(t *testing.T) {
+	// W12 is the last commit before the reaffirmation of 9f31 at W13, which
+	// changes no file and so no command reproduces.
+	hashes := labels(t, "weather-station")
+	f, _ := station(t, hashes["W12"])
+	node := Task(f, Query{Task: "4e2b", Level: Provenance})
+	want := "git log --format='%H %as %ae %s' " + hashes["W12"] + " -- .tableaux/tasks/4e2b.yaml .tableaux/status/4e2b.yaml .tableaux/status/9f31.yaml"
+	if len(node.Commands) != 1 || node.Commands[0].Text != want {
+		t.Fatalf("the command of 4e2b is %+v; want %q", node.Commands, want)
+	}
+	if node.StatusCommit == nil {
+		t.Fatal("4e2b has no deciding commit")
+	}
+	dir := builtAt(t, "weather-station")
+	got := gitRun(t, dir, "log", "-1", "--format=%H", hashes["W12"], "--", ".tableaux/status/9f31.yaml")
+	if got != node.StatusCommit.Hash {
+		t.Errorf("git log gives %s for the leaf's status file; the view's status_commit is %s", got, node.StatusCommit.Hash)
+	}
+}
