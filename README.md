@@ -124,7 +124,7 @@ GitHub release for the tag. No user installs Go: they fetch one file from the
 release page.
 
 ```
-git tag v0.2.0 && git push origin v0.2.0
+git tag v0.2.1 && git push origin v0.2.1
 ```
 
 `Version` in `version.go` names the release the next tag makes; bump it in the
