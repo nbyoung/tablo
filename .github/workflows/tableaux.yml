@@ -1,0 +1,28 @@
+# tablo's own Tableaux workflow: the consumer workflow of the snapshot action
+# (design 1422), as snapshot/consumer.yml of nbyoung/tabloio gives it, with
+# one step more. It validates the plan on every push and pull request and
+# regenerates TABLEAUX.md on main. The plan requires tasks of tableaux by its
+# URL at a commit, and a tool reads such a project in a clone that a mapping
+# outside the project files names, so the step clones tableaux and maps its
+# URL there, as tabloio's own workflow does for tablo.
+name: Tableaux
+on:
+  push:
+  pull_request:
+permissions:
+  contents: write
+concurrency:
+  group: tableaux-${{ github.ref }}
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # history: authorisation, reviews, dates
+          submodules: recursive   # pins: recursive junctions read subprojects
+      - name: Clone the projects the plan requires by URL
+        run: |
+          git clone -q https://github.com/nbyoung/tableaux "$RUNNER_TEMP/tableaux"
+          git config --global tableaux.https://github.com/nbyoung/tableaux.path "$RUNNER_TEMP/tableaux"
+      - uses: nbyoung/tabloio/snapshot@v0.2.0
